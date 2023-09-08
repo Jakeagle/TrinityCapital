@@ -11,7 +11,7 @@ const getPrfBTN = document.getElementById('getProfiles');
 const postBTN = document.getElementById('post');
 const input = document.getElementById('input');
 
-const socket = io('https://trinitycapital.azurewebsites.net/');
+const socket = io('https://trinitycapitalsim.azurewebsites.net');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -25,7 +25,7 @@ socket.on('checkingAccountUpdate', updatedChecking => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://trinitycapital.azurewebsites.net/profiles';
+const testServerProfiles = 'http://trinitycapital.azurewebsites.net/profiles';
 
 const loanURL = 'https://trinitycapital.azurewebsites.net/loans';
 
