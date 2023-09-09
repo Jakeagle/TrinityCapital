@@ -4,8 +4,6 @@ const mainApp = document.querySelector('.app');
 
 if (mainApp) mainApp.style.display = 'none';
 
-
-//test
 /***********************************************************Server Listeners**********************************************/
 
 const getBTN = document.getElementById('get');
@@ -13,7 +11,7 @@ const getPrfBTN = document.getElementById('getProfiles');
 const postBTN = document.getElementById('post');
 const input = document.getElementById('input');
 
-const socket = io('https://jakeagle.github.io/TrinityCapital');
+const socket = io('https://trinitycapitaltest-1.azurewebsites.net');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
