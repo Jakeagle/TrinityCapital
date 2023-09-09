@@ -11,7 +11,7 @@ const getPrfBTN = document.getElementById('getProfiles');
 const postBTN = document.getElementById('post');
 const input = document.getElementById('input');
 
-const socket = io('https://jakeagle.github.io/TrinityCapital');
+const socket = io('https://trinitycapitaltest-1.azurewebsites.net');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -26,9 +26,9 @@ socket.on('checkingAccountUpdate', updatedChecking => {
 
 /***********************************************************Server Functions**********************************************/
 const testServerProfiles =
-  'https://trinitycapitaltest-1.azurewebsites.net/Server/profiles';
+  'https://trinitycapitaltest-1.azurewebsites.net/profiles';
 
-const loanURL = 'https://trinitycapitaltest-1.azurewebsites.net/Server/loans';
+const loanURL = 'https://trinitycapitaltest-1.azurewebsites.net/loans';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
