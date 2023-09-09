@@ -25,9 +25,10 @@ socket.on('checkingAccountUpdate', updatedChecking => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://jakeagle.github.io/TrinityCapital/profiles';
+const testServerProfiles =
+  'https://trinitycapitaltest-1.azurewebsites.net/Server/profiles';
 
-const loanURL = 'https://jakeagle.github.io/TrinityCapital/loans';
+const loanURL = 'https://trinitycapitaltest-1.azurewebsites.net/Server/loans';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
