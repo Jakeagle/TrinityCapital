@@ -4,6 +4,8 @@ const mainApp = document.querySelector('.app');
 
 if (mainApp) mainApp.style.display = 'none';
 
+
+//test
 /***********************************************************Server Listeners**********************************************/
 
 const getBTN = document.getElementById('get');
