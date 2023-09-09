@@ -13,7 +13,7 @@ const getPrfBTN = document.getElementById('getProfiles');
 const postBTN = document.getElementById('post');
 const input = document.getElementById('input');
 
-const socket = io('https://trinitycapitaltest-1.azurewebsites.net');
+const socket = io('https://jakeagle.github.io/TrinityCapital');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
