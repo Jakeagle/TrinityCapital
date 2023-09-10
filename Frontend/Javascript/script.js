@@ -24,11 +24,32 @@ socket.on('checkingAccountUpdate', updatedChecking => {
   displayTransactions(checkingAccount);
 });
 
+socket.on('donationChecking', updatedDonCheck => {
+  const checkingAccount = updatedDonCheck;
+  console.log(checkingAccount, 'This is working');
+
+  // Call your existing updateUI function with the updated checking account data
+  displayBalance(checkingAccount);
+  displayTransactions(checkingAccount);
+});
+
+socket.on('donationSaving', updatedDonSav => {
+  const savingsAccount = updatedDonSav;
+  console.log(savingsAccount, 'This is working');
+
+  // Call your existing updateUI function with the updated checking account data
+  displayBalance(savingsAccount);
+  displayTransactions(savingsAccount);
+});
+
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles =
-  'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
+const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
 
 const loanURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/loans';
+
+const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donations';
+
+const donationSavings = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
@@ -73,6 +94,30 @@ async function loanPush() {
     }),
   });
   console.log(currentProfile);
+}
+
+async function donationPush() {
+  const res = await fetch(donationURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      parcel: [currentAccount, parseInt(donateAmount.value)],
+    }),
+  });
+}
+
+async function donationPushSavings() {
+  const res = await fetch(donationURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      parcel: [currentAccount, parseInt(donateAmount.value)],
+    }),
+  });
 }
 
 export let profiles = await getInfoProfiles();
@@ -211,59 +256,44 @@ if (loginButton) {
 if (accBtnSwitch) {
   accBtnSwitch.addEventListener('click', function (e) {
     e.preventDefault();
+    console.log(currentAccount);
     //The value for the account you want to switch too
     let targetAccount = accNumSwitch.value;
-    //Variable that matches the above with the matching account number
-    let accountToSwitch = currentProfile.accounts.find(
-      //Matches the last for of the account with the targetAccount entry
-      account => account.accountNumber.slice(-4) === targetAccount
-    );
-
     accPIN = parseInt(accPinSwitch.value);
-    if (!accountToSwitch) {
-      alert('Incorrect account number');
-    } else {
-      if (accPIN === currentProfile.pin) {
-        //Updates UI for current balance with switched account
-        balanceLabel.textContent = `Current balance for: #${accountToSwitch.accountNumber.slice(
-          -4
-        )}`;
-        //sets current account to the switched account
-        currentAccount = accountToSwitch;
-        //empties text field
-        accNumSwitch.value = '';
-        //empties text field
-        accPinSwitch.value = '';
-        //Updates main site with switched account
-        updateUI(accountToSwitch);
-        currAcc(currentAccount);
+    //Variable that matches the above with the matching account number
+    let accountToSwitch;
 
-        //Updates to the current time
-        updateTime();
-        //Updates the as of field
-        balanceDate.textContent = `As of ${new Intl.DateTimeFormat(
-          currentProfile.locale,
-          options
-        ).format(currentTime)}`;
+    if (accPIN === currentProfile.pin) {
+      if (
+        targetAccount === currentProfile.checkingAccount.accountNumber.slice(-4)
+      ) {
+        currentAccount = currentProfile.checkingAccount;
+        updateUI(currentAccount);
+      } else if (
+        targetAccount === currentProfile.savingsAccount.accountNumber.slice(-4)
+      ) {
+        currentAccount = currentProfile.savingsAccount;
 
-        //Variable for the loan section
-        const loanBox = document.querySelector('.operation--loan');
-        //checks for savings accounr
-
-        if (currentAccount.accountType === 'Savings') {
-          loanBox.style.display = 'none';
-        }
-        //takes away loans if savings
-        else if (currentAccount.accountType === 'Checking') {
-          loanBox.style.display = 'inline';
-        }
-        //checks for Checking
-
-        //Shows loan box
-      } else {
-        alert('Incorrect PIN');
+        updateUI(currentAccount);
       }
+    } else {
+      alert('Incorrect PIN');
     }
+
+    //Variable for the loan section
+    const loanBox = document.querySelector('.operation--loan');
+    //checks for savings accounr
+
+    if (currentAccount.accountType === 'Savings') {
+      loanBox.style.display = 'none';
+    }
+    //takes away loans if savings
+    else if (currentAccount.accountType === 'Checking') {
+      loanBox.style.display = 'inline';
+    }
+
+    accNumSwitch.value = '';
+    accPinSwitch.value = '';
   });
 }
 
@@ -288,25 +318,15 @@ if (donateBtn) {
   donateBtn.addEventListener('click', function (e) {
     e.preventDefault();
     //How much a user donates
-    let donationAmount = Number(donateAmount.value);
-    //User Pin
-    const pin = parseInt(donatePin.value);
-    //Checks account and pushes donation
-    if (pin === currentProfile.pin) {
-      currentAccount.transactions.push(-donationAmount);
 
-      // Add loan date
-
-      currentAccount.movementsDates.push(new Date().toISOString());
-
-      //Updates local storage
-
-      //Update UI
-      updateUI(currentAccount);
-
-      donatePin.value = '';
-      donateAmount.value = '';
+    if (currentAccount.accountType === 'Checking') {
+      donationPush();
+    } else if (currentAccount.accountType === 'Savings') {
+      donationPushSavings();
     }
+
+    donatePin.value = '';
+    donateAmount.value = '';
   });
 }
 
