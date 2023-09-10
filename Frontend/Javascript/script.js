@@ -97,7 +97,7 @@ async function loanPush() {
 }
 
 async function donationPush() {
-  const res = await fetch(donationSavingsURL, {
+  const res = await fetch(donationURL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -109,7 +109,7 @@ async function donationPush() {
 }
 
 async function donationPushSavings() {
-  const res = await fetch(donationURL, {
+  const res = await fetch(donationSavingsURL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
