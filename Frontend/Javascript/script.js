@@ -268,12 +268,17 @@ if (accBtnSwitch) {
         targetAccount === currentProfile.checkingAccount.accountNumber.slice(-4)
       ) {
         currentAccount = currentProfile.checkingAccount;
+        balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(
+          -4
+        )}`;
         updateUI(currentAccount);
       } else if (
         targetAccount === currentProfile.savingsAccount.accountNumber.slice(-4)
       ) {
         currentAccount = currentProfile.savingsAccount;
-
+        balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(
+          -4
+        )}`;
         updateUI(currentAccount);
       }
     } else {
