@@ -11,7 +11,7 @@ const getPrfBTN = document.getElementById('getProfiles');
 const postBTN = document.getElementById('post');
 const input = document.getElementById('input');
 
-const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+const socket = io('http://localhost:3000');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -43,13 +43,13 @@ socket.on('donationSaving', updatedDonSav => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
+const testServerProfiles = 'http://localhost:3000/profiles';
 
-const loanURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/loans';
+const loanURL = 'http://localhost:3000/loans';
 
-const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donations';
+const donationURL = 'http://localhost:3000/donations';
 
-const donationSavings = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
+const donationSavingsURL = 'http://localhost:3000/donationsSavings';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
@@ -97,7 +97,7 @@ async function loanPush() {
 }
 
 async function donationPush() {
-  const res = await fetch(donationURL, {
+  const res = await fetch(donationSavingsURL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
