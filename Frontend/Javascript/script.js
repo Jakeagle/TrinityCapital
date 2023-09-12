@@ -461,59 +461,6 @@ export const displayTransactions = function (currentAccount) {
   });
 };
 
-//Displays all of the bills a user has set up
-export const displayBills = function () {
-  console.log(currentAccount.accountType);
-  //Simulated time for bills to appear
-  let interval;
-  //How much the bill actually is
-  let amount;
-  const transactionContainer = document.querySelector('.transactions');
-  if (transactionContainer) {
-    transactionContainer.innerHTML = '';
-  }
-
-  //Runs through each bill object in the bills array
-
-  for (let i = 0; i < currentAccount.bills.length; i++) {}
-};
-
-//Displays all of the payments a user has set up
-export const displayPayments = function () {
-  console.log(currentAccount.accountType);
-  //Simulated time for bills to appear
-  let interval;
-  //How much the bill actually is
-  let amount;
-  const transactionContainer = document.querySelector('.transactions');
-  if (transactionContainer) {
-    transactionContainer.innerHTML = '';
-  }
-
-  //Runs through each bill object in the bills array
-
-  for (let i = 0; i < currentAccount.payments.length; i++) {
-    //Sets interval to the value set in the current bill object
-    interval = currentAccount.payments[i].frequency;
-    //Sets amount to the value set in the current bill object
-    amount = currentAccount.payments[i].amount;
-
-    //Displays the bills using the amount, every interval set above
-
-    setInterval(function () {
-      console.log(currentAccount.payments[i]);
-      //Pushes amount to the transactions array
-      currentProfile.accounts[0].transactions.push(amount);
-      //creates a new date for the transaction above
-      currentProfile.accounts[0].movementsDates.push(new Date().toISOString());
-
-      //Updates Local Storage with new data
-
-      //Displays new data on the webpage
-      updateUI(currentAccount);
-    }, interval);
-  }
-};
 
 //formats the transactions dates to the users locale
 export const formatMovementDate = function (date, locale) {
