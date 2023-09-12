@@ -11,7 +11,7 @@ const getPrfBTN = document.getElementById('getProfiles');
 const postBTN = document.getElementById('post');
 const input = document.getElementById('input');
 
-const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -54,7 +54,7 @@ const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
 
-async function getInfoProfiles() {
+export async function getInfoProfiles() {
   try {
     const res = await fetch(testServerProfiles, {
       method: 'GET',
@@ -475,27 +475,7 @@ export const displayBills = function () {
 
   //Runs through each bill object in the bills array
 
-  for (let i = 0; i < currentAccount.bills.length; i++) {
-    //Sets interval to the value set in the current bill object
-    interval = currentAccount.bills[i].frequency;
-    //Sets amount to the value set in the current bill object
-    amount = currentAccount.bills[i].amount;
-
-    //Displays the bills using the amount, every interval set above
-
-    setInterval(function () {
-      //Pushes amount to the transactions array
-      console.log(currentAccount.bills[i]);
-      currentProfile.accounts[0].transactions.push(amount);
-      //creates a new date for the transaction above
-      currentProfile.accounts[0].movementsDates.push(new Date().toISOString());
-
-      //Updates Local Storage with new data
-
-      //Displays new data on the webpage
-      updateUI(currentAccount);
-    }, interval);
-  }
+  for (let i = 0; i < currentAccount.bills.length; i++) {}
 };
 
 //Displays all of the payments a user has set up
