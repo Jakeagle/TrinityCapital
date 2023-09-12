@@ -228,9 +228,9 @@ if (loginButton) {
         // Update the UI with the first account's information
         updateUI(currentAccount);
         //Starts loop function that displays the current Accounts bills
-        displayBills();
+      
         //Starts loop function that displays the current Accounts paychecks
-        displayPayments();
+       
 
         //Displays the "Current Balanace for "x" string
         balanceLabel.textContent = `Current balance for: #${currentAccount.accountNumber.slice(
