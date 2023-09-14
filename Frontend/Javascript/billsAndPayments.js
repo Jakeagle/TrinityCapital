@@ -82,6 +82,7 @@ billFrequency.addEventListener('change', function (event) {
 //sets amount for bills
 billsBTN.addEventListener('click', function () {
   sendBillData('bill', parseInt(billInput.value), billInterval);
+  billInput.value = '';
 });
 
 //Same code as bills
@@ -93,4 +94,5 @@ paymentFrequency.addEventListener('change', function (event) {
 });
 paymentsBTN.addEventListener('click', function () {
   sendBillData('payment', parseInt(paymentInput.value), payInterval);
+  paymentInput.value = '';
 });
