@@ -1,7 +1,9 @@
 'use strict';
 
-const mainApp = document.querySelector('.app');
+const mainApp = document.querySelector('.mainApp');
+const loginBox = document.querySelector('.signOnBox');
 
+loginBox.showModal();
 if (mainApp) mainApp.style.display = 'none';
 
 /***********************************************************Server Listeners**********************************************/
@@ -11,7 +13,7 @@ const getPrfBTN = document.getElementById('getProfiles');
 const postBTN = document.getElementById('post');
 const input = document.getElementById('input');
 
-export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+export const socket = io('http://localhost:3000');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -43,13 +45,13 @@ socket.on('donationSaving', updatedDonSav => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
+const testServerProfiles = 'http://localhost:3000/profiles';
 
-const loanURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/loans';
+const loanURL = 'http://localhost:3000/loans';
 
-const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donations';
+const donationURL = 'http://localhost:3000/donations';
 
-const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
+const donationSavingsURL = 'http://localhost:3000/donationsSavings';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
@@ -206,19 +208,22 @@ if (loginButton) {
     if (currentProfile) {
       // Retrieve saved transactions for current account
 
+      loginBox.close();
+
+      const signOnSection = document.querySelector('.signOnSection');
+
+      signOnSection.style.display = 'none';
       console.log(currentProfile);
 
       // Display welcome message
-      const signOnText = document.querySelector('.signOntext');
-      signOnText.textContent = `Welcome Back ${
-        currentProfile.memberName.split(' ')[0]
-      }`;
+      const signOnText = document.querySelector('.signOnText');
+      signOnText.textContent = currentProfile.memberName.split(' ')[0];
 
       // Hide login form and display main app
       const formDiv = document.querySelector('.formDiv');
-      const mainApp = document.querySelector('.app');
-      formDiv.style.display = 'none';
-      mainApp.style.display = 'block';
+      const mainApp = document.querySelector('.mainApp');
+
+      mainApp.style.display = 'flex';
       mainApp.style.opacity = 100;
 
       currentAccount = currentProfile.checkingAccount;
@@ -228,9 +233,6 @@ if (loginButton) {
         // Update the UI with the first account's information
         updateUI(currentAccount);
         //Starts loop function that displays the current Accounts bills
-      
-        //Starts loop function that displays the current Accounts paychecks
-       
 
         //Displays the "Current Balanace for "x" string
         balanceLabel.textContent = `Current balance for: #${currentAccount.accountNumber.slice(
@@ -419,7 +421,7 @@ export const displayTransactions = function (currentAccount) {
   let movs;
 
   //selects the transactions HTML element
-  const transactionContainer = document.querySelector('.transactions');
+  const transactionContainer = document.querySelector('.transactionsColumn');
   transactionContainer.innerHTML = '';
 
   //Variable set for the transactions themselves
@@ -446,21 +448,24 @@ export const displayTransactions = function (currentAccount) {
       currentAccount.currency
     );
     //HTML for transactions
-    const html = `
-      <div class="transactions__row">
-        <div class="transactions__type transactions__type--${type} col-4">
-        <div class="transactionsTypeText"> 
-        ${i + 1} ${type}</div>
-    </div>
-        <div class="transactions__date col-4">${displayDate}</div>
-        <div class="transactions__value col-4">${formattedMov}</div>
-      </div>
-    `;
+    const html = `<div class="transaction row">
+                    <div class="transIcon col-4">
+                      <i class="fa-solid fa-house transImg"></i>
+                    </div>
+                    <div class="transNameAndDate col">
+                      <p class="transName">Rent</p>
+                      <p class="transDate">${displayDate}</p>
+                    </div>
+                    <div class="transAmount col">
+                      <p class="transAmountText ${
+                        formattedMov >= 0 ? `negTrans` : `posTrans`
+                      }">${formattedMov}</p>
+                    </div>
+                  </div>`;
     //Inserts HTML with required data
     transactionContainer.insertAdjacentHTML('afterbegin', html);
   });
 };
-
 
 //formats the transactions dates to the users locale
 export const formatMovementDate = function (date, locale) {
@@ -497,5 +502,4 @@ export const updateUI = function (acc) {
   //Displays the balance with correct data
   displayBalance(acc);
   //Displays the users accounts
-  displayAccounts(acc);
 };
