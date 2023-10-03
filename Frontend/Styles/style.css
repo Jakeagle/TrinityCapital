@@ -1,530 +1,1259 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter&family=Lora&family=Montserrat:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Poppins:wght@200;400&display=swap');
 
-/************************************Global Styles and Main App Styles**************************************************************************/
-body {
-  font-family: 'Lora', serif;
-  color: #444;
-  background-color: #f3f3f3;
+/****************************Sign on section*****************************/
+
+.back1 {
+  background-color: #ccc2a6;
   height: 100vh;
 }
 
-ol {
-  font-family: 'Montserrat', sans-serif;
-}
-ul {
-  margin-top: 3rem;
-  position: relative;
-  left: 10rem;
-  text-align: center;
-  width: 70%;
-}
-
-p {
-  font-family: 'Montserrat', sans-serif;
-  font-size: 1.3rem;
-}
-
-hr {
+.backGround {
+  height: 100%;
   width: 100%;
-  margin: 1rem 0 1rem 0;
+  background-color: #ccc2a6;
+  overflow: hidden;
+  margin: auto;
 }
 
-.headings {
-  font-family: 'Montserrat', sans-serif;
-  text-align: center;
+.signOnBox {
+  height: 70%;
+  width: 50%;
+  border-style: none;
+  background-color: #ccc2a6;
 }
-
-.issuesEmail {
-  text-align: center;
-  font-size: 1.5rem;
-  margin: 3rem 0 3rem 0;
-}
-
-.heading-R {
-  text-align: right;
-}
-
-.app {
-  transition: all 1s;
-}
-.formDiv {
-  text-align: center;
-  transition: all 1s;
-}
-
-.image-div {
-  padding: 0 1% 0 1%;
-}
-
-.signOnprompt {
-  text-align: center;
-}
-
-.signOntext {
-  margin: 2rem 0 2rem 0;
-}
-
-.signOnGroup {
-  margin: 0.5rem 0 0.5rem 0;
-}
-
-.login__input {
-  border: none;
-  padding: 0.5rem 2rem;
-  font-size: 1.6rem;
-  font-family: 'Montserrat', sans-serif;
-  text-align: center;
-  width: 12rem;
-  border-radius: 10rem;
-  margin-right: 1rem;
-  color: inherit;
-  border: 1px solid #fff;
-  transition: all 0.3s;
-}
-
-.usernameBox .accounts {
-  position: relative;
-
-  text-align: center;
+.sec1 {
+  background-color: #61563e;
   height: 100%;
 }
 
-.banking {
-  background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
-  margin: 1.5rem 0 1.5rem 0;
+.sec2 {
+  background-color: #94845f;
+  height: 100%;
 }
 
-.bankingTitle {
-  text-align: center;
-}
-
-.bankingText {
-  text-align: center;
-}
-.bankingImg {
-  font-size: 2.7rem;
-}
-
-a {
+.signUpBtn {
+  background-color: transparent;
+  border-radius: 28px;
+  border: 1px solid white;
+  display: inline-block;
+  cursor: pointer;
+  color: white;
+  font-family: Arial;
+  font-size: 17px;
+  padding: 17px 65px;
   text-decoration: none;
-  color: #444;
+  margin: 0 0.1rem;
+  width: 100%;
+  text-align: center;
+}
+.signInBtn {
+  background-color: #61563e;
+  border-radius: 28px;
+  border: 1px solid #94845f;
+  display: inline-block;
+  cursor: pointer;
+  color: white;
+  font-family: Arial;
+  font-size: 17px;
+  padding: 17px 65px;
+  text-decoration: none;
+  margin: 1rem 10rem;
+  width: 50%;
+  text-align: center;
+}
+.signUpBtn:hover {
+  background-color: transparent;
+}
+.signUpBtn:active {
+  position: relative;
+  top: 1px;
 }
 
-a:hover {
-  color: #f7ef8a;
+.signInBtn:hover {
+  background-color: #61563e;
 }
 
-.balance {
-  font-family: 'Montserrat', sans-serif;
-  grid-column: 1 / span 2;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  margin-bottom: 2rem;
-}
-
-.balance__label {
-  font-size: 150%;
-  font-weight: 500;
-  margin-bottom: -0.2rem;
-}
-
-.balance__date {
+.SignUpText {
+  margin: auto;
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
   font-size: 1rem;
-  color: #888;
 }
 
-.balance__value {
-  font-size: 1.9rem;
+.welcomeBackSignOn {
+  text-align: center;
+  color: white;
+  font-size: 2rem;
+  font-weight: 600;
+  width: 70%;
+  margin: auto;
+  margin-top: 5rem;
+}
+
+.signInText {
+  font-size: 1rem;
+  font-weight: 400;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  width: 100%;
+}
+
+.signInToApp {
+  margin-top: 3rem;
+}
+
+.loginBox {
+  height: 3rem;
+  border-style: solid;
+  border-radius: 0.5rem;
+  border-width: 0.2rem;
+  border-color: #61563e;
+  margin: 1rem 0 1rem;
+}
+
+.userIcon {
+  color: #ccc2a6;
+  font-size: 1.8rem;
+  position: relative;
+  left: 5rem;
+}
+
+.userNameInput {
+  background-color: #94845f;
+  border-color: #61563e;
+  border-style: solid;
+  border-radius: 0.5rem;
+  height: 70%;
+  width: 90%;
+  padding-left: 4rem;
+  color: white;
   font-weight: 400;
 }
 
-.accounts {
-  grid-row: 1 / span 2;
-  background-color: #fff;
-  border-radius: 1rem;
-  overflow: scroll;
+.userNameInput:focus + .userLabel {
+  display: none;
 }
 
-.accountContainer {
-  margin-bottom: 1rem;
-}
-
-.accountsTitle {
-  font-size: 90%;
-}
-
-.lastUpdated {
-  text-align: right;
-}
-
-.updateDate {
-  text-align: right;
-}
-
-.switchButton {
-  text-align: right;
-}
-
-.accountsRow {
-  font-family: 'Montserrat', sans-serif;
-
-  border-bottom: 1px solid #eee;
-}
-
-.transactionsSection {
+.userLabel {
   position: relative;
-  bottom: 30rem;
-  right: 3rem;
-  text-align: center;
-  height: 100%;
-  width: 35rem;
+  color: white;
+
+  left: 4rem;
+}
+/******************************Main app*********************************/
+body {
+  font-family: 'Poppins', sans-serif;
+
+  color: white;
 }
 
-.transactions {
-  height: 30rem;
-
-  background-color: #fff;
-  border-radius: 1rem;
-  overflow: scroll;
+.section1 {
+  background-color: #94845f;
+  width: 20%;
+  height: 110vh;
 }
 
-.transactions__row {
-  font-family: 'Montserrat', sans-serif;
-  padding: 2.25rem;
-  display: flex;
-  align-items: center;
-  border-bottom: 1px solid #eee;
+.section2 {
+  background-color: #61563e;
+  width: 80%;
+  height: 110vh;
 }
 
-.transactions__type {
-  text-align: center;
-  height: 2.5rem;
-  width: 50%;
-  font-size: 80%;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: #fff;
-  /*padding: 0.1rem 1rem;*/
-  border-radius: 10rem;
+.pfp {
+  border: #ae8626;
+  border-style: inset;
+  border-radius: 100%;
+  margin: 2.5rem auto;
+  width: 5.5rem;
+  height: 5.3rem;
+  background-color: #61563e;
 }
 
-.transactionsTypeText {
-  margin-top: 0.7rem;
+.pfpName {
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin: 0 1.3rem;
 }
 
-.transactions__date {
-  font-size: 1.1rem;
-  padding: 0.5rem;
-  text-transform: uppercase;
-  font-weight: 500;
-  color: #666;
-  margin: 0 1rem 0 1rem;
+.topText {
+  font-weight: 300;
+  font-size: 1.5rem;
+  padding: 2rem 3rem 0 3rem;
 }
 
-.transactions__type--deposit {
-  background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
+.bottomText {
+  font-size: 1.8rem;
+  font-weight: 800;
+  padding: 0 3rem 0 3rem;
 }
 
-.transactions__type--withdrawal {
-  background-image: linear-gradient(to top left, #7d7d7a, #8e8d8d);
-}
-
-.transactions__value {
-  font-size: 1.1rem;
-  margin-left: auto;
-}
-.toolsTitle {
-  text-align: center;
-}
-
-.operation {
-  font-family: 'Montserrat', sans-serif;
-  border-radius: 1rem;
-  padding: 3rem 4rem;
+.budgetClass {
   margin: auto;
-  color: #333;
+  padding-top: 5rem;
 }
 
-.operation--transfer {
-  background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
-}
-.operation--loan {
-  background-image: linear-gradient(to top left, #7d7d7a, #8e8d8d);
-  margin: 1rem;
-}
-
-.operation--close {
-  background-image: linear-gradient(to top left, #8b0001, #9e1711);
-  color: #eee;
-}
-
-.operation--donate {
-  background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
-  margin: 1rem;
-}
-
-.operation--switch {
-  background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
-  padding: 1rem 2rem;
-  width: 95%;
-}
-
-.switchTitle {
-  font-size: 1.3rem;
-}
-
-.switchLabel {
+.monthly {
+  padding-top: 0;
   font-size: 1rem;
 }
 
-.form {
-  display: grid;
-  grid-template-columns: 2.5fr 2.5fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 0.4rem 1rem;
+.budget {
+  padding-bottom: 0;
 }
 
-.form--close {
-  display: grid;
-  grid-template-columns: 2.5fr 2.5fr 1fr;
-  grid-template-rows: auto auto;
-  gap: 0.1rem 1rem;
+.bankingTools {
+  padding-top: 5rem;
 }
 
-.formCloseDiv {
-  padding-right: 100rem;
+.bankingImg {
+  color: #e0d6bf;
+  font-size: 2.3rem;
+  padding: 0 3rem;
 }
 
-.donateForm {
-  display: grid;
-  grid-template-columns: 2.5fr 2.5fr 1fr;
-  grid-template-rows: auto;
-  gap: 0.4rem 1rem;
-}
-.form.form--loan {
-  grid-template-columns: 2.5fr 1fr 2.5fr;
+.bankingText {
+  margin-top: 0.3rem;
+  position: relative;
+  right: 6rem;
 }
 
-.form__label--loan {
-  grid-row: 2;
-}
-/* End exceptions */
-
-.form__input {
-  width: 100%;
-  border: none;
-  background-color: rgba(255, 255, 255, 0.4);
-  font-family: inherit;
-  font-size: 1.5rem;
-  text-align: center;
-  color: #333;
-  padding: 0.3rem 1rem;
-  border-radius: 0.7rem;
-  transition: all 0.3s;
+.bankingImg:hover {
+  color: #61563e;
 }
 
-.form__input:focus {
-  outline: none;
-  background-color: rgba(255, 255, 255, 0.6);
+.accountsLogout {
+  margin-top: 5rem;
 }
 
-.form__label {
-  font-size: 1.3rem;
-  text-align: center;
+.copyright {
+  margin-top: 7rem;
 }
 
-.form__btn {
-  border: none;
-  border-radius: 0.7rem;
-  font-size: 1.8rem;
-  background-color: #fff;
-  cursor: pointer;
-  transition: all 0.3s;
+.CopyRight {
+  font-size: 1.7rem;
 }
 
-.form__btn:focus {
-  outline: none;
-  background-color: rgba(255, 255, 255, 0.8);
-}
-
-.title {
-  font-size: 1.9rem;
-  font-weight: 500;
-}
-
-.subText {
-  text-align: center;
-  width: 100rem;
-  font-size: 1.5rem;
-  margin: auto;
-  padding: 2rem 0 2rem 0;
-}
-
-.logo {
-  height: 3.25rem;
+.copyRight {
+  margin: 0 0 0 0;
+  font-size: 0.7rem;
+  font-weight: 200;
 }
 
 .header {
+  height: 10rem;
+}
+
+.headerText {
+  margin: 1rem 2rem;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.verseofTheDay {
+  position: relative;
+  bottom: 3rem;
+  width: 70%;
+  margin: auto;
+  margin-bottom: 4rem;
+  margin-top: 3rem;
   text-align: center;
 }
 
-.backBtn {
-  text-align: center;
+.votd {
+  font-weight: 800;
+  font-size: 1.5rem;
 }
-.boxes {
-  font-family: 'Montserrat', sans-serif;
+
+.verseTitle {
+  font-weight: 200;
+  font-size: 1rem;
+}
+.verse {
+  font-size: 1rem;
+  padding-bottom: 2rem;
+}
+
+.main {
+  margin-top: 4rem;
+}
+.leftSide {
+  height: 78.7vh;
+}
+
+.rightSide {
+  height: 78.7vh;
+}
+
+.balanceBlock {
+  margin: 0 4rem;
   border-radius: 1rem;
-  padding: 0.5rem 4rem;
-  margin: 1rem;
-  color: #333;
+  width: 35rem;
+  height: 40%;
   background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
 }
 
-.backBox {
-  font-family: 'Montserrat', sans-serif;
-  border-radius: 1rem;
-  padding: 0.5rem 4rem;
-  margin: 1rem;
-  color: white;
-  background-color: black;
+.bankImg {
+  position: relative;
+  left: 65%;
+  margin: 2rem 0;
+  width: 20%;
 }
-.buttonRow {
+
+.balanceText {
+  width: 55%;
+  font-weight: 600;
+  font-size: 100%;
+  margin: 2rem 2rem;
+  padding: 0;
+}
+
+.dateText {
+  width: 40%;
+  margin: -1.5rem 2rem;
+  font-size: 80%;
+}
+
+.balance {
+  position: relative;
+  top: 0.1rem;
   width: 100%;
+  height: 6vh;
 }
 
-.lBox {
-  text-align: center;
-  font-family: 'Montserrat', sans-serif;
+.actualBalance {
+  margin: 0.3rem 1.7rem;
+  font-weight: 900;
+}
+
+.incomeSpending {
+  margin: 2rem 4rem;
+  width: 75%;
+}
+.incomeBlock {
+  position: relative;
+  right: 1rem;
+  height: 15vh;
+  margin: 0 0 0 1rem;
   border-radius: 1rem;
-  margin: 25px;
-  color: #333;
-  background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
+  background-color: #94845f;
 }
 
-.lessonBtn:hover {
-  color: #f7ef8a;
+.spendingBlock {
+  height: 15vh;
+  margin: 0 0 0 1rem;
+  border-radius: 1rem;
+  background-color: #94845f;
+}
+.billsBlock {
+  margin: 0 4rem;
+  border-radius: 1rem;
+  height: 25vh;
+  width: 75%;
+  background-color: #94845f;
 }
 
-.lessonSubtitle {
+.accountInfo {
+  position: relative;
+  left: 2rem;
+  bottom: 1.2rem;
+  width: 2px;
+  margin: 3rem 0 0 0;
+}
+
+.bankInfo {
+  position: relative;
+  right: 1.3rem;
+  bottom: 1.2rem;
+
+  margin: 3rem 0 0 3rem;
+}
+
+.accountNum {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.accountType {
+  position: relative;
+  left: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.accountNumber {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.bankName {
+  position: relative;
+  left: 8.3rem;
+  font-size: 1rem;
+}
+
+.isText {
+  margin: 2rem 1rem;
+  font-size: 1rem;
+}
+
+.isAmount {
+  display: block;
+  position: relative;
+  bottom: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 1rem 1rem;
+  width: 900%;
+}
+
+.siIcon {
+  position: relative;
+  left: 10rem;
+  bottom: 3rem;
+}
+.incomeAmount {
+  color: #32cd32;
+}
+
+.spendingAmount {
+  color: #cf0202;
+}
+
+.isImage {
+  position: relative;
+  bottom: 1.2rem;
+  left: 2.5rem;
+  font-size: 1.5rem;
+}
+
+.billsTitle {
+  margin: 2rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.bills {
+  margin: 0 2.7rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.billText {
+  font-size: 1rem;
+  margin: 0.3rem 0;
+}
+
+.button {
+  position: relative;
+  left: 12rem;
+  font-size: 2rem;
+  margin: 1.5rem 0;
+}
+
+.icon {
+  border-radius: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  background-color: #61563e;
+}
+
+.billIcon {
+  font-size: 1rem;
+  position: relative;
+  right: 0.34rem;
+  bottom: 0.3rem;
+}
+
+.billDate {
+  font-weight: 400;
+  margin: 0rem 0;
+  font-size: 1rem;
+}
+
+.transactionBlock {
+  border-radius: 2rem;
+  background-color: #94845f;
+  height: 53vh;
+  width: 90%;
+  margin: 0 0 2.2rem 0;
+}
+
+.transactionTitleText {
+  font-weight: 700;
+  font-size: 2rem;
+  padding: 2rem 2rem;
+}
+
+.lessonsBlock {
+  border-radius: 2rem;
+  background-color: #94845f;
+  width: 90%;
+  height: 20vh;
+}
+
+.transaction {
+  margin: 0 1.2rem;
+}
+
+.transIcon {
+  background-color: #61563e;
+  margin: 0.4rem 1rem;
+  width: 8%;
+  height: 2.8rem;
+  border-radius: 0.5rem;
+}
+
+.transImg {
+  text-align: center;
+  font-size: 1.8rem;
+  margin: 0.5rem 0 0 -0.15rem;
+}
+.transNameAndDate {
+  position: relative;
+  bottom: 1rem;
+  margin: 0 0 1rem 0;
+}
+.transDate {
+  font-weight: 400;
+  margin: -0.7rem -0.5rem;
+}
+
+.transName {
+  font-weight: 600;
+  margin: 1rem -0.5rem;
+}
+
+.transAmountText {
+  position: relative;
+  left: 8rem;
+  margin: 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.negTrans {
+  color: #cf0202;
+}
+
+.posTrans {
+  color: #32cd32;
+}
+
+.payCheck {
+  margin-left: 0.25rem;
+}
+
+.user {
+  margin-left: 0.03rem;
+}
+
+.lessonHeaderText {
+  padding-top: 1rem;
+  margin: 0 2rem;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.lessonRow {
+  position: relative;
+  left: 2.5rem;
+  margin: 0.5rem 1rem;
+}
+
+.lessonDiv {
+  border: #ae8626;
+  border-style: inset;
+  border-radius: 100%;
+  margin: 0 0.3rem;
+  width: 13%;
+  height: 5.3rem;
+  background-color: #61563e;
+}
+
+.lessonImg {
+  color: #e0d6bf;
+  margin: 0.5rem 0.1rem;
+  font-size: 2.5rem;
+}
+
+.lessonName {
+  margin: 1rem 0 0 -0.3rem;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.bpImg {
+  margin: 0 0.6rem;
+}
+
+.depositImg {
+  margin: 0 0.1rem;
+}
+
+.smImg {
+  margin: 0 0.75rem;
+}
+
+.creditImg {
+  margin: 0 0.1rem;
+}
+
+/*******************Modals***********************/
+
+.transferModal {
+  background-color: #94845f;
+  border-radius: 2rem;
+  width: 50%;
+  height: 60%;
+  text-align: center;
+  border-style: none;
+  color: white;
+}
+
+.transferText {
+  font-weight: 600;
+  margin-left: 10rem;
+}
+
+.accountSelection {
   margin: 2rem 0 2rem 0;
 }
 
-.lessonSeperator {
-  margin: 0 0 4rem 0;
+.exitMark {
+  font-size: 2rem;
+  color: #ccc2a6;
 }
 
-.closeButton {
-  margin-top: 3rem;
+.exitMark:hover {
+  color: #61563e;
 }
 
-.T1 {
-  display: block;
-  border: none;
-  border-radius: 4rem;
-  overflow: scroll;
-  background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
-  height: 40rem;
-  width: 70rem;
-  opacity: 0;
-  transition: all 1.5s;
-}
-
-.T1[open] {
-  opacity: 1;
-}
-.T1::-webkit-scrollbar {
-  display: none;
-}
-.T1::backdrop {
-  background-image: linear-gradient(to top left, #8e8d8d, #f7ef8a);
-  opacity: 0.5;
-  transition: all 2.5s;
-}
-
-.carousel-control-next {
-  padding: 2rem;
-}
-
-.noteHead {
-  margin: 1rem 0;
-}
-.note {
-  margin: 1rem auto 1rem auto;
-  font-family: 'Montserrat', sans-serif;
-  text-align: left;
-  font-size: 1.1rem;
-  width: 80%;
-}
-
-.noteContainer {
-  overflow: scroll;
-}
-
-.carousel {
-  height: 25rem;
-}
-
-.carousel-item {
-  margin-top: 2rem;
-}
-
-.carousel-inner {
-  text-align: center;
-  height: 25rem;
-}
-
-.feedbackForm {
-  margin: 1rem 20rem 0;
-}
-
-.feedbackPrompt {
-  font-family: 'Montserrat', sans-serif;
-  display: block;
-  border: none;
-  border-radius: 4rem;
-  overflow: scroll;
-  background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
-  height: 40rem;
-  width: 70rem;
-  opacity: 0;
-  transition: all 1.5s;
-}
-
-.feedbackPrompt[open] {
-  opacity: 1;
-}
-.feedbackPrompt::-webkit-scrollbar {
-  display: none;
-}
-.feedbackPrompt::backdrop {
-  background-image: linear-gradient(to top left, #8e8d8d, #f7ef8a);
-  opacity: 0.5;
-  transition: all 2.5s;
-}
-.submitBtn {
-  border: none;
-  border-radius: 2rem;
-  text-align: center;
-  margin: 0 12rem;
-}
-
-.feedbackAndClear {
+.form__input--amount--transfer {
+  margin: 0.5rem 0 1rem 0;
   text-align: center;
 }
 
-.feedbackButton:hover {
-  color: #f7ef8a;
+.transferBtn {
+  margin-top: 5rem;
 }
 
-.feedbackButton {
-  color: white;
+select {
+  font-weight: 600;
+  background-color: #ccc2a6;
+  color: #61563e;
+  border-style: none;
+  border-radius: 1rem;
 }
 
-.clearStorage:hover {
-  color: #f7ef8a;
+input {
+  font-weight: 600;
+  background-color: #ccc2a6;
+  color: #61563e;
+  border-style: none;
+  border-radius: 1rem;
 }
 
-.clearStorage {
-  color: white;
+.form__btn--transfer {
+  border-style: none;
+  background: linear-gradient(to bottom, #eae0c2 5%, #ccc2a6 100%);
+  background-color: #eae0c2;
+  border-radius: 42px;
+  width: 40%;
+  display: inline-block;
+  cursor: pointer;
+  color: #505739;
+  font-family: Arial;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 10px 24px;
+  text-decoration: none;
+  text-shadow: 0px 1px 0px #ffffff;
+}
+.form__btn--transfer:hover {
+  background: linear-gradient(to bottom, #ccc2a6 5%, #eae0c2 100%);
+  background-color: #ccc2a6;
+}
+.form__btn--transfer:active {
+  position: relative;
+  top: 1px;
+}
+/*******************Media Queries***************/
+
+@media screen and (max-width: 414px) {
+  .pfp {
+    margin: 1.5rem 0.2rem;
+    width: 4.1rem;
+    height: 4.1rem;
+  }
+
+  .pfpName {
+    margin: -0.5rem 0.7rem;
+  }
+}
+
+@media screen and (max-width: 1900px) {
+  .bankingText {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 745px) {
+  .bankingTools {
+    margin: 0 0 0 -0.7rem;
+  }
+}
+
+@media screen and (max-width: 620px) {
+  .bankingTools {
+    margin: 0 0 0 -2rem;
+  }
+}
+
+@media screen and (max-width: 745px) {
+}
+
+@media screen and (max-width: 745px) {
+  .accountsLogout {
+    margin: 0 0 0 -0.7rem;
+  }
+
+  .copyright {
+    margin: 0 0 0 -0.7rem;
+  }
+}
+
+@media screen and (max-width: 620px) {
+  .accountsLogout {
+    margin: 0 0 0 -2rem;
+  }
+
+  .copyright {
+    margin: 0 0 0 -2rem;
+  }
+}
+
+@media screen and (max-width: 1045px) {
+  .welcomeBack {
+    display: none;
+  }
+  .budget {
+    font-size: 0.1rem;
+  }
+}
+
+/*******************Cell Phones*****************/
+
+@media screen and (max-width: 940px) {
+  .budgetClass {
+    position: relative;
+    right: 1.5rem;
+  }
+}
+
+@media screen and (max-width: 850px) {
+  .balanceBlock {
+    width: 30rem;
+  }
+
+  .budgetClass {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 700px) {
+  .balanceBlock {
+    width: 25rem;
+  }
+}
+
+@media screen and (max-width: 610px) {
+  .balanceBlock {
+    width: 20rem;
+  }
+}
+
+@media screen and (max-width: 500px) {
+  .balanceBlock {
+    width: 15rem;
+  }
+}
+
+@media screen and (max-width: 361px) {
+  .actualBalance {
+    margin-bottom: 0;
+  }
+  .balanceBlock {
+    width: 10rem;
+    margin-left: 1rem;
+  }
+
+  .accountInfo {
+    position: relative;
+    bottom: 2.5rem;
+  }
+
+  .bankInfo {
+    position: relative;
+    bottom: 2.5rem;
+  }
+}
+
+@media screen and (max-width: 376px) {
+  .section1 {
+    height: 200vh;
+  }
+}
+
+@media screen and (max-width: 415px) {
+  body {
+    background-color: #61563e;
+  }
+
+  .section1 {
+    height: 235vh;
+  }
+  .rightSide {
+    background-color: #61563e;
+    position: relative;
+    top: 22rem;
+  }
+
+  .bankImg {
+    left: 13rem;
+    bottom: 4rem;
+    width: 15%;
+  }
+  .bankLogo {
+    height: 1rem;
+  }
+
+  .verseofTheDay {
+    width: 100%;
+    margin: 4rem 6rem;
+  }
+
+  .actualBalance {
+    position: relative;
+    bottom: 1.7rem;
+  }
+
+  .incomeSpending {
+    position: relative;
+    left: 6rem;
+  }
+
+  .balanceBlock {
+    position: relative;
+    left: 4.8rem;
+    margin-top: 2rem;
+    margin-left: 0.7rem;
+    width: 17rem;
+  }
+
+  .balanceText {
+    margin: 1rem 2rem;
+  }
+
+  .dateText {
+    margin: -1.1rem 2rem 0.1rem;
+  }
+
+  .accountInfo {
+    position: relative;
+    bottom: 4rem;
+  }
+
+  .bankInfo {
+    position: relative;
+    bottom: 4rem;
+  }
+
+  .accountNum {
+    font-size: 90%;
+  }
+  .accountNumber {
+    font-size: 70%;
+  }
+
+  .accountType {
+    font-size: 90%;
+  }
+
+  .bankName {
+    font-size: 70%;
+    left: 0.5rem;
+  }
+
+  .billsBlock {
+    margin-left: 8rem;
+    width: 100%;
+  }
+
+  .transactionBlock {
+    position: relative;
+    left: 7rem;
+    font-size: 70%;
+    height: 30rem;
+  }
+
+  .lessonsBlock {
+    position: relative;
+    left: 3rem;
+    height: 15rem;
+    width: 25rem;
+  }
+}
+
+@media screen and (max-width: 395px) {
+  .balanceBlock {
+    margin-top: 3.5rem;
+    margin-left: 0.8rem;
+    width: 17rem;
+  }
+
+  .bankImg {
+    left: 13rem;
+    bottom: 4rem;
+    width: 15%;
+  }
+  .bankLogo {
+    height: 1rem;
+  }
+  .balanceBlock {
+    margin-top: 3.5rem;
+    margin-left: 0.8rem;
+    width: 19rem;
+    height: 35%;
+  }
+
+  .balanceText {
+    margin: 1rem 2rem;
+  }
+
+  .dateText {
+    margin: -1.1rem 2rem 0.1rem;
+  }
+
+  .accountNum {
+    position: relative;
+    bottom: 0.5rem;
+    font-size: 90%;
+  }
+  .accountNumber {
+    position: relative;
+    bottom: 0.5rem;
+    font-size: 70%;
+  }
+
+  .accountType {
+    position: relative;
+    bottom: 0.5rem;
+    font-size: 90%;
+    position: relative;
+    bottom: 0.5rem;
+  }
+
+  .bankName {
+    font-size: 70%;
+    left: 1.5rem;
+  }
+
+  .billsBlock {
+    position: relative;
+    right: 4.3rem;
+    width: 100%;
+    height: 60%;
+  }
+}
+
+@media screen and (max-width: 415px) {
+  body {
+    background-color: #61563e;
+  }
+
+  .rightSide {
+    position: relative;
+    top: 22rem;
+  }
+  .bankImg {
+    left: 13rem;
+    bottom: 4rem;
+    width: 15%;
+  }
+  .bankLogo {
+    height: 1rem;
+  }
+  .balanceBlock {
+    margin-top: 3.5rem;
+    margin-left: 0.8rem;
+    width: 19rem;
+    height: 35%;
+  }
+
+  .balanceText {
+    margin: 1rem 2rem;
+  }
+
+  .actualBalance {
+    margin-top: 1.5rem;
+    position: relative;
+    bottom: 1rem;
+  }
+
+  .dateText {
+    margin: -1.1rem 2rem 0.1rem;
+  }
+
+  .accountInfo {
+    position: relative;
+    bottom: 4rem;
+  }
+
+  .bankInfo {
+    position: relative;
+    bottom: 4rem;
+  }
+
+  .accountType {
+    position: relative;
+    left: 0.5rem;
+  }
+
+  .bankName {
+    position: relative;
+    left: 0.5rem;
+  }
+
+  .incomeBlock {
+    position: relative;
+    right: 2.3rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .spendingBlock {
+    position: relative;
+    right: 2.3rem;
+    margin-bottom: 0.9rem;
+  }
+
+  .siIcon {
+    left: 6rem;
+  }
+
+  .billsBlock {
+    margin-bottom: 10rem;
+    position: relative;
+    left: -1.8rem;
+    height: 18rem;
+  }
+
+  .billBtn {
+    position: relative;
+    right: 10rem;
+  }
+  .billsRow {
+    width: 100%;
+    position: relative;
+    right: 1rem;
+  }
+
+  .billText {
+    font-size: 40%;
+  }
+
+  .billDate {
+    font-size: 50%;
+  }
+
+  .transAmountText {
+    position: relative;
+    left: 1rem;
+    font-size: 100%;
+  }
+
+  .transIcon {
+    position: relative;
+    right: 1rem;
+    width: 20%;
+  }
+
+  .transNameAndDate {
+    position: relative;
+    right: 1.5rem;
+  }
+
+  .lessonRow {
+    margin-right: 5rem;
+  }
+
+  .lessonDiv {
+    height: 2.5rem;
+    width: 2.5rem;
+    margin: 1rem 0.5rem;
+  }
+
+  .lessonImg {
+    font-size: 1.3rem;
+    position: relative;
+    right: 0.6rem;
+    bottom: 0.5rem;
+  }
+  .lessonName {
+    font-size: 50%;
+    margin: auto;
+  }
+
+  .rocketIcon {
+    position: relative;
+    top: 0.1rem;
+    left: 0.1rem;
+  }
+
+  .bpImg {
+    position: relative;
+    right: 0.3rem;
+  }
+
+  .smImg {
+    position: relative;
+    right: 0.35rem;
+  }
+
+  .tutName {
+    position: relative;
+    right: 0.7rem;
+  }
+
+  .tranName {
+    position: relative;
+    right: 0.85rem;
+  }
+
+  .bpName {
+    position: relative;
+    right: 0.2rem;
+  }
+
+  .dpName {
+    position: relative;
+    right: 0.6rem;
+  }
+
+  .smName {
+    position: relative;
+    right: 0.6rem;
+  }
+
+  .creditName {
+    position: relative;
+    right: 0.45rem;
+  }
+}
+
+/*********************************************Tablets**********************************************/
+
+@media screen and (min-width: 820px) {
+  .section1 {
+    height: 180vh;
+  }
+  .body {
+    background-color: #61563e;
+  }
+
+  .rightSide {
+    position: relative;
+    top: 2.6rem;
+    background-color: #61563e;
+  }
+  .accountNum {
+    font-size: 1.3rem;
+  }
+  .accountType {
+    font-size: 1.3rem;
+  }
+  .bankName {
+    position: relative;
+    left: 6.5rem;
+  }
+  .siIcon {
+    position: relative;
+    left: 8rem;
+  }
+
+  .transactionBlock {
+    position: relative;
+    margin-left: 1rem;
+  }
+  .lessonsBlock {
+    position: relative;
+    left: 1rem;
+  }
+
+  .lessonRow {
+    position: relative;
+    left: 1rem;
+  }
+
+  .lessonDiv {
+    width: 5rem;
+    height: 5rem;
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .section1 {
+    height: 180vh;
+  }
+
+  .section2 {
+    background-color: #61563e;
+  }
+  .body {
+    background-color: #61563e;
+  }
+
+  .rightSide {
+    position: relative;
+    top: 2.6rem;
+    background-color: #61563e;
+  }
+  .accountNum {
+    font-size: 1.2rem;
+  }
+  .accountType {
+    font-size: 1.2rem;
+  }
+  .bankName {
+    position: relative;
+    left: 5.5rem;
+  }
+  .siIcon {
+    position: relative;
+    left: 8rem;
+  }
+
+  .transactionBlock {
+    position: relative;
+    margin-left: 1rem;
+  }
+  .lessonsBlock {
+    position: relative;
+    left: 1rem;
+  }
+
+  .lessonRow {
+    position: relative;
+    left: 1rem;
+  }
+
+  .lessonDiv {
+    width: 5rem;
+    height: 5rem;
+  }
+}
+
+/*********************Desktop************************/
+
+@media screen and (min-width: 1920px) {
+  .section1 {
+    height: 110vh;
+  }
 }
