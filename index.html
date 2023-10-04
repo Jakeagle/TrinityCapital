@@ -10,7 +10,7 @@
       integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="Frontend/Styles/style.css" />
+    <link rel="stylesheet" href="Styles/style.css" />
     <script
       src="https://kit.fontawesome.com/60a3862749.js"
       crossorigin="anonymous"
@@ -171,7 +171,7 @@
                   <div class="col-sm col-md col-lg bankLogo">
                     <img
                       class="bankImg"
-                      src="Frontend/img/pngaaa.com-4372256.png"
+                      src="img/pngaaa.com-4372256.png"
                       alt="logo"
                     />
                   </div>
@@ -375,7 +375,7 @@
       </div>
     </div>
 
-    <script src="Frontend/Javascript/script.js" type="module"></script>
+    <script src="Javascript/script.js" type="module"></script>
   </body>
 
   <dialog class="transferModal">
@@ -490,5 +490,41 @@
         </div>
       </div>
     </div>
+  </dialog>
+
+  <dialog class="mobileSignOnBox">
+    <h1 class="welcomeBackSignOn mobileWelcome">Welcome Back!</h1>
+
+    <h3 class="welcomeBackSignOn signInText">Sign in to continue</h3>
+
+    <div class="row userNameRow mobileRow">
+      <div class="col-1">
+        <p class="userIcon mobileIcon"><i class="fa-solid fa-user"></i></p>
+      </div>
+      <div class="col-11">
+        <input
+          class="login__input--user userNameInput mobileInput"
+          type="text"
+        />
+      </div>
+    </div>
+    <div class="row pinRow mobilePinRow mobileRow">
+      <div class="col-1">
+        <p class="userIcon mobileIcon"><i class="fa-solid fa-lock"></i></p>
+      </div>
+      <div class="col-11">
+        <input
+          class="login__input--user userNameInput mobileInput login__input--pin"
+          type="text"
+        />
+      </div>
+    </div>
+    <div class="signUpBtn signInBtn mobileLoginBtn login__btn">
+      <h1 class="SignUpText mobileSignInText">Sign In</h1>
+    </div>
+
+    <h3 class="welcomeBackSignOn signInText mobileSignUpText">
+      or sign up below
+    </h3>
   </dialog>
 </html>
