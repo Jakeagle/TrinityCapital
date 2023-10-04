@@ -2,8 +2,10 @@
 
 const mainApp = document.querySelector('.mainApp');
 const loginBox = document.querySelector('.signOnBox');
+const mobileLoginBox = document.querySelector('.mobileSignOnBox');
 
-loginBox.showModal();
+window.screen.width <= 1300 ? mobileLoginBox.showModal() : loginBox.showModal();
+
 if (mainApp) mainApp.style.display = 'none';
 
 /***********************************************************Server Listeners**********************************************/
@@ -13,7 +15,7 @@ const getPrfBTN = document.getElementById('getProfiles');
 const postBTN = document.getElementById('post');
 const input = document.getElementById('input');
 
-export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+export const socket = io('trinitycapitaltestserver-2.azurewebsites.net');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -45,13 +47,13 @@ socket.on('donationSaving', updatedDonSav => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
+const testServerProfiles = 'trinitycapitaltestserver-2.azurewebsites.net/profiles';
 
-const loanURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/loans';
+const loanURL = 'trinitycapitaltestserver-2.azurewebsites.net/loans';
 
-const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donations';
+const donationURL = 'trinitycapitaltestserver-2.azurewebsites.net/donations';
 
-const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
+const donationSavingsURL = 'trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
