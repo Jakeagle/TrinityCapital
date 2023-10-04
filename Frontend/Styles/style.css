@@ -39,7 +39,7 @@
   cursor: pointer;
   color: white;
   font-family: Arial;
-  font-size: 17px;
+  font-size: 100%;
   padding: 17px 65px;
   text-decoration: none;
   margin: 0 0.1rem;
@@ -77,7 +77,7 @@
   margin: auto;
   text-align: center;
   font-family: 'Poppins', sans-serif;
-  font-size: 1rem;
+  font-size: 90%;
 }
 
 .welcomeBackSignOn {
@@ -140,6 +140,53 @@
 
   left: 4rem;
 }
+
+.mobileSignOnBox {
+  height: 80%;
+  width: 60%;
+  background-color: #94845f;
+  border-style: none;
+}
+
+.mobileWelcome {
+  width: 80%;
+}
+
+.mobileRow {
+  margin: 0 0 0.5rem;
+  position: relative;
+  left: 1rem;
+}
+
+.mobilePinRow {
+  position: relative;
+  bottom: 2rem;
+}
+
+.mobileIcon {
+  position: relative;
+  top: 2.3rem;
+  left: 1rem;
+  font-size: 0.8rem;
+}
+
+.mobileLoginBtn {
+  position: relative;
+  left: 0.5rem;
+  margin: auto;
+
+  width: 90%;
+}
+
+.mobileSignInText {
+  font-size: 0.75rem;
+  width: 100%;
+}
+
+.mobileInput {
+  padding-left: 2rem;
+}
+
 /******************************Main app*********************************/
 body {
   font-family: 'Poppins', sans-serif;
@@ -677,583 +724,589 @@ input {
 }
 /*******************Media Queries***************/
 
-@media screen and (max-width: 414px) {
-  .pfp {
-    margin: 1.5rem 0.2rem;
-    width: 4.1rem;
-    height: 4.1rem;
-  }
-
-  .pfpName {
-    margin: -0.5rem 0.7rem;
-  }
-}
-
-@media screen and (max-width: 1900px) {
-  .bankingText {
+@media screen and (max-width: 1300px) {
+  .signOnBox {
     display: none;
   }
-}
-
-@media screen and (max-width: 745px) {
-  .bankingTools {
-    margin: 0 0 0 -0.7rem;
-  }
-}
-
-@media screen and (max-width: 620px) {
-  .bankingTools {
-    margin: 0 0 0 -2rem;
-  }
-}
-
-@media screen and (max-width: 745px) {
-}
-
-@media screen and (max-width: 745px) {
-  .accountsLogout {
-    margin: 0 0 0 -0.7rem;
-  }
-
-  .copyright {
-    margin: 0 0 0 -0.7rem;
-  }
-}
-
-@media screen and (max-width: 620px) {
-  .accountsLogout {
-    margin: 0 0 0 -2rem;
-  }
-
-  .copyright {
-    margin: 0 0 0 -2rem;
-  }
-}
-
-@media screen and (max-width: 1045px) {
-  .welcomeBack {
-    display: none;
-  }
-  .budget {
-    font-size: 0.1rem;
-  }
-}
-
-/*******************Cell Phones*****************/
-
-@media screen and (max-width: 940px) {
-  .budgetClass {
-    position: relative;
-    right: 1.5rem;
-  }
-}
-
-@media screen and (max-width: 850px) {
-  .balanceBlock {
-    width: 30rem;
-  }
-
-  .budgetClass {
-    display: none;
-  }
-}
-
-@media screen and (max-width: 700px) {
-  .balanceBlock {
-    width: 25rem;
-  }
-}
-
-@media screen and (max-width: 610px) {
-  .balanceBlock {
-    width: 20rem;
-  }
-}
-
-@media screen and (max-width: 500px) {
-  .balanceBlock {
-    width: 15rem;
-  }
-}
-
-@media screen and (max-width: 361px) {
-  .actualBalance {
-    margin-bottom: 0;
-  }
-  .balanceBlock {
-    width: 10rem;
-    margin-left: 1rem;
-  }
-
-  .accountInfo {
-    position: relative;
-    bottom: 2.5rem;
-  }
-
-  .bankInfo {
-    position: relative;
-    bottom: 2.5rem;
-  }
-}
-
-@media screen and (max-width: 376px) {
-  .section1 {
-    height: 200vh;
-  }
-}
-
-@media screen and (max-width: 415px) {
-  body {
-    background-color: #61563e;
-  }
-
-  .section1 {
-    height: 235vh;
-  }
-  .rightSide {
-    background-color: #61563e;
-    position: relative;
-    top: 22rem;
-  }
-
-  .bankImg {
-    left: 13rem;
-    bottom: 4rem;
-    width: 15%;
-  }
-  .bankLogo {
-    height: 1rem;
-  }
-
-  .verseofTheDay {
-    width: 100%;
-    margin: 4rem 6rem;
-  }
-
-  .actualBalance {
-    position: relative;
-    bottom: 1.7rem;
-  }
-
-  .incomeSpending {
-    position: relative;
-    left: 6rem;
-  }
-
-  .balanceBlock {
-    position: relative;
-    left: 4.8rem;
-    margin-top: 2rem;
-    margin-left: 0.7rem;
-    width: 17rem;
-  }
-
-  .balanceText {
-    margin: 1rem 2rem;
-  }
-
-  .dateText {
-    margin: -1.1rem 2rem 0.1rem;
-  }
-
-  .accountInfo {
-    position: relative;
-    bottom: 4rem;
-  }
-
-  .bankInfo {
-    position: relative;
-    bottom: 4rem;
-  }
-
-  .accountNum {
-    font-size: 90%;
-  }
-  .accountNumber {
-    font-size: 70%;
-  }
-
-  .accountType {
-    font-size: 90%;
-  }
-
-  .bankName {
-    font-size: 70%;
-    left: 0.5rem;
-  }
-
-  .billsBlock {
-    margin-left: 8rem;
-    width: 100%;
-  }
-
-  .transactionBlock {
-    position: relative;
-    left: 7rem;
-    font-size: 70%;
-    height: 30rem;
-  }
-
-  .lessonsBlock {
-    position: relative;
-    left: 3rem;
-    height: 15rem;
-    width: 25rem;
-  }
-}
-
-@media screen and (max-width: 395px) {
-  .balanceBlock {
-    margin-top: 3.5rem;
-    margin-left: 0.8rem;
-    width: 17rem;
-  }
-
-  .bankImg {
-    left: 13rem;
-    bottom: 4rem;
-    width: 15%;
-  }
-  .bankLogo {
-    height: 1rem;
-  }
-  .balanceBlock {
-    margin-top: 3.5rem;
-    margin-left: 0.8rem;
-    width: 19rem;
-    height: 35%;
-  }
-
-  .balanceText {
-    margin: 1rem 2rem;
-  }
-
-  .dateText {
-    margin: -1.1rem 2rem 0.1rem;
-  }
-
-  .accountNum {
-    position: relative;
-    bottom: 0.5rem;
-    font-size: 90%;
-  }
-  .accountNumber {
-    position: relative;
-    bottom: 0.5rem;
-    font-size: 70%;
-  }
 
-  .accountType {
-    position: relative;
-    bottom: 0.5rem;
-    font-size: 90%;
-    position: relative;
-    bottom: 0.5rem;
-  }
-
-  .bankName {
-    font-size: 70%;
-    left: 1.5rem;
-  }
-
-  .billsBlock {
-    position: relative;
-    right: 4.3rem;
-    width: 100%;
-    height: 60%;
-  }
-}
-
-@media screen and (max-width: 415px) {
-  body {
-    background-color: #61563e;
-  }
-
-  .rightSide {
-    position: relative;
-    top: 22rem;
-  }
-  .bankImg {
-    left: 13rem;
-    bottom: 4rem;
-    width: 15%;
-  }
-  .bankLogo {
-    height: 1rem;
-  }
-  .balanceBlock {
-    margin-top: 3.5rem;
-    margin-left: 0.8rem;
-    width: 19rem;
-    height: 35%;
-  }
-
-  .balanceText {
-    margin: 1rem 2rem;
-  }
-
-  .actualBalance {
-    margin-top: 1.5rem;
-    position: relative;
-    bottom: 1rem;
-  }
-
-  .dateText {
-    margin: -1.1rem 2rem 0.1rem;
-  }
-
-  .accountInfo {
-    position: relative;
-    bottom: 4rem;
-  }
-
-  .bankInfo {
-    position: relative;
-    bottom: 4rem;
-  }
-
-  .accountType {
-    position: relative;
-    left: 0.5rem;
-  }
-
-  .bankName {
-    position: relative;
-    left: 0.5rem;
-  }
-
-  .incomeBlock {
-    position: relative;
-    right: 2.3rem;
-    margin-bottom: 0.9rem;
-  }
-
-  .spendingBlock {
-    position: relative;
-    right: 2.3rem;
-    margin-bottom: 0.9rem;
-  }
-
-  .siIcon {
-    left: 6rem;
-  }
-
-  .billsBlock {
-    margin-bottom: 10rem;
-    position: relative;
-    left: -1.8rem;
-    height: 18rem;
-  }
-
-  .billBtn {
-    position: relative;
-    right: 10rem;
-  }
-  .billsRow {
-    width: 100%;
-    position: relative;
-    right: 1rem;
-  }
-
-  .billText {
-    font-size: 40%;
-  }
+  @media screen and (max-width: 414px) {
+    .pfp {
+      margin: 1.5rem 0.2rem;
+      width: 4.1rem;
+      height: 4.1rem;
+    }
 
-  .billDate {
-    font-size: 50%;
+    .pfpName {
+      margin: -0.5rem 0.7rem;
+    }
   }
 
-  .transAmountText {
-    position: relative;
-    left: 1rem;
-    font-size: 100%;
+  @media screen and (max-width: 1900px) {
+    .bankingText {
+      display: none;
+    }
   }
 
-  .transIcon {
-    position: relative;
-    right: 1rem;
-    width: 20%;
+  @media screen and (max-width: 745px) {
+    .bankingTools {
+      margin: 0 0 0 -0.7rem;
+    }
   }
 
-  .transNameAndDate {
-    position: relative;
-    right: 1.5rem;
+  @media screen and (max-width: 620px) {
+    .bankingTools {
+      margin: 0 0 0 -2rem;
+    }
   }
 
-  .lessonRow {
-    margin-right: 5rem;
+  @media screen and (max-width: 745px) {
   }
 
-  .lessonDiv {
-    height: 2.5rem;
-    width: 2.5rem;
-    margin: 1rem 0.5rem;
-  }
-
-  .lessonImg {
-    font-size: 1.3rem;
-    position: relative;
-    right: 0.6rem;
-    bottom: 0.5rem;
-  }
-  .lessonName {
-    font-size: 50%;
-    margin: auto;
-  }
-
-  .rocketIcon {
-    position: relative;
-    top: 0.1rem;
-    left: 0.1rem;
-  }
-
-  .bpImg {
-    position: relative;
-    right: 0.3rem;
-  }
-
-  .smImg {
-    position: relative;
-    right: 0.35rem;
-  }
-
-  .tutName {
-    position: relative;
-    right: 0.7rem;
-  }
-
-  .tranName {
-    position: relative;
-    right: 0.85rem;
-  }
-
-  .bpName {
-    position: relative;
-    right: 0.2rem;
-  }
-
-  .dpName {
-    position: relative;
-    right: 0.6rem;
-  }
-
-  .smName {
-    position: relative;
-    right: 0.6rem;
-  }
+  @media screen and (max-width: 745px) {
+    .accountsLogout {
+      margin: 0 0 0 -0.7rem;
+    }
 
-  .creditName {
-    position: relative;
-    right: 0.45rem;
+    .copyright {
+      margin: 0 0 0 -0.7rem;
+    }
   }
-}
-
-/*********************************************Tablets**********************************************/
 
-@media screen and (min-width: 820px) {
-  .section1 {
-    height: 180vh;
-  }
-  .body {
-    background-color: #61563e;
-  }
+  @media screen and (max-width: 620px) {
+    .accountsLogout {
+      margin: 0 0 0 -2rem;
+    }
 
-  .rightSide {
-    position: relative;
-    top: 2.6rem;
-    background-color: #61563e;
+    .copyright {
+      margin: 0 0 0 -2rem;
+    }
   }
-  .accountNum {
-    font-size: 1.3rem;
-  }
-  .accountType {
-    font-size: 1.3rem;
-  }
-  .bankName {
-    position: relative;
-    left: 6.5rem;
-  }
-  .siIcon {
-    position: relative;
-    left: 8rem;
-  }
 
-  .transactionBlock {
-    position: relative;
-    margin-left: 1rem;
-  }
-  .lessonsBlock {
-    position: relative;
-    left: 1rem;
+  @media screen and (max-width: 1045px) {
+    .welcomeBack {
+      display: none;
+    }
+    .budget {
+      font-size: 0.1rem;
+    }
   }
 
-  .lessonRow {
-    position: relative;
-    left: 1rem;
-  }
+  /*******************Cell Phones*****************/
 
-  .lessonDiv {
-    width: 5rem;
-    height: 5rem;
-  }
-}
-
-@media screen and (min-width: 768px) {
-  .section1 {
-    height: 180vh;
+  @media screen and (max-width: 940px) {
+    .budgetClass {
+      position: relative;
+      right: 1.5rem;
+    }
   }
 
-  .section2 {
-    background-color: #61563e;
-  }
-  .body {
-    background-color: #61563e;
-  }
+  @media screen and (max-width: 850px) {
+    .balanceBlock {
+      width: 30rem;
+    }
 
-  .rightSide {
-    position: relative;
-    top: 2.6rem;
-    background-color: #61563e;
-  }
-  .accountNum {
-    font-size: 1.2rem;
+    .budgetClass {
+      display: none;
+    }
   }
-  .accountType {
-    font-size: 1.2rem;
-  }
-  .bankName {
-    position: relative;
-    left: 5.5rem;
-  }
-  .siIcon {
-    position: relative;
-    left: 8rem;
-  }
 
-  .transactionBlock {
-    position: relative;
-    margin-left: 1rem;
+  @media screen and (max-width: 700px) {
+    .balanceBlock {
+      width: 25rem;
+    }
   }
-  .lessonsBlock {
-    position: relative;
-    left: 1rem;
-  }
 
-  .lessonRow {
-    position: relative;
-    left: 1rem;
+  @media screen and (max-width: 610px) {
+    .balanceBlock {
+      width: 20rem;
+    }
   }
 
-  .lessonDiv {
-    width: 5rem;
-    height: 5rem;
+  @media screen and (max-width: 500px) {
+    .balanceBlock {
+      width: 15rem;
+    }
   }
-}
-
-/*********************Desktop************************/
 
-@media screen and (min-width: 1920px) {
-  .section1 {
-    height: 110vh;
+  @media screen and (max-width: 361px) {
+    .actualBalance {
+      margin-bottom: 0;
+    }
+    .balanceBlock {
+      width: 10rem;
+      margin-left: 1rem;
+    }
+
+    .accountInfo {
+      position: relative;
+      bottom: 2.5rem;
+    }
+
+    .bankInfo {
+      position: relative;
+      bottom: 2.5rem;
+    }
+  }
+
+  @media screen and (max-width: 376px) {
+    .section1 {
+      height: 200vh;
+    }
+  }
+
+  @media screen and (max-width: 415px) {
+    body {
+      background-color: #61563e;
+    }
+
+    .section1 {
+      height: 235vh;
+    }
+    .rightSide {
+      background-color: #61563e;
+      position: relative;
+      top: 22rem;
+    }
+
+    .bankImg {
+      left: 13rem;
+      bottom: 4rem;
+      width: 15%;
+    }
+    .bankLogo {
+      height: 1rem;
+    }
+
+    .verseofTheDay {
+      width: 100%;
+      margin: 4rem 6rem;
+    }
+
+    .actualBalance {
+      position: relative;
+      bottom: 1.7rem;
+    }
+
+    .incomeSpending {
+      position: relative;
+      left: 6rem;
+    }
+
+    .balanceBlock {
+      position: relative;
+      left: 4.8rem;
+      margin-top: 2rem;
+      margin-left: 0.7rem;
+      width: 17rem;
+    }
+
+    .balanceText {
+      margin: 1rem 2rem;
+    }
+
+    .dateText {
+      margin: -1.1rem 2rem 0.1rem;
+    }
+
+    .accountInfo {
+      position: relative;
+      bottom: 4rem;
+    }
+
+    .bankInfo {
+      position: relative;
+      bottom: 4rem;
+    }
+
+    .accountNum {
+      font-size: 90%;
+    }
+    .accountNumber {
+      font-size: 70%;
+    }
+
+    .accountType {
+      font-size: 90%;
+    }
+
+    .bankName {
+      font-size: 70%;
+      left: 0.5rem;
+    }
+
+    .billsBlock {
+      margin-left: 8rem;
+      width: 100%;
+    }
+
+    .transactionBlock {
+      position: relative;
+      left: 7rem;
+      font-size: 70%;
+      height: 30rem;
+    }
+
+    .lessonsBlock {
+      position: relative;
+      left: 3rem;
+      height: 15rem;
+      width: 25rem;
+    }
+  }
+
+  @media screen and (max-width: 395px) {
+    .balanceBlock {
+      margin-top: 3.5rem;
+      margin-left: 0.8rem;
+      width: 17rem;
+    }
+
+    .bankImg {
+      left: 13rem;
+      bottom: 4rem;
+      width: 15%;
+    }
+    .bankLogo {
+      height: 1rem;
+    }
+    .balanceBlock {
+      margin-top: 3.5rem;
+      margin-left: 0.8rem;
+      width: 19rem;
+      height: 35%;
+    }
+
+    .balanceText {
+      margin: 1rem 2rem;
+    }
+
+    .dateText {
+      margin: -1.1rem 2rem 0.1rem;
+    }
+
+    .accountNum {
+      position: relative;
+      bottom: 0.5rem;
+      font-size: 90%;
+    }
+    .accountNumber {
+      position: relative;
+      bottom: 0.5rem;
+      font-size: 70%;
+    }
+
+    .accountType {
+      position: relative;
+      bottom: 0.5rem;
+      font-size: 90%;
+      position: relative;
+      bottom: 0.5rem;
+    }
+
+    .bankName {
+      font-size: 70%;
+      left: 1.5rem;
+    }
+
+    .billsBlock {
+      position: relative;
+      right: 4.3rem;
+      width: 100%;
+      height: 60%;
+    }
+  }
+
+  @media screen and (max-width: 415px) {
+    body {
+      background-color: #61563e;
+    }
+
+    .rightSide {
+      position: relative;
+      top: 22rem;
+    }
+    .bankImg {
+      left: 13rem;
+      bottom: 4rem;
+      width: 15%;
+    }
+    .bankLogo {
+      height: 1rem;
+    }
+    .balanceBlock {
+      margin-top: 3.5rem;
+      margin-left: 0.8rem;
+      width: 19rem;
+      height: 35%;
+    }
+
+    .balanceText {
+      margin: 1rem 2rem;
+    }
+
+    .actualBalance {
+      margin-top: 1.5rem;
+      position: relative;
+      bottom: 1rem;
+    }
+
+    .dateText {
+      margin: -1.1rem 2rem 0.1rem;
+    }
+
+    .accountInfo {
+      position: relative;
+      bottom: 4rem;
+    }
+
+    .bankInfo {
+      position: relative;
+      bottom: 4rem;
+    }
+
+    .accountType {
+      position: relative;
+      left: 0.5rem;
+    }
+
+    .bankName {
+      position: relative;
+      left: 0.5rem;
+    }
+
+    .incomeBlock {
+      position: relative;
+      right: 2.3rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .spendingBlock {
+      position: relative;
+      right: 2.3rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .siIcon {
+      left: 6rem;
+    }
+
+    .billsBlock {
+      margin-bottom: 10rem;
+      position: relative;
+      left: -1.8rem;
+      height: 18rem;
+    }
+
+    .billBtn {
+      position: relative;
+      right: 10rem;
+    }
+    .billsRow {
+      width: 100%;
+      position: relative;
+      right: 1rem;
+    }
+
+    .billText {
+      font-size: 40%;
+    }
+
+    .billDate {
+      font-size: 50%;
+    }
+
+    .transAmountText {
+      position: relative;
+      left: 1rem;
+      font-size: 100%;
+    }
+
+    .transIcon {
+      position: relative;
+      right: 1rem;
+      width: 20%;
+    }
+
+    .transNameAndDate {
+      position: relative;
+      right: 1.5rem;
+    }
+
+    .lessonRow {
+      margin-right: 5rem;
+    }
+
+    .lessonDiv {
+      height: 2.5rem;
+      width: 2.5rem;
+      margin: 1rem 0.5rem;
+    }
+
+    .lessonImg {
+      font-size: 1.3rem;
+      position: relative;
+      right: 0.6rem;
+      bottom: 0.5rem;
+    }
+    .lessonName {
+      font-size: 50%;
+      margin: auto;
+    }
+
+    .rocketIcon {
+      position: relative;
+      top: 0.1rem;
+      left: 0.1rem;
+    }
+
+    .bpImg {
+      position: relative;
+      right: 0.3rem;
+    }
+
+    .smImg {
+      position: relative;
+      right: 0.35rem;
+    }
+
+    .tutName {
+      position: relative;
+      right: 0.7rem;
+    }
+
+    .tranName {
+      position: relative;
+      right: 0.85rem;
+    }
+
+    .bpName {
+      position: relative;
+      right: 0.2rem;
+    }
+
+    .dpName {
+      position: relative;
+      right: 0.6rem;
+    }
+
+    .smName {
+      position: relative;
+      right: 0.6rem;
+    }
+
+    .creditName {
+      position: relative;
+      right: 0.45rem;
+    }
+  }
+
+  /*********************************************Tablets**********************************************/
+
+  @media screen and (min-width: 820px) {
+    .section1 {
+      height: 180vh;
+    }
+    .body {
+      background-color: #61563e;
+    }
+
+    .rightSide {
+      position: relative;
+      top: 2.6rem;
+      background-color: #61563e;
+    }
+    .accountNum {
+      font-size: 1.3rem;
+    }
+    .accountType {
+      font-size: 1.3rem;
+    }
+    .bankName {
+      position: relative;
+      left: 6.5rem;
+    }
+    .siIcon {
+      position: relative;
+      left: 8rem;
+    }
+
+    .transactionBlock {
+      position: relative;
+      margin-left: 1rem;
+    }
+    .lessonsBlock {
+      position: relative;
+      left: 1rem;
+    }
+
+    .lessonRow {
+      position: relative;
+      left: 1rem;
+    }
+
+    .lessonDiv {
+      width: 5rem;
+      height: 5rem;
+    }
+  }
+
+  @media screen and (min-width: 768px) {
+    .section1 {
+      height: 180vh;
+    }
+
+    .section2 {
+      background-color: #61563e;
+    }
+    .body {
+      background-color: #61563e;
+    }
+
+    .rightSide {
+      position: relative;
+      top: 2.6rem;
+      background-color: #61563e;
+    }
+    .accountNum {
+      font-size: 1.2rem;
+    }
+    .accountType {
+      font-size: 1.2rem;
+    }
+    .bankName {
+      position: relative;
+      left: 5.5rem;
+    }
+    .siIcon {
+      position: relative;
+      left: 8rem;
+    }
+
+    .transactionBlock {
+      position: relative;
+      margin-left: 1rem;
+    }
+    .lessonsBlock {
+      position: relative;
+      left: 1rem;
+    }
+
+    .lessonRow {
+      position: relative;
+      left: 1rem;
+    }
+
+    .lessonDiv {
+      width: 5rem;
+      height: 5rem;
+    }
+  }
+
+  /*********************Desktop************************/
+
+  @media screen and (min-width: 1920px) {
+    .section1 {
+      height: 110vh;
+    }
   }
 }
