@@ -20,13 +20,13 @@ let billType;
 let paymentType;
 let chosenSelect;
 
-const socket = io('http://localhost:3000');
+const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
 
 /**********************************************Functions***********************************************/
 
 //Handles login
 
-const billURL = `http://localhost:3000/bills`;
+const billURL = `https://trinitycapitaltestserver-2.azurewebsites.net/bills`;
 
 async function sendBillData(type, amount, interval, name, cat) {
   const res = await fetch(billURL, {
