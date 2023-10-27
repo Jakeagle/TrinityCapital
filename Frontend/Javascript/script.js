@@ -455,6 +455,10 @@ export const displayTransactions = function (currentAccount) {
 
     let date;
 
+    let interval = movs[i].interval; 
+
+console.log(interval); 
+
     //Sets the date for each transaction according to the date set in the current Account object
 
     //Sets up the date variable for the transactions
