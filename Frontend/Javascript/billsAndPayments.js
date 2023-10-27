@@ -1,74 +1,46 @@
 'use strict';
-import { profiles } from './script.js';
+import { currentProfile } from './script.js';
 
 /**********************************************Variables***********************************************/
 
-const billFrequency = document.querySelector('.frequencyListBills');
-const paymentFrequency = document.querySelector('.frequencyListPayments');
+const billFrequency = document.querySelector('.billFrequency');
+const paymentFrequency = document.querySelector('.paymentFrequency');
 const billInput = document.querySelector('.form__input--amount--bills');
 const paymentInput = document.querySelector('.form__input--amount--payments');
-const mainApp = document.querySelector('.mainApp');
-const inputPin = document.querySelector('.login__input--pin--bp');
-const loginBTN = document.querySelector('.login__btn--bp');
-const signOnSection = document.querySelector('.signOnSection');
+const billName = document.querySelector('.billInputName');
+const paymentName = document.querySelector('.paymentName');
 const billsBTN = document.querySelector('.form__btn--bills');
 const paymentsBTN = document.querySelector('.form__btn--payments');
-const backBTN = document.querySelector('.backBtn');
+const billTypeSelect = document.querySelector('.billType');
+const paymentTypeSelect = document.querySelector('.paymentType');
 
 export let billInterval;
 export let payInterval;
+let billType;
+let paymentType;
 let chosenSelect;
-let billAmount;
-let paymentAmount;
-let currentProfile;
-let pin;
-let currentAccount;
 
-console.log(profiles);
-
-const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
-mainApp.style.display = 'none';
+const socket = io('http://localhost:3000');
 
 /**********************************************Functions***********************************************/
 
 //Handles login
-const login = function () {
-  //Get pin from user input
-  pin = parseInt(inputPin.value);
-  //Matches pin to profiles and logs in.
-  currentProfile = profiles.find(profile => profile.pin === pin);
 
-  //These two turn off the login and turn on the main page
-  signOnSection.style.display = 'none';
-  mainApp.style.display = 'block';
-};
+const billURL = `http://localhost:3000/bills`;
 
-const billURL = `https://trinitycapitaltestserver-2.azurewebsites.net/bills`;
-
-async function sendBillData(type, amount, interval) {
+async function sendBillData(type, amount, interval, name, cat) {
   const res = await fetch(billURL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      parcel: [currentProfile, amount, interval, type],
+      parcel: [currentProfile, type, amount, interval, name, cat],
     }),
   });
 }
 
-//Function that sets time interval based on user input
-
-//Sets the bill array and objects up for use
-
 /**********************************************Event Listeners***********************************************/
-backBTN.addEventListener('click', function () {
-  location.replace('index.html');
-});
-//Handles login
-loginBTN.addEventListener('click', function () {
-  login();
-});
 
 //handles bill frequency
 billFrequency.addEventListener('change', function (event) {
@@ -79,10 +51,34 @@ billFrequency.addEventListener('change', function (event) {
   //Sets the chosen select box as the bill box
   chosenSelect = billFrequency;
 });
+
+billTypeSelect.addEventListener('change', function (event) {
+  //Declares option as user selected item
+  const selectedOption = event.target.selectedOptions[0];
+  //sets interval to selected option
+  billType = selectedOption.value;
+  //Sets the chosen select box as the bill box
+});
+
+paymentTypeSelect.addEventListener('change', function (event) {
+  //Declares option as user selected item
+  const selectedOption = event.target.selectedOptions[0];
+  //sets interval to selected option
+  paymentType = selectedOption.value;
+  //Sets the chosen select box as the bill box
+});
+
 //sets amount for bills
 billsBTN.addEventListener('click', function () {
-  sendBillData('bill', parseInt(billInput.value), billInterval);
-  billInput.value = '';
+  console.log('clicked', currentProfile);
+  sendBillData(
+    'bill',
+    parseInt(-billInput.value),
+    billInterval,
+    billName.value,
+    billType
+  );
+  console.log('complete');
 });
 
 //Same code as bills
@@ -90,9 +86,13 @@ paymentFrequency.addEventListener('change', function (event) {
   const selectedOption = event.target.selectedOptions[0];
   payInterval = selectedOption.value;
   //console.log(payInterval);
-  chosenSelect = paymentFrequency;
 });
 paymentsBTN.addEventListener('click', function () {
-  sendBillData('payment', parseInt(paymentInput.value), payInterval);
-  paymentInput.value = '';
+  sendBillData(
+    'payment',
+    parseInt(paymentInput.value),
+    payInterval,
+    paymentName.value,
+    paymentType
+  );
 });
