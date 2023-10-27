@@ -1,5 +1,29 @@
 @import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Poppins:wght@200;400&display=swap');
 
+/******************************Special Items********************************/
+
+.dollarSignImg {
+  padding-left: 0.37rem;
+}
+
+.waterIcon {
+  padding-left: 0.25rem;
+}
+
+.wifiIcon {
+  font-size: 1.2rem;
+  position: relative;
+  right: 0.47rem;
+  bottom: 0.1rem;
+}
+
+.billListCustom {
+  font-size: 1.35rem;
+  position: relative;
+  right: 0.4rem;
+  bottom: 0.1rem;
+}
+
 /****************************Sign on section*****************************/
 
 .back1 {
@@ -397,6 +421,11 @@ body {
   height: 25vh;
   width: 75%;
   background-color: #94845f;
+  overflow: scroll;
+}
+
+.billsBlock::-webkit-scrollbar {
+  display: none;
 }
 
 .accountInfo {
@@ -522,6 +551,11 @@ body {
   height: 53vh;
   width: 90%;
   margin: 0 0 2.2rem 0;
+  overflow: scroll;
+}
+
+.transactionBlock::-webkit-scrollbar {
+  display: none;
 }
 
 .transactionTitleText {
@@ -645,7 +679,7 @@ body {
 
 /*******************Modals***********************/
 
-.transferModal {
+.baseModal {
   background-color: #94845f;
   border-radius: 2rem;
   width: 50%;
@@ -653,6 +687,10 @@ body {
   text-align: center;
   border-style: none;
   color: white;
+}
+
+.signOnBox::backdrop {
+  opacity: 005;
 }
 
 .transferText {
