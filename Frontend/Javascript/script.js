@@ -1,8 +1,20 @@
 'use strict';
 
+/********************************************Modal control*************************************/
 const mainApp = document.querySelector('.mainApp');
 const loginBox = document.querySelector('.signOnBox');
 const mobileLoginBox = document.querySelector('.mobileSignOnBox');
+const billsModal = document.querySelector('.billsAndPaymentsModal');
+const billsModalBTN = document.querySelector('.billsModalBTN');
+const closeBillModal = document.querySelector('.closeBills');
+
+billsModalBTN.addEventListener('click', function () {
+  billsModal.showModal();
+});
+
+closeBillModal.addEventListener('click', function () {
+  billsModal.close();
+});
 
 window.screen.width <= 1300 ? mobileLoginBox.showModal() : loginBox.showModal();
 
@@ -10,12 +22,7 @@ if (mainApp) mainApp.style.display = 'none';
 
 /***********************************************************Server Listeners**********************************************/
 
-const getBTN = document.getElementById('get');
-const getPrfBTN = document.getElementById('getProfiles');
-const postBTN = document.getElementById('post');
-const input = document.getElementById('input');
-
-export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+export const socket = io('http://localhost:3000');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -47,13 +54,13 @@ socket.on('donationSaving', updatedDonSav => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
+const testServerProfiles = 'http://localhost:3000/profiles';
 
-const loanURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/loans';
+const loanURL = 'http://localhost:3000/loans';
 
-const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donations';
+const donationURL = 'http://localhost:3000/donations';
 
-const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
+const donationSavingsURL = 'http://localhost:3000/donationsSavings';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
@@ -129,8 +136,8 @@ console.log(profiles);
 
 /******************************************Variables ***************************************************/
 
-let currentAccount;
-let currentProfile;
+export let currentAccount;
+export let currentProfile;
 let currentTime;
 let accPIN;
 let accUser;
@@ -145,7 +152,8 @@ const closeT1 = document.querySelector('.closeBtn');
 const signOnForm = document.querySelector('signOnForm');
 const signOnText = document.querySelector('.signOntext');
 const loginButton = document.querySelector('.login__btn');
-const loginText = document.querySelector('.login__input--user');
+const mobileLoginButton = document.querySelector('.mobileLoginBtn');
+
 const formDiv = document.querySelector('.formDiv');
 export let balance;
 
@@ -166,7 +174,7 @@ const donateBtn = document.querySelector('.form__btn--donate');
 const donateAmount = document.querySelector('.form__input--donate--amount');
 const donatePin = document.querySelector('.form__input--pin--donate');
 const accNumHTML = document.querySelector('.accountNumber');
-const balanceDate = document.querySelector(`.balance__date`);
+const balanceDate = document.querySelector(`.dateText`);
 const now = new Date();
 
 //Used for formatting dates
@@ -185,76 +193,87 @@ const options = {
 if (loginButton) {
   loginButton.addEventListener('click', function (event) {
     event.preventDefault();
-
-    // Get the value of the input field
     const loginPIN = document.querySelector('.login__input--pin');
-    const pin = parseInt(loginPIN.value);
-
-    for (let i = 0; i < profiles.length; i++) {
-      console.log(profiles[i].userName);
-      if (loginText.value === profiles[i].userName && pin === profiles[i].pin) {
-        currentProfile = profiles[i];
-      } else if (
-        loginText.value === profiles[i].userName &&
-        pin !== profiles[i].pin
-      ) {
-        alert('incorrect PIN');
-      } else if (
-        loginText.value !== profiles[i].userName &&
-        pin === profiles[i].pin
-      ) {
-        alert('incorrect Username');
-      }
-    }
-
-    if (currentProfile) {
-      // Retrieve saved transactions for current account
-
-      loginBox.close();
-
-      const signOnSection = document.querySelector('.signOnSection');
-
-      signOnSection.style.display = 'none';
-      console.log(currentProfile);
-
-      // Display welcome message
-      const signOnText = document.querySelector('.signOnText');
-      signOnText.textContent = currentProfile.memberName.split(' ')[0];
-
-      // Hide login form and display main app
-      const formDiv = document.querySelector('.formDiv');
-      const mainApp = document.querySelector('.mainApp');
-
-      mainApp.style.display = 'flex';
-      mainApp.style.opacity = 100;
-
-      currentAccount = currentProfile.checkingAccount;
-      if (currentAccount) {
-        console.log(currentAccount);
-        //Add currentAccount here
-        // Update the UI with the first account's information
-        updateUI(currentAccount);
-        //Starts loop function that displays the current Accounts bills
-
-        //Displays the "Current Balanace for "x" string
-        balanceLabel.textContent = `Current balance for: #${currentAccount.accountNumber.slice(
-          -4
-        )}`;
-
-        //Displays the "As of" portion with the current date
-        updateTime();
-        balanceDate.textContent = `As of ${new Intl.DateTimeFormat(
-          currentProfile.locale,
-          options
-        ).format(currentTime)}`;
-        //Display saved transactions for current account
-        displayTransactions(currentAccount);
-      } else {
-        alert('No checking account found. Please contact customer service.');
-      }
-    }
+    const loginText = document.querySelector('.login__input--user');
+    loginFunc(loginPIN, loginText, loginBox);
+    // Get the value of the input field
   });
 }
+
+if (mobileLoginButton) {
+  mobileLoginButton.addEventListener('click', function (event) {
+    event.preventDefault();
+    const mobileLoginPIN = document.querySelector('.mobile_login__input--pin');
+    const mobileLoginText = document.querySelector(
+      '.mobile_login__input--user'
+    );
+    loginFunc(mobileLoginPIN, mobileLoginText, mobileLoginBox);
+    console.log('running');
+  });
+}
+
+const loginFunc = function (PIN, user, screen) {
+  const pin = parseInt(PIN.value);
+
+  for (let i = 0; i < profiles.length; i++) {
+    console.log(profiles[i].userName);
+    if (user.value === profiles[i].userName && pin === profiles[i].pin) {
+      currentProfile = profiles[i];
+    } else if (user.value === profiles[i].userName && pin !== profiles[i].pin) {
+      alert('incorrect PIN');
+    } else if (user.value !== profiles[i].userName && pin === profiles[i].pin) {
+      alert('incorrect Username');
+    }
+  }
+
+  if (currentProfile) {
+    console.log(currentProfile);
+    // Retrieve saved transactions for current account
+
+    screen.close();
+
+    const signOnSection = document.querySelector('.signOnSection');
+
+    signOnSection.style.display = 'none';
+    console.log(currentProfile);
+
+    // Display welcome message
+    const signOnText = document.querySelector('.signOnText');
+    signOnText.textContent = currentProfile.memberName.split(' ')[0];
+
+    // Hide login form and display main app
+    const formDiv = document.querySelector('.formDiv');
+    const mainApp = document.querySelector('.mainApp');
+
+    mainApp.style.display = 'flex';
+    mainApp.style.opacity = 100;
+
+    currentAccount = currentProfile.checkingAccount;
+    if (currentAccount) {
+      console.log(currentAccount);
+      //Add currentAccount here
+      // Update the UI with the first account's information
+      updateUI(currentAccount);
+      //Starts loop function that displays the current Accounts bills
+
+      //Displays the "Current Balanace for "x" string
+      // balanceLabel.textContent = `Current balance for: #${currentAccount.accountNumber.slice(
+      //   -4
+      // )}`;
+
+      //Displays the "As of" portion with the current date
+      updateTime();
+      balanceDate.textContent = `As of ${new Intl.DateTimeFormat(
+        currentProfile.locale,
+        options
+      ).format(currentTime)}`;
+      //Display saved transactions for current account
+      displayTransactions(currentAccount);
+    } else {
+      alert('No checking account found. Please contact customer service.');
+    }
+  }
+};
 
 //Switch accounts
 if (accBtnSwitch) {
@@ -433,7 +452,7 @@ export const displayTransactions = function (currentAccount) {
   //A loop that runs through each transaction in the current account object
   movs.forEach(function (mov, i) {
     //ternerary to determine whether a transaction is a deposit or withdrawal
-    const type = mov > 0 ? 'deposit' : 'withdrawal';
+
     let date;
 
     //Sets the date for each transaction according to the date set in the current Account object
@@ -445,27 +464,199 @@ export const displayTransactions = function (currentAccount) {
     const displayDate = formatMovementDate(date, currentAccount.locale);
     //Formats transactions for user locale
     const formattedMov = formatCur(
-      mov,
+      mov.amount,
       currentAccount.locale,
       currentAccount.currency
     );
+    let transType;
+    let transName = mov.Name;
+
+    let movIcon;
+
+    if (mov.Category === 'car-note') {
+      movIcon = `<i class="fa-solid fa-car transImg"></i>`;
+    }
+    if (mov.Category === 'rent') {
+      movIcon = `<i class="fa-solid fa-house transImg"></i>`;
+    }
+    if (mov.Category === 'car-insurance') {
+      movIcon = `<i class="fa-solid fa-car-burst transImg"></i>`;
+    }
+    if (mov.Category === 'home-insurance') {
+      movIcon = `<i class="fa-solid fa-house-crack transImg"></i>`;
+    }
+    if (mov.Category === 'food') {
+      movIcon = `<i class="fa-solid fa-utensils transImg"></i>`;
+    }
+    if (mov.Category === 'electric') {
+      movIcon = `<i class="fa-solid fa-bolt transImg"></i>`;
+    }
+
+    if (mov.Category === 'gas') {
+      movIcon = `<i class="fa-solid fa-fire-flame-simple transImg"></i>`;
+    }
+
+    if (mov.Category === 'water') {
+      movIcon = `<i class="fa-solid fa-droplet transImg"></i>`;
+    }
+
+    if (mov.Category === 'trash-collection') {
+      movIcon = `<i class="fa-solid fa-dumpster transImg"></i>`;
+    }
+
+    if (mov.Category === 'phone-bill') {
+      movIcon = `<i class="fa-solid fa-phone transImg"></i>`;
+    }
+
+    if (mov.Category === 'internet') {
+      movIcon = `<i class="fa-solid fa-wifi transImg"></i>`;
+    }
+
+    if (mov.Category === 'custom-expense') {
+      movIcon = `<i class="fa-solid fa-screwdriver-wrench transImg"></i>`;
+    }
+
+    if (mov.Category === 'paycheck') {
+      movIcon = `<i class="fa-solid fa-dollar-sign transImg dollarSignImg"></i>`;
+    }
     //HTML for transactions
+    if (mov.amount < 0) {
+      transType = 'negTrans';
+    } else if (mov.amount > 0) {
+      transType = 'posTrans';
+    }
     const html = `<div class="transaction row">
                     <div class="transIcon col-4">
-                      <i class="fa-solid fa-house transImg"></i>
+                      ${movIcon}
                     </div>
                     <div class="transNameAndDate col">
-                      <p class="transName">Rent</p>
+                      <p class="transName">${transName} (${mov.Category})</p>
                       <p class="transDate">${displayDate}</p>
                     </div>
                     <div class="transAmount col">
-                      <p class="transAmountText ${
-                        formattedMov >= 0 ? `negTrans` : `posTrans`
-                      }">${formattedMov}</p>
+                      <p class="transAmountText ${transType}">${formattedMov}</p>
                     </div>
                   </div>`;
     //Inserts HTML with required data
     transactionContainer.insertAdjacentHTML('afterbegin', html);
+    displayBillList(currentAccount);
+  });
+};
+
+export const displayBillList = function (currentAccount) {
+  let bills;
+
+  //selects the transactions HTML element
+  const billListContainer = document.querySelector('.bills');
+  billListContainer.innerHTML = '';
+
+  //Variable set for the transactions themselves
+
+  bills = currentAccount.bills;
+
+  //A loop that runs through each transaction in the current account object
+  bills.forEach(function (bill, i) {
+    //ternerary to determine whether a transaction is a deposit or withdrawal
+
+    let currentDate;
+    let advancedDate;
+
+    //Sets the date for each transaction according to the date set in the current Account object
+
+    //Sets up the date variable for the transactions
+    currentDate = new Date();
+
+    if (bill.interval === 'weekly') {
+      advancedDate = currentDate.setUTCDate(currentDate.getUTCDate() + 7);
+    }
+
+    if (bill.interval === 'bi-weekly') {
+      advancedDate = currentDate.setUTCDate(currentDate.getUTCDate() + 14);
+    }
+
+    if (bill.interval === 'monthly') {
+      advancedDate = currentDate.setUTCDate(currentDate.getUTCDate() + 30);
+    }
+
+    if (bill.interval === 'yearly') {
+      advancedDate = currentDate.setUTCDate(currentDate.getUTCDate() + 365);
+    }
+
+    //displays date next to transactions
+    const displayDate = formatMovementDate(advancedDate, currentAccount.locale);
+    console.log(displayDate);
+    //Formats transactions for user locale
+    const formattedMov = formatCur(
+      bill.amount,
+      currentAccount.locale,
+      currentAccount.currency
+    );
+    let transType;
+    let transName = bill.Name;
+
+    let billIcon;
+
+    if (bill.Category === 'car-note') {
+      billIcon = `<i class="fa-solid fa-car "></i>`;
+    }
+    if (bill.Category === 'rent') {
+      billIcon = `<i class="fa-solid fa-house "></i>`;
+    }
+    if (bill.Category === 'car-insurance') {
+      billIcon = `<i class="fa-solid fa-car-burst "></i>`;
+    }
+    if (bill.Category === 'home-insurance') {
+      billIcon = `<i class="fa-solid fa-house-crack "></i>`;
+    }
+    if (bill.Category === 'food') {
+      billIcon = `<i class="fa-solid fa-utensils "></i>`;
+    }
+    if (bill.Category === 'electric') {
+      billIcon = `<i class="fa-solid fa-bolt "></i>`;
+    }
+
+    if (bill.Category === 'gas') {
+      billIcon = `<i class="fa-solid fa-fire-flame-simple "></i>`;
+    }
+
+    if (bill.Category === 'water') {
+      billIcon = `<i class="fa-solid fa-droplet "></i>`;
+    }
+
+    if (bill.Category === 'trash-collection') {
+      billIcon = `<i class="fa-solid fa-dumpster "></i>`;
+    }
+
+    if (bill.Category === 'phone-bill') {
+      billIcon = `<i class="fa-solid fa-phone "></i>`;
+    }
+
+    if (bill.Category === 'internet') {
+      billIcon = `<i class="fa-solid fa-wifi wifiIcon "></i>`;
+    }
+
+    if (bill.Category === 'custom-expense') {
+      billIcon = `<i class="fa-solid fa-screwdriver-wrench billListCustom "></i>`;
+    }
+
+    if (bill.Category === 'paycheck') {
+      billIcon = `<i class="fa-solid fa-dollar-sign  "></i>`;
+    }
+    //HTML for transactions
+
+    const html = `<div class="billsRow row">
+    <div class="icon col-4">
+      ${billIcon}
+    </div>
+    <div class="billName col">
+      <p class="billText">${bill.Name}($${bill.amount})</p>
+    </div>
+    <div class="col billDate">
+      <p>Reoccurs: ${displayDate}</p>
+    </div>
+  </div>`;
+    //Inserts HTML with required data
+    billListContainer.insertAdjacentHTML('afterbegin', html);
   });
 };
 
@@ -503,5 +694,6 @@ export const updateUI = function (acc) {
   displayTransactions(acc);
   //Displays the balance with correct data
   displayBalance(acc);
-  //Displays the users accounts
+  //Displays the users bill list
+  displayBillList(acc);
 };
