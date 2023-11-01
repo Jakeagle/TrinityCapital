@@ -2,7 +2,7 @@
 
 import { currentProfile } from './script.js';
 
-console.log(currentProfile);
+
 
 const loginButton = document.querySelector('.login__btn');
 const incomeText = document.querySelector('.incomeAmount');
@@ -11,6 +11,7 @@ const budgetText = document.querySelector('.budget');
 
 loginButton.addEventListener('click', function () {
   incomeSpendingCalc();
+  console.log(currentProfile);
 });
 const incomeSpendingCalc = function () {
   let payArray = [];
