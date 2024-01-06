@@ -10,7 +10,7 @@
       integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="Frontend/Styles/style.css" />
+    <link rel="stylesheet" href="Styles/style.css" />
     <script
       src="https://kit.fontawesome.com/60a3862749.js"
       crossorigin="anonymous"
@@ -55,7 +55,9 @@
           <div class="row">
             <div class="col transferBox">
               <p class="">
-                <i class="fa-solid fa-money-bill-transfer bankingImg"></i>
+                <i
+                  class="fa-solid fa-money-bill-transfer bankingImg transferBTN"
+                ></i>
               </p>
             </div>
             <div class="col">
@@ -103,7 +105,7 @@
           <div class="row">
             <div class="col transferBox">
               <p class="">
-                <i class="fa-solid fa-user bankingImg"></i>
+                <i class="fa-solid fa-user bankingImg accountSwitchBTN"></i>
               </p>
             </div>
             <div class="col">
@@ -165,7 +167,7 @@
                   <div class="col-sm col-md col-lg bankLogo">
                     <img
                       class="bankImg"
-                      src="Frontend/img/pngaaa.com-4372256.png"
+                      src="img/pngaaa.com-4372256.png"
                       alt="logo"
                     />
                   </div>
@@ -372,6 +374,8 @@
     <script src="Frontend/Javascript/script.js" type="module"></script>
     <script src="Frontend/Javascript/billsAndPayments.js" type="module"></script>
     <script src="Frontend/Javascript/numberCrunch.js" type="module"></script>
+    <script src="Frontend/Javascript/transfer.js" type="module"></script>
+    <script src="Frontend/Javascript/accountSwitch.js" type="module"></script>
   </body>
 
   <dialog class="transferModal baseModal">
@@ -381,7 +385,7 @@
       </div>
       <div class="col-2">
         <p class="exitMark">
-          <i class="fa-solid fa-circle-xmark"></i>
+          <i class="fa-solid fa-circle-xmark transferExitButton"></i>
         </p>
       </div>
     </div>
@@ -414,7 +418,7 @@
 
         <select
           name="accounts"
-          class="accountsListFrom col-lg-6 col-md-6 col-sm-12"
+          class="accountsListTo col-lg-6 col-md-6 col-sm-12"
         >
           <option value="account">Account</option>
         </select>
@@ -673,6 +677,26 @@
     </div>
     <div class="signUpBtn signInBtn mobileLoginBtn login__btn">
       <h1 class="SignUpText mobileSignInText">Sign In</h1>
+    </div>
+  </dialog>
+
+  <dialog class="baseModal accountSwitchModal">
+    <div class="accountRow row">
+      <div class="col-10">
+        <h1 class="transferText">Accounts</h1>
+      </div>
+      <div class="col-2">
+        <p class="exitMark">
+          <i class="fa-solid fa-circle-xmark closeAccounts"></i>
+        </p>
+      </div>
+    </div>
+    <div class="accounts">
+      <div class="accountListBg">
+        <h2 class="accountsText selectAccText">Select an account</h2>
+
+        <ul class="theList"></ul>
+      </div>
     </div>
   </dialog>
 </html>
