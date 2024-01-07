@@ -3,6 +3,7 @@
 /********************************************Modal control*************************************/
 const mainApp = document.querySelector('.mainApp');
 const loginBox = document.querySelector('.signOnBox');
+const startPage = document.querySelector('.startPage');
 const mobileLoginBox = document.querySelector('.mobileSignOnBox');
 const billsModal = document.querySelector('.billsAndPaymentsModal');
 const transferModal = document.querySelector('.transferModal');
@@ -14,6 +15,29 @@ const closeTransferModal = document.querySelector('.transferExitButton');
 const billsModalBTN = document.querySelector('.billsModalBTN');
 const closeBillModal = document.querySelector('.closeBills');
 const closeAccountModal = document.querySelector('.closeAccounts');
+const logOutBTN = document.querySelector('.logOutBTN');
+
+if (startPage) {
+  startPage.style.display = 'none';
+  document.body.style.backgroundImage = 'none';
+  mobileLoginBox.showModal();
+}
+
+if (
+  navigator.userAgent.match(/Android/i) ||
+  navigator.userAgent.match(/webOS/i) ||
+  navigator.userAgent.match(/iPhone/i) ||
+  navigator.userAgent.match(/iPad/i) ||
+  navigator.userAgent.match(/iPod/i) ||
+  navigator.userAgent.match(/BlackBerry/i) ||
+  navigator.userAgent.match(/Windows Phone/i)
+) {
+  location.replace('mobile.html');
+}
+
+logOutBTN.addEventListener('click', function () {
+  location.reload();
+});
 
 billsModalBTN.addEventListener('click', function () {
   billsModal.showModal();
@@ -85,7 +109,7 @@ const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donati
 
 const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
 
-const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
+const balanceURL = https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
