@@ -19,21 +19,17 @@ const logOutBTN = document.querySelector('.logOutBTN');
 
 
 
+var url = window.location.pathname;
+var filename = url.substring(url.lastIndexOf('/') + 1);
+var mobilePage = 'mobile.html';
+
 if (
-  navigator.userAgent.match(/Android/i) ||
-  navigator.userAgent.match(/webOS/i) ||
-  navigator.userAgent.match(/iPhone/i) ||
-  navigator.userAgent.match(/iPad/i) ||
-  navigator.userAgent.match(/iPod/i) ||
-  navigator.userAgent.match(/BlackBerry/i) ||
-  navigator.userAgent.match(/Windows Phone/i)
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
+    navigator.userAgent
+  ) &&
+  filename !== mobilePage
 ) {
-  location.replace('mobile.html');
-  if (startPage) {
-  startPage.style.display = 'none';
-  document.body.style.backgroundImage = 'none';
-  mobileLoginBox.showModal();
-}
+  document.location = mobilePage;
 }
 
 logOutBTN.addEventListener('click', function () {
