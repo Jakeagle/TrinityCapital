@@ -1,0 +1,31 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Poppins:wght@200;400&display=swap');
+
+body {
+  background-image: url('Mobile Background 2.png');
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  background-color: #ccc2a6;
+}
+
+.welcome {
+  width: 100%;
+  height: 20rem;
+  /* background-color: brown; */
+}
+
+.welcomeText {
+  font-weight: 200;
+  position: relative;
+  top: 5rem;
+  left: 3rem;
+}
+
+.nameText {
+  font-weight: 800;
+}
+
+.start {
+  position: relative;
+  left: 17rem;
+  top: 25rem;
+}
