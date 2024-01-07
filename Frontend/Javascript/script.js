@@ -109,7 +109,7 @@ const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donati
 
 const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
 
-const balanceURL = https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
+const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
