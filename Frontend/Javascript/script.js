@@ -17,11 +17,7 @@ const closeBillModal = document.querySelector('.closeBills');
 const closeAccountModal = document.querySelector('.closeAccounts');
 const logOutBTN = document.querySelector('.logOutBTN');
 
-if (startPage) {
-  startPage.style.display = 'none';
-  document.body.style.backgroundImage = 'none';
-  mobileLoginBox.showModal();
-}
+
 
 if (
   navigator.userAgent.match(/Android/i) ||
@@ -33,6 +29,11 @@ if (
   navigator.userAgent.match(/Windows Phone/i)
 ) {
   location.replace('mobile.html');
+  if (startPage) {
+  startPage.style.display = 'none';
+  document.body.style.backgroundImage = 'none';
+  mobileLoginBox.showModal();
+}
 }
 
 logOutBTN.addEventListener('click', function () {
