@@ -30,6 +30,11 @@ if (
   filename !== mobilePage
 ) {
   document.location = mobilePage;
+  if (startPage) {
+    startPage.style.display = 'none';
+    document.body.style.backgroundImage = 'none';
+    mobileLoginBox.showModal();
+  }
 }
 
 logOutBTN.addEventListener('click', function () {
