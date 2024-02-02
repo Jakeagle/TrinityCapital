@@ -83,7 +83,7 @@ socket.on('donationSaving', updatedDonSav => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
+const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
 
 const loanURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/loans';
 
