@@ -19,23 +19,7 @@ const logOutBTN = document.querySelector('.logOutBTN');
 
 
 
-var url = window.location.pathname;
-var filename = url.substring(url.lastIndexOf('/') + 1);
-var mobilePage = 'mobile.html';
 
-if (
-  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
-    navigator.userAgent
-  ) &&
-  filename !== mobilePage
-) {
-  document.location = mobilePage;
-  if (startPage) {
-    startPage.style.display = 'none';
-    document.body.style.backgroundImage = 'none';
-    mobileLoginBox.showModal();
-  }
-}
 
 logOutBTN.addEventListener('click', function () {
   location.reload();
