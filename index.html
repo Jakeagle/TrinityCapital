@@ -115,7 +115,9 @@
           <div class="row">
             <div class="col transferBox">
               <p class="col">
-                <i class="fa-solid fa-right-from-bracket bankingImg"></i>
+                <i
+                  class="fa-solid fa-right-from-bracket bankingImg logOutBTN"
+                ></i>
               </p>
             </div>
             <div class="col">
@@ -696,6 +698,160 @@
         <h2 class="accountsText selectAccText">Select an account</h2>
 
         <ul class="theList"></ul>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="baseModal sendMoneyModal">
+    <div class="transferHeader row">
+      <div class="col-10">
+        <h1 class="transferText">Bills and payments</h1>
+      </div>
+      <div class="col-2">
+        <p class="exitMark">
+          <i class="fa-solid fa-circle-xmark closeBills"></i>
+        </p>
+      </div>
+
+      <div class="row accountsRow">
+        <div class="col fromTrans billSelection">
+          <h2 class="fromText">Bills</h2>
+          <label
+            for="billType"
+            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
+          >
+            Bill Type</label
+          >
+
+          <select
+            name="billType"
+            class="accountsListFrom billType col-lg-6 col-md-6 col-sm-12"
+          >
+            <option value="type">Type</option>
+            <option value="rent">Rent</option>
+            <option value="car-note">Car Note</option>
+            <option value="car-insurance">Car Insurance</option>
+            <option value="home-insurance">Home Insurance</option>
+            <option value="food">Food</option>
+            <option value="electric">Electric Bill</option>
+            <option value="gas">Gas Bill</option>
+            <option value="water">Water Bill(Includes Sewage)</option>
+            <option value="trash-collection">Trash Collection</option>
+            <option value="phone-bill">Phone Bill</option>
+            <option value="internet">internet</option>
+            <option value="custom-expense">Custom Expense</option>
+          </select>
+          <label
+            for="billType"
+            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
+          >
+            Bill Name</label
+          >
+
+          <input
+            type="text"
+            class="accountsListFrom billInputName \col-lg-6 col-md-6 col-sm-12"
+          />
+          <label
+            for="billType"
+            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
+          >
+            Bill Amount</label
+          >
+
+          <input
+            type="text"
+            class="accountsListFrom form__input--amount--bills col-lg-6 col-md-6 col-sm-12"
+          />
+
+          <label
+            for="billType"
+            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
+          >
+            Bill Frequency</label
+          >
+
+          <select
+            name="billFrequency"
+            class="accountsListFrom billFrequency col-lg-6 col-md-6 col-sm-12"
+          >
+            <option value="frequency">Frequency</option>
+            <option value="weekly">Weekly</option>
+            <option value="bi-weekly">Bi-Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+          <div class="transferBtn">
+            <h4 class="submitTransfer">Submit</h4>
+            <button class="form__btn form__btn--transfer form__btn--bills">
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="col fromTrans paymentSelection">
+          <h2 class="fromText">Payments</h2>
+          <label
+            for="billType"
+            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
+          >
+            Payment Type</label
+          >
+
+          <select
+            name="paymentType"
+            class="accountsListFrom paymentType col-lg-6 col-md-6 col-sm-12"
+          >
+            <option value="type">Payment Type</option>
+            <option value="paycheck">Paycheck</option>
+          </select>
+          <label
+            for="billType"
+            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
+          >
+            Payment Name</label
+          >
+
+          <input
+            type="text"
+            class="accountsListFrom paymentName col-lg-6 col-md-6 col-sm-12"
+          />
+          <label
+            for="billType"
+            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
+          >
+            Payment Amount</label
+          >
+
+          <input
+            type="text"
+            class="accountsListFrom form__input--amount--payments col-lg-6 col-md-6 col-sm-12"
+          />
+
+          <label
+            for="billType"
+            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
+          >
+            Payment Frequency</label
+          >
+
+          <select
+            name="paymentFrequency"
+            class="accountsListFrom paymentFrequency col-lg-6 col-md-6 col-sm-12"
+          >
+            <option value="frequency">Frequency</option>
+            <option value="weekly">Weekly</option>
+            <option value="bi-weekly">Bi-Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+          </select>
+          <div class="transferBtn">
+            <h4 class="submitTransfer">Submit</h4>
+            <button class="form__btn form__btn--transfer form__btn--payments">
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </dialog>
