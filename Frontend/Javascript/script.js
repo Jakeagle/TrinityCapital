@@ -1,20 +1,30 @@
 'use strict';
 
 /********************************************Modal control*************************************/
+
+//Modals
 const mainApp = document.querySelector('.mainApp');
 const loginBox = document.querySelector('.signOnBox');
-const startPage = document.querySelector('.startPage');
 const mobileLoginBox = document.querySelector('.mobileSignOnBox');
 const billsModal = document.querySelector('.billsAndPaymentsModal');
 const transferModal = document.querySelector('.transferModal');
 const accountSwitchModal = document.querySelector('.accountSwitchModal');
-const accountSwitchBTN = document.querySelector('.accountSwitchBTN');
+const depositModal = document.querySelector('.depositModal');
+const sendMoneyModal = document.querySelector('.sendMoneyModal');
 
+//Modal Buttons
+const accountSwitchBTN = document.querySelector('.accountSwitchBTN');
 const transferModalBTN = document.querySelector('.transferBTN');
-const closeTransferModal = document.querySelector('.transferExitButton');
 const billsModalBTN = document.querySelector('.billsModalBTN');
+const depositModalBTN = document.querySelector('.depositsBTN');
+const sendMoneyBTN = document.querySelector('.sendMoneyBTN');
+
+//close Modals
+const closeTransferModal = document.querySelector('.transferExitButton');
 const closeBillModal = document.querySelector('.closeBills');
 const closeAccountModal = document.querySelector('.closeAccounts');
+const closeDepositModal = document.querySelector('.closeDeposits');
+const closeSendMoneyModal = document.querySelector('.closeSendMoney');
 const logOutBTN = document.querySelector('.logOutBTN');
 
 logOutBTN.addEventListener('click', function () {
@@ -45,13 +55,29 @@ closeAccountModal.addEventListener('click', function () {
   accountSwitchModal.close();
 });
 
+depositModalBTN.addEventListener('click', function () {
+  depositModal.showModal();
+});
+
+closeDepositModal.addEventListener('click', function () {
+  depositModal.close();
+});
+
+sendMoneyBTN.addEventListener('click', function () {
+  sendMoneyModal.showModal();
+});
+
+closeSendMoneyModal.addEventListener('click', function () {
+  sendMoneyModal.close();
+});
 window.screen.width <= 1300 ? mobileLoginBox.showModal() : loginBox.showModal();
 
 if (mainApp) mainApp.style.display = 'none';
 
 /***********************************************************Server Listeners**********************************************/
 
-export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+export const socket = io('http://localhost:3000');
+export const socket2 = io('http://localhost:5040');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -62,6 +88,23 @@ socket.on('checkingAccountUpdate', updatedChecking => {
   // Call your existing updateUI function with the updated checking account data
   displayBalance(checkingAccount);
   displayTransactions(checkingAccount);
+});
+
+const timerModal = document.querySelector('.timerModal');
+
+timerModal.addEventListener('cancel', event => {
+  event.preventDefault();
+});
+
+socket2.on('timer', active => {
+  console.log(active);
+  if (active) {
+    timerModal.showModal();
+  }
+
+  if (!active) {
+    timerModal.close();
+  }
 });
 
 socket.on('donationChecking', updatedDonCheck => {
@@ -93,8 +136,27 @@ const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net
 
 const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
 
+
+
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
+
+if(productivityURL){
+  export async function startTimers() {
+  const res = await fetch(productivityURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      parcel: currentProfile,
+    }),
+  });
+}
+}else{
+  return;
+}
+
 
 export async function getInfoProfiles() {
   try {
@@ -249,7 +311,7 @@ if (mobileLoginButton) {
     event.preventDefault();
     const mobileLoginPIN = document.querySelector('.mobile_login__input--pin');
     const mobileLoginText = document.querySelector(
-      '.mobile_login__input--user'
+      '.mobile_login__input--user',
     );
     loginFunc(mobileLoginPIN, mobileLoginText, mobileLoginBox);
     console.log('running');
@@ -260,7 +322,6 @@ const loginFunc = function (PIN, user, screen) {
   const pin = parseInt(PIN.value);
 
   for (let i = 0; i < profiles.length; i++) {
-    console.log(profiles[i].userName);
     if (user.value === profiles[i].userName && pin === profiles[i].pin) {
       currentProfile = profiles[i];
     } else if (user.value === profiles[i].userName && pin !== profiles[i].pin) {
@@ -272,7 +333,7 @@ const loginFunc = function (PIN, user, screen) {
 
   if (currentProfile) {
     initialBalance();
-    console.log(currentProfile);
+
     // Retrieve saved transactions for current account
 
     screen.close();
@@ -280,7 +341,6 @@ const loginFunc = function (PIN, user, screen) {
     const signOnSection = document.querySelector('.signOnSection');
 
     signOnSection.style.display = 'none';
-    console.log(currentProfile);
 
     // Display welcome message
     const signOnText = document.querySelector('.signOnText');
@@ -292,6 +352,13 @@ const loginFunc = function (PIN, user, screen) {
 
     mainApp.style.display = 'flex';
     mainApp.style.opacity = 100;
+
+    if (
+      currentProfile.memberName === 'Darlene Jones' ||
+      currentProfile.memberName === 'Jakob Ferguson'
+    ) {
+      startTimers();
+    }
 
     currentAccount = currentProfile.checkingAccount;
     if (currentAccount) {
@@ -310,7 +377,7 @@ const loginFunc = function (PIN, user, screen) {
       updateTime();
       balanceDate.textContent = `As of ${new Intl.DateTimeFormat(
         currentProfile.locale,
-        options
+        options,
       ).format(currentTime)}`;
       //Display saved transactions for current account
       displayTransactions(currentAccount);
@@ -337,7 +404,7 @@ if (accBtnSwitch) {
       ) {
         currentAccount = currentProfile.checkingAccount;
         balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(
-          -4
+          -4,
         )}`;
         updateUI(currentAccount);
       } else if (
@@ -345,7 +412,7 @@ if (accBtnSwitch) {
       ) {
         currentAccount = currentProfile.savingsAccount;
         balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(
-          -4
+          -4,
         )}`;
         updateUI(currentAccount);
       }
@@ -440,19 +507,19 @@ const displayAccounts = function (currentAccount) {
   let balance = formatCur(
     currentProfile.locale,
 
-    currentProfile.currency
+    currentProfile.currency,
   );
 
   let lastTransactionDate = new Date(
     currentProfile.checkingAccount.movementsDates[
       currentProfile.checkingAccount.movementsDates.length - 1
-    ]
+    ],
   ).toLocaleDateString(currentProfile.locale);
 
   let lastTransactionDateSavings = new Date(
     currentProfile.savingsAccount.movementsDates[
       currentProfile.savingsAccount.movementsDates.length - 1
-    ]
+    ],
   ).toLocaleDateString(currentProfile.locale);
 
   const html = [
@@ -462,7 +529,7 @@ const displayAccounts = function (currentAccount) {
             currentProfile.checkingAccount.accountType
           }</div>
           <div class="col accountNumber">${currentProfile.checkingAccount.accountNumber.slice(
-            -4
+            -4,
           )}</div>
           <div class="col updateDate">${lastTransactionDate}</div>
         </div>
@@ -472,7 +539,7 @@ const displayAccounts = function (currentAccount) {
           currentProfile.savingsAccount.accountType
         }</div>
         <div class="col accountNumber">${currentProfile.savingsAccount.accountNumber.slice(
-          -4
+          -4,
         )}</div>
         <div class="col updateDate">${lastTransactionDateSavings}</div>
       </div>
@@ -511,13 +578,16 @@ export const displayTransactions = function (currentAccount) {
     const formattedMov = formatCur(
       mov.amount,
       currentAccount.locale,
-      currentAccount.currency
+      currentAccount.currency,
     );
     let transType;
     let transName = mov.Name;
 
     let movIcon;
 
+    if (mov.Category === 'Money Deposit') {
+      movIcon = `<i class="fa-solid fa-dollar-sign transImg sndMon"></i>`;
+    }
     if (mov.Category === 'Transfer') {
       movIcon = `<i class="fa-solid fa-money-bill-transfer transImg"></i>`;
     }
@@ -568,6 +638,9 @@ export const displayTransactions = function (currentAccount) {
     if (mov.Category === 'paycheck') {
       movIcon = `<i class="fa-solid fa-dollar-sign transImg dollarSignImg"></i>`;
     }
+    if (mov.Category === 'Check Deposit') {
+      movIcon = `<i class="fa-solid fa-money-check transImg"></i>`;
+    }
     //HTML for transactions
     if (mov.amount < 0) {
       transType = 'negTrans';
@@ -603,6 +676,10 @@ export const displayBillList = function (currentAccount) {
 
   bills = currentAccount.bills;
 
+  //Sets the date for each transaction according to the date set in the current Account object
+
+  //Sets up the date variable for the transactions
+
   //A loop that runs through each transaction in the current account object
   if (currentAccount.accountType != 'Savings') {
     bills.forEach(function (bill, i) {
@@ -614,7 +691,9 @@ export const displayBillList = function (currentAccount) {
       //Sets the date for each transaction according to the date set in the current Account object
 
       //Sets up the date variable for the transactions
-      currentDate = new Date();
+      currentDate = new Date(bill.Date);
+
+      //currentDate = new Date();
 
       if (bill.interval === 'weekly') {
         advancedDate = currentDate.setUTCDate(currentDate.getUTCDate() + 7);
@@ -635,14 +714,14 @@ export const displayBillList = function (currentAccount) {
       //displays date next to transactions
       const displayDate = formatMovementDate(
         advancedDate,
-        currentAccount.locale
+        currentAccount.locale,
       );
-      console.log(displayDate);
+
       //Formats transactions for user locale
       const formattedMov = formatCur(
         bill.amount,
         currentAccount.locale,
-        currentAccount.currency
+        currentAccount.currency,
       );
       let transType;
       let transName = bill.Name;
@@ -653,7 +732,7 @@ export const displayBillList = function (currentAccount) {
         billIcon = `<i class="fa-solid fa-car "></i>`;
       }
       if (bill.Category === 'rent') {
-        billIcon = `<i class="fa-solid fa-house "></i>`;
+        billIcon = `<i class="fa-solid fa-house rentIcon"></i>`;
       }
       if (bill.Category === 'car-insurance') {
         billIcon = `<i class="fa-solid fa-car-burst "></i>`;
@@ -738,7 +817,7 @@ export const displayBalance = function (acc) {
   balanceValue.textContent = formatCur(
     acc.balanceTotal,
     acc.locale,
-    acc.currency
+    acc.currency,
   );
 };
 
