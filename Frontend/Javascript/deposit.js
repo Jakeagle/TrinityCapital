@@ -1,19 +1,19 @@
 'use strict';
 
-import { profiles } from './script.js';
-import { transactionsPush } from './script.js';
+import { getInfoProfiles } from './script.js';
+import { currentProfile } from './script.js';
+
+console.log(currentProfile);
 
 /**************************************************Variables ***********************************************/
 
-const mainForm = $('.depositForm');
-
 const name = $('.nameInput');
+
+const dest = document.querySelector('.destInput');
 
 const amount = $('.amountInput');
 
 const date = $('.dateInput');
-
-const wordedAmount = $('.wordedAmountInput');
 
 const signature = $('.sigInput');
 
@@ -21,15 +21,11 @@ const submit = $('.submitBtn');
 
 const mainApp = $('.mainApp');
 
-const signOnSection = $('.signOnSection');
-
-const inputPIN = $('.login__input--pin--bp');
-
-const inputBTN = $('.login__btn--bp');
-
 const backBTN = $('.backBtn');
 
-let currentProfile;
+const loginBTN = document.querySelector('.login__btn');
+
+const depositLink = 'https://trinitycapitaltestserver-2.azurewebsites.net/deposits';
 
 mainApp.css('display', 'none');
 
@@ -40,17 +36,11 @@ backBTN.click(function () {
 
 submit.click(function (e) {
   e.preventDefault();
-  checkAll(currentProfile);
+  checkAll();
 });
 
-inputBTN.click(function () {
-  let PIN = parseInt(inputPIN.val());
-
-  //Matches pin to profiles and logs in.
-  currentProfile = profiles.find(profile => profile.pin === PIN);
-  mainApp.css('display', 'block');
-  signOnSection.css('display', 'none');
-  //loops through accounts in currentProfile
+loginBTN.addEventListener('click', function () {
+  console.log(currentProfile.memberName);
 });
 
 /********************************************************Functions *****************************************/
@@ -111,15 +101,20 @@ const loanAdd = function () {
   console.log('Ran');
 
   let userLoan = parseInt(amount.val());
-  if (userLoan <= 0) {
-    alert('Cannot use negative amount');
-  } else if (userLoan > 0) {
-    currentProfile.accounts[0].transactions.push(userLoan);
-    currentProfile.accounts[0].movementsDates.push(new Date().toISOString());
-    transactionsPush();
-    console.log('complete', userLoan);
-    alert(' Succesfull');
-    //send user back to main page
-    location.replace('index.html');
-  }
+
+  let member = currentProfile.memberName;
+
+  sendDeposit(userLoan, dest.value, member);
 };
+
+export async function sendDeposit(loan, destination, member) {
+  const res = await fetch(depositLink, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      parcel: [loan, destination, member],
+    }),
+  });
+}
