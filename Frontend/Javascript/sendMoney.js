@@ -1,94 +1,70 @@
-import { profiles } from './script.js';
-import { transactionsPush } from './script.js';
+import { currentProfile } from './script.js';
+import { getInfoProfiles } from './script.js';
 
 /**********************************************Variables****************************************/
-let currentProfile;
+
+let profiles = await getInfoProfiles();
 let targetProfile;
 let profileSend;
 
 const mainApp = document.querySelector('.mainApp');
-const signOnSection = document.querySelector('.signOnSection');
-const loginPIN = document.querySelector('.login__input--pin--bp');
-const loginBTN = document.querySelector('.login__btn--bp');
-const inputAmount = document.querySelector('.form__input--amount--bills');
-const inputMember = document.querySelector('.frequencyListBills');
-const inputBTN = document.querySelector('.form__btn--bills');
+const loginBTN = document.querySelector('.login__btn');
+const inputAmount = document.querySelector('.form__input--amount--sendMoney');
+const recipient = document.querySelector('.recipients');
+const inputBTN = document.querySelector('.sendBtn');
 const backBTN = document.querySelector('.backBtn');
+
+const sendMoneyURL = `https://trinitycapitaltestserver-2.azurewebsites.net/sendFunds`;
+let theRecipient;
 
 mainApp.style.display = 'none';
 
 /***********************************************Event LIsteners ********************************/
-backBTN.addEventListener('click', function () {
-  location.replace('index.html');
-});
+
 loginBTN.addEventListener('click', function () {
-  let pin = parseInt(loginPIN.value);
-  currentProfile = profiles.find(profile => profile.pin === pin);
-
-  mainApp.style.display = 'block';
-  signOnSection.style.display = 'none';
-  //If succesful, it runs through and sets up the accounts for that profile as selecteable options
-  profiles.forEach(profile => {
-    //sets DOM element for option
-    let option = document.createElement('option');
-    // use the account number as the identifier
-    option.value = profile.memberName;
-
-    //sets text content for the option
-    option.textContent = `${profile.memberName}`;
-
-    //appends content to select box
-    inputMember.appendChild(option);
-  });
+  console.log(currentProfile, profiles);
+  accountSetup();
 });
 
-inputMember.addEventListener('change', function (e) {
-  const selectedOption = e.target.selectedOptions[0];
-  targetProfile = selectedOption.value;
-
-  for (let i = 0; i < profiles.length; i++) {
-    if (targetProfile === profiles[i].memberName) {
-      profileSend = profiles[i];
-      console.log(profileSend);
-    }
-  }
+recipient.addEventListener('change', function (event) {
+  // Get the selected option element
+  const selectedOption = event.target.selectedOptions[0];
+  // Get the account number from the value property of the selected option
+  theRecipient = selectedOption.value;
+  console.log(theRecipient);
 });
 
 inputBTN.addEventListener('click', function () {
-  sendFunds();
+  let amount = parseInt(inputAmount.value);
+  let sender = currentProfile.memberName;
+  sendFunds(theRecipient, sender, amount);
+
+  inputAmount.textContent = '';
 });
-
 /**************************************************Functions*****************************************/
+const accountSetup = function () {
+  profiles.forEach(profile => {
+    let option = document.createElement('option');
 
-const sendFunds = function () {
-  console.log(currentProfile.memberName === profileSend.memberName);
+    option.value = profile.memberName;
 
-  if (currentProfile.memberName === profileSend.memberName) {
+    option.textContent = `${profile.memberName}`;
+    recipient.appendChild(option);
+  });
+};
+const sendFunds = async function (recip, sendr, amnt) {
+  if (recip === sendr) {
     alert('You cannot send funds to yourself');
   } else {
-    let amount = parseInt(inputAmount.value);
-
-    if (amount <= 0) {
-      alert('Cannot use negative number');
-    } else if (amount > 0) {
-      if (amount > currentProfile.accounts[0].balanceTotal) {
-        alert('Insufficient funds');
-      } else if (amount <= profileSend.accounts[0].balanceTotal) {
-        console.log(profileSend.accounts[0].balanceTotal);
-        profileSend.accounts[0].transactions.push(amount);
-        profileSend.accounts[0].movementsDates.push(new Date().toISOString());
-        currentProfile.accounts[0].transactions.push(-amount);
-        currentProfile.accounts[0].movementsDates.push(
-          new Date().toISOString()
-        );
-        transactionsPush();
-
-        alert('Money sent sucesfully');
-        location.replace('index.html');
-      }
-
-      console.log(amount, profileSend.accounts[0].transactions);
-      console.log(amount, currentProfile.accounts[0].transactions);
-    }
+    console.log(recip, amnt);
+    const res = await fetch(sendMoneyURL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        parcel: [recip, sendr, amnt],
+      }),
+    });
   }
 };
