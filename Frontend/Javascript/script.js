@@ -141,21 +141,7 @@ const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initial
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
 
-if(productivityURL){
-  export async function startTimers() {
-  const res = await fetch(productivityURL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      parcel: currentProfile,
-    }),
-  });
-}
-}else{
-  return;
-}
+
 
 
 export async function getInfoProfiles() {
