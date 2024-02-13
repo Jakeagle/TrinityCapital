@@ -11,6 +11,7 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="Frontend/Styles/style.css" />
+    <link rel="stylesheet" href="Frontend/Styles/check.css">
     <script
       src="https://kit.fontawesome.com/60a3862749.js"
       crossorigin="anonymous"
@@ -26,6 +27,11 @@
       integrity="sha384-c79GN5VsunZvi+Q/WObgk2in0CbZsHnjEqvFxC5DxHn9lTfNce2WW6h2pH6u/kF+"
       crossorigin="anonymous"
     ></script>
+
+    <script
+  src="https://code.jquery.com/jquery-3.7.1.slim.js"
+  integrity="sha256-UgvvN8vBkgO0luPSUl2s8TIlOSYRoGFAX4jlCIm9Adc="
+  crossorigin="anonymous"></script>
   </head>
   <body>
     <div class="signOnSection">
@@ -81,7 +87,7 @@
           <div class="row">
             <div class="col transferBox">
               <p class="">
-                <i class="fa-solid fa-money-check bankingImg"></i>
+                <i class="fa-solid fa-money-check bankingImg depositsBTN"></i>
               </p>
             </div>
             <div class="col">
@@ -92,7 +98,7 @@
           <div class="row">
             <div class="col transferBox">
               <p class="">
-                <i class="fa-solid fa-dollar-sign bankingImg"></i>
+                <i class="fa-solid fa-dollar-sign bankingImg sendMoneyBTN"></i>
               </p>
             </div>
             <div class="col">
@@ -130,12 +136,12 @@
           <div class="row">
             <div class="col transferBox">
               <p class="col">
-                <i class="fa-solid fa-copyright bankingImg CopyRight"></i>
+                <a href="https://fergusonsoftwaresolutions.net"> <i class="fa-solid fa-copyright bankingImg CopyRight"></i></a>
               </p>
             </div>
             <div class="col">
               <p class="copyRight bankingText">
-                Copyright - Jakob Ferguson 2023
+                Copyright - Ferguson Software Solutions, LLC 2024
               </p>
             </div>
           </div>
@@ -378,7 +384,7 @@
     <script src="Frontend/Javascript/numberCrunch.js" type="module"></script>
     <script src="Frontend/Javascript/transfer.js" type="module"></script>
     <script src="Frontend/Javascript/accountSwitch.js" type="module"></script>
-     <script src="Frontend/Javascript/check.js" type="module"></script>
+    <script src="Frontend/Javascript/check.js" type="module"></script>
     <script src="Frontend/Javascript/deposit.js" type="module"></script>
     <script src="Frontend/Javascript/sendMoney.js" type="module"></script>
   </body>
@@ -705,7 +711,7 @@
     </div>
   </dialog>
 
-  <dialog class="baseModal sendMoneyModal">
+  <dialog class="baseModal sendMoneyModalx">
     <div class="transferHeader row">
       <div class="col-10">
         <h1 class="transferText">Bills and payments</h1>
@@ -858,4 +864,124 @@
       </div>
     </div>
   </dialog>
+
+  <dialog  class="baseModal depositModal">
+    <div class="accountRow row">
+      <div class="col-10">
+        <h1 class="transferText">Deposit Checks</h1>
+      </div>
+      <div class="col-2">
+        <p class="exitMark">
+          <i class="fa-solid fa-circle-xmark closeDeposits"></i>
+        </p>
+      </div>
+    </div>
+    <div class="check-container">
+      <header class="check-container__header-banner">
+        <div class="check-container__name-address">
+          <input id="name-input" class="checkInput nameInput" type="text" placeholder="Name" />
+          <input id="address-input" class="checkInput" type="text" placeholder="Address" />
+        </div>
+        <div class="check-container__date">
+          <span
+            ><label for="date-input">Date:</label>
+            <input id="date-input" class="checkInput dateInput" type="date"
+          /></span>
+        </div>
+      </header>
+      <main class="check-container__main-section">
+        <div class="check-container__payto">
+          <span class="check-container__order">
+            <label for="name-payto" class="check-container__payto-desc checkInput">
+              Pay to the order of
+            </label>
+            <input id="name-payto" type="text" placeholder="Pay to" class="check-container__payto-name checkInput1 destInput">
+          </input>
+          </span>
+          <span class="check-container__dollar-part"
+            ><label for="dollar">$</label>
+            <input
+              id="dollar"
+              type="number"
+              placeholder="Dollar"
+              class="check-container__dollar-border checkInput amountInput"
+            />
+          </span>
+        </div>
+        <div class="check-container__dollar-word">
+          <span class="check-container__word-display"></span>
+          <span>Dollars</span>
+        </div>
+      </main>
+      <footer class="check-container__footer">
+        <div class="check-container__memo">
+          <label for="memo">Memo </label>
+          <input
+            id="memo"
+            type="text"
+            placeholder="Memo"
+            class="check-container__memo-word checkInput"
+          />
+        </div>
+        <div class="check-container__signature">
+          <label for="signature">Signature </label>
+          <input
+            id="signature"
+            type="text"
+            placeholder="Signature"
+            class="check-container__signature-word checkInput sigInput"
+          />
+        </div>
+      </footer>
+
+    </div>
+    <div class="transferBtn">
+      <h4 class="submitTransfer">Submit</h4>
+      <button class="form__btn form__btn--transfer form__btn--payments submitBtn">
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </dialog>
+
+  <dialog class="baseModal sendMoneyModal">
+    <div class="accountRow row">
+      <div class="col-10">
+        <h1 class="transferText">Send money</h1>
+      </div>
+      <div class="col-2">
+        <p class="exitMark">
+          <i class="fa-solid fa-circle-xmark closeSendMoney"></i>
+        </p>
+      </div>
+    </div>
+
+    <div class="row inputRowSend">
+      <div class="title col-6"><h2 class="sendText">Select Recipient</h2>
+        <select
+        name="recipient"
+        class="recipients paymentFrequency col-lg-6 col-md-6 col-sm-12"
+      >
+        <option value="frequency">Recipient</option>
+      </select>
+      </div>
+      <div class="amount col-6"><h2 class="sendText">Amount</h2>
+        <input
+        type="text"
+        class="accountsListFrom form__input--amount--sendMoney col-lg-6 col-md-6 col-sm-12"
+      /></div>
+    </div>
+
+    <div class="submitSendMoney">
+      <h4 class="submitSend">Submit</h4>
+      <button class="form__btn form__btn--transfer form__btn--payments sendBtn">
+        <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+  </dialog>
+  <dialog class="baseModal timerModal">
+    <h1 class="bottomText">Time for a break</h1>
+
+  </dialog>
+
+  
 </html>
