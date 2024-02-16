@@ -20,22 +20,22 @@ let billType;
 let paymentType;
 let chosenSelect;
 
-const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+const socket = io('trinitycapitaltestserver-2.azurewebsites.net');
 
 /**********************************************Functions***********************************************/
 
 //Handles login
 
-const billURL = `https://trinitycapitaltestserver-2.azurewebsites.net/bills`;
+const billURL = `trinitycapitaltestserver-2.azurewebsites.net/bills`;
 
-async function sendBillData(type, amount, interval, name, cat) {
+async function sendBillData(type, amount, interval, name, cat, date) {
   const res = await fetch(billURL, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      parcel: [currentProfile, type, amount, interval, name, cat],
+      parcel: [currentProfile, type, amount, interval, name, cat, date],
     }),
   });
 }
@@ -71,12 +71,15 @@ paymentTypeSelect.addEventListener('change', function (event) {
 //sets amount for bills
 billsBTN.addEventListener('click', function () {
   console.log('clicked', currentProfile);
+  let newDate = new Date();
+  console.log(newDate);
   sendBillData(
     'bill',
     parseInt(-billInput.value),
     billInterval,
     billName.value,
-    billType
+    billType,
+    newDate
   );
   console.log('complete');
 });
@@ -88,11 +91,14 @@ paymentFrequency.addEventListener('change', function (event) {
   //console.log(payInterval);
 });
 paymentsBTN.addEventListener('click', function () {
+  let newDate = new Date();
+  console.log(newDate);
   sendBillData(
     'payment',
     parseInt(paymentInput.value),
     payInterval,
     paymentName.value,
-    paymentType
+    paymentType,
+    newDate
   );
 });
