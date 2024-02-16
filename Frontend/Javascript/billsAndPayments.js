@@ -26,7 +26,7 @@ const socket = io('trinitycapitaltestserver-2.azurewebsites.net');
 
 //Handles login
 
-const billURL = `trinitycapitaltestserver-2.azurewebsites.net/bills`;
+const billURL = `https://trinitycapitaltestserver-2.azurewebsites.net/bills`;
 
 async function sendBillData(type, amount, interval, name, cat, date) {
   const res = await fetch(billURL, {
