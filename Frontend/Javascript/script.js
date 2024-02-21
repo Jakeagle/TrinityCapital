@@ -1,7 +1,15 @@
 'use strict';
 
 /********************************************Modal control*************************************/
-
+if (
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
+    navigator.userAgent,
+  )
+) {
+  window.location.replace('https://trinitycapitalmobile.netlify.app');
+} else {
+  console.log('Were on MOBILE!');
+}
 //Modals
 const mainApp = document.querySelector('.mainApp');
 const loginBox = document.querySelector('.signOnBox');
