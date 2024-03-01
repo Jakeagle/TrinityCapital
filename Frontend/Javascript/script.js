@@ -1,6 +1,5 @@
 'use strict';
 
-/********************************************Modal control*************************************/
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
     navigator.userAgent,
@@ -10,6 +9,8 @@ if (
 } else {
   console.log('Were on MOBILE!');
 }
+/********************************************Modal control*************************************/
+
 //Modals
 const mainApp = document.querySelector('.mainApp');
 const loginBox = document.querySelector('.signOnBox');
@@ -104,7 +105,16 @@ timerModal.addEventListener('cancel', event => {
   event.preventDefault();
 });
 
+socket2.on('timer', active => {
+  console.log(active);
+  if (active) {
+    timerModal.showModal();
+  }
 
+  if (!active) {
+    timerModal.close();
+  }
+});
 
 socket.on('donationChecking', updatedDonCheck => {
   const checkingAccount = updatedDonCheck;
@@ -139,7 +149,6 @@ const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initial
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
-
 
 
 
@@ -338,7 +347,12 @@ const loginFunc = function (PIN, user, screen) {
     mainApp.style.display = 'flex';
     mainApp.style.opacity = 100;
 
-   
+    if (
+      currentProfile.memberName === 'Darlene Jones' ||
+      currentProfile.memberName === 'Jakob Ferguson'
+    ) {
+      startTimers();
+    }
 
     currentAccount = currentProfile.checkingAccount;
     if (currentAccount) {
@@ -454,18 +468,6 @@ if (donateBtn) {
 if (mainApp) {
   mainApp.style.opacity = 0;
 }
-
-const createUsername = function (prfs) {
-  for (let i = 0; i < prfs.length; i++) {
-    console.log(prfs[i].memberName);
-    prfs[i].userName = prfs[i].memberName
-      .toLowerCase()
-      .split(' ')
-      .map(name => name[0])
-      .join('');
-  }
-};
-createUsername(profiles);
 
 //createUsername(profiles);
 //updates current time
