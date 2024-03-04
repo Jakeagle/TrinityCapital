@@ -105,16 +105,7 @@ timerModal.addEventListener('cancel', event => {
   event.preventDefault();
 });
 
-socket2.on('timer', active => {
-  console.log(active);
-  if (active) {
-    timerModal.showModal();
-  }
 
-  if (!active) {
-    timerModal.close();
-  }
-});
 
 socket.on('donationChecking', updatedDonCheck => {
   const checkingAccount = updatedDonCheck;
