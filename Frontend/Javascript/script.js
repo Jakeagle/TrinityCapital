@@ -5,7 +5,7 @@ if (
     navigator.userAgent,
   )
 ) {
-  window.location.replace('https://trinitycapitalmobile.netlify.app');
+  //window.location.replace('https://trinitycapitalmobile.netlify.app');
 } else {
   console.log('Were on MOBILE!');
 }
@@ -20,6 +20,7 @@ const transferModal = document.querySelector('.transferModal');
 const accountSwitchModal = document.querySelector('.accountSwitchModal');
 const depositModal = document.querySelector('.depositModal');
 const sendMoneyModal = document.querySelector('.sendMoneyModal');
+const changeLanguageModal = document.querySelector('.changeLanguageModal');
 
 //Modal Buttons
 const accountSwitchBTN = document.querySelector('.accountSwitchBTN');
@@ -27,6 +28,8 @@ const transferModalBTN = document.querySelector('.transferBTN');
 const billsModalBTN = document.querySelector('.billsModalBTN');
 const depositModalBTN = document.querySelector('.depositsBTN');
 const sendMoneyBTN = document.querySelector('.sendMoneyBTN');
+const changeLanguageBTN = document.querySelector('.changeLanguageBTN');
+const changeLangBTN = document.querySelector('.changeLangBtn');
 
 //close Modals
 const closeTransferModal = document.querySelector('.transferExitButton');
@@ -35,10 +38,13 @@ const closeAccountModal = document.querySelector('.closeAccounts');
 const closeDepositModal = document.querySelector('.closeDeposits');
 const closeSendMoneyModal = document.querySelector('.closeSendMoney');
 const logOutBTN = document.querySelector('.logOutBTN');
+const closeLanguageModal = document.querySelector('.closeLanguageModal');
 
 logOutBTN.addEventListener('click', function () {
   location.reload();
 });
+
+changeLangBTN.addEventListener('click', function () {});
 
 billsModalBTN.addEventListener('click', function () {
   billsModal.showModal();
@@ -79,14 +85,22 @@ sendMoneyBTN.addEventListener('click', function () {
 closeSendMoneyModal.addEventListener('click', function () {
   sendMoneyModal.close();
 });
+
+changeLanguageBTN.addEventListener('click', function () {
+  changeLanguageModal.showModal();
+});
+
+closeLanguageModal.addEventListener('click', function () {
+  changeLanguageModal.close();
+});
 window.screen.width <= 1300 ? mobileLoginBox.showModal() : loginBox.showModal();
 
 if (mainApp) mainApp.style.display = 'none';
 
 /***********************************************************Server Listeners**********************************************/
 
-export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
-
+export const socket = io('http://localhost:3000');
+export const socket2 = io('http://localhost:5040');
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -105,7 +119,16 @@ timerModal.addEventListener('cancel', event => {
   event.preventDefault();
 });
 
+socket2.on('timer', active => {
+  console.log(active);
+  if (active) {
+    timerModal.showModal();
+  }
 
+  if (!active) {
+    timerModal.close();
+  }
+});
 
 socket.on('donationChecking', updatedDonCheck => {
   const checkingAccount = updatedDonCheck;
@@ -126,22 +149,32 @@ socket.on('donationSaving', updatedDonSav => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
+const testServerProfiles = 'http://localhost:3000/profiles';
 
-const loanURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/loans';
+const loanURL = 'http://localhost:3000/loans';
 
-const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donations';
+const donationURL = 'http://localhost:3000/donations';
 
-const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
+const donationSavingsURL = 'http://localhost:3000/donationsSavings';
 
-const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
+const balanceURL = 'http://localhost:3000/initialBalance';
 
-
+const productivityURL = 'http://localhost:5040/timers';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
 
-
+export async function startTimers() {
+  const res = await fetch(productivityURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      parcel: currentProfile,
+    }),
+  });
+}
 
 export async function getInfoProfiles() {
   try {
@@ -344,6 +377,10 @@ const loginFunc = function (PIN, user, screen) {
     ) {
       startTimers();
     }
+
+    const lessonName = document.querySelector('.lessonHeaderText');
+
+    lessonName.textContent = currentProfile.currentLesson;
 
     currentAccount = currentProfile.checkingAccount;
     if (currentAccount) {
