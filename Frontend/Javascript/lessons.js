@@ -1,114 +1,91 @@
 'use strict';
 
-import { profiles, transactionsPush } from './script.js';
+const lessonRow = 'http://localhost:3000/lessonArrays';
+const lessonModalURL = 'http://localhost:3000/lessonModals';
+const activityModalURL = 'http://localhost:3000/activityModals';
 
-/***********************************************************Variables***********************/
-const loginButton = document.querySelector('.login__btn');
-const tutorialBtn = document.querySelector('.tutorialBtn');
-const Lesson1Btn = document.querySelector('.lesson1Btn');
-const Lesson2Btn = document.querySelector('.lesson2Btn');
-const Lesson3Btn = document.querySelector('.lesson3Btn');
-const Lesson4Btn = document.querySelector('.lesson4Btn');
-const pilotFeedback = document.querySelector('.feedbackButton');
-const feedBackModal = document.querySelector('.feedbackPrompt');
-const clearStorage = document.querySelector('.clearStorage');
+export const socket = io('http://localhost:3000');
 
-const closeBtn = document.querySelector('.closeBtn');
+console.log('Running');
 
-//Modals
-const T1 = document.querySelector('.T1');
+/********************VARIABLES***************************/
 
-//back buttons
-const backButton = document.querySelector('.backBox');
+const loginBTN = document.querySelector('.login__btn');
+const lessonModal = document.querySelector('.lessonModal');
+const activityModal = document.querySelector('.activityModal');
 
-//Slide Buttons
-const slideNext = document.querySelector('.carousel-control-next-icon');
-
-//Last Slides
-const t1LastSlide = document.getElementById('t1LastSlide');
-
-//Hidden elements
-if (tutorialBtn) {
-  tutorialBtn.style.display = 'none';
-}
-
-if (backButton) {
-  backButton.style.display = 'none';
-}
-
-/******************************************Tutorial *************************************/
-
-if (loginButton) {
-  loginButton.addEventListener('click', function () {
-    T1.showModal();
+/********************SERVER CALLS************************/
+async function requestLessons() {
+  const res = await fetch(lessonRow, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      parcel: [1],
+    }),
   });
 }
 
-if (closeBtn) {
-  closeBtn.addEventListener('click', function () {
-    T1.close();
-    T1.style.display = 'none';
-
-    transactionsPush();
+async function requestLessonModal(lessonName) {
+  const res = await fetch(lessonModalURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      parcel: [lessonName],
+    }),
   });
 }
 
-if (slideNext) {
-  slideNext.addEventListener('click', function () {
-    if (T1) {
-      if (t1LastSlide.checkVisibility()) {
-        backButton.style.display = 'block';
-        tutorialBtn.style.display = 'block';
-      } else if (!t1LastSlide.checkVisibility()) {
-        backButton.style.display = 'none';
-      }
-    }
+async function requestActivityModal(activityName) {
+  const res = await fetch(activityModalURL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      parcel: [activityName],
+    }),
   });
 }
 
-if (tutorialBtn) {
-  tutorialBtn.addEventListener('click', function () {
-    T1.style.display = 'block';
-    T1.showModal();
-  });
-}
+requestLessons();
 
-/***********************************************Lesson Buttons **************************/
-if (Lesson1Btn) {
-  Lesson1Btn.addEventListener('click', function () {
-    location.replace('transfer.html');
-  });
-}
+/*******************************SOCKET.IO*************************/
+socket.on('lessonHtml', htmlCode => {
+  const lessonRow = document.querySelector('.lessonRow');
 
-if (Lesson2Btn) {
-  Lesson2Btn.addEventListener('click', function () {
-    location.replace('billandpayments.html');
-  });
-}
+  lessonRow.innerHTML = htmlCode;
+});
 
-if (Lesson3Btn) {
-  Lesson3Btn.addEventListener('click', function () {
-    location.replace('deposit.html');
-  });
-}
+socket.on('lessonModalHtml', ([htmlCode, lessonName]) => {
+  const lessonModal = document.querySelector('.lessonModal');
 
-if (Lesson4Btn) {
-  Lesson4Btn.addEventListener('click', function () {
-    location.replace('sendMoney.html');
-  });
-}
-/*******************************************Feedback and storage************************************/
-if (pilotFeedback) {
-  pilotFeedback.addEventListener('click', function () {
-    feedBackModal.showModal();
-  });
-}
+  console.log(lessonName);
+  lessonModal.innerHTML = htmlCode;
 
-if (clearStorage) {
-  clearStorage.addEventListener('click', function () {
-    localStorage.clear();
-    location.reload();
-    alert('Data cleared');
-    location.reload();
+  const activityBTN = document.querySelector('.acBTN');
+  activityBTN.addEventListener('click', function () {
+    lessonModal.close();
+    activityModal.showModal();
+    requestActivityModal(lessonName);
+    socket.on('activityModalhtml', ([htmlCode, Q1]) => {
+      const activityModal = document.querySelector('.activityModal');
+
+      activityModal.innerHTML = [htmlCode, Q1];
+    });
   });
-}
+});
+/******************************EVENT LISTENERS********************/
+
+loginBTN.addEventListener('click', function () {
+  const lesson1BTN = document.querySelector('.lesson1Div');
+  lesson1BTN.addEventListener('click', function () {
+    lessonModal.showModal();
+    const lessonNameDoc = document.querySelector('.lessonName');
+    const lessonName = lessonNameDoc.textContent;
+    requestLessonModal(lessonName);
+  });
+});
