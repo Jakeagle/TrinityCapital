@@ -283,7 +283,7 @@ body {
   margin: 2.5rem auto;
   width: 5.5rem;
   height: 5.3rem;
-  background-color: #61563e;
+  background-color: #94845f;
 }
 
 .pfpName {
@@ -625,6 +625,37 @@ body {
   margin: 0 1.2rem;
 }
 
+.note {
+  font-size: 1.2rem;
+}
+
+.carousel-item {
+  width: 70%;
+  margin-left: 8.5rem;
+}
+
+.modal-item {
+  margin-top: 1.5rem;
+  margin-left: 16rem;
+}
+
+.qaHeader {
+  font-size: 1.5rem;
+  margin-right: 9rem;
+}
+
+.answers {
+  text-align: left;
+}
+
+.answerForm {
+  margin-left: 38rem;
+  margin-top: 3rem;
+}
+
+.form__btn--answers {
+  margin-top: 2rem;
+}
 .transIcon {
   background-color: #61563e;
   margin: 0.4rem 1rem;
@@ -727,6 +758,13 @@ body {
   margin: 0 0.1rem;
 }
 
+.logoImg {
+  width: 100%;
+  margin: auto;
+  position: relative;
+  bottom: 0.2rem;
+}
+
 /*******************Modals***********************/
 
 .baseModal {
@@ -809,6 +847,16 @@ input {
 .form__btn--transfer:active {
   position: relative;
   top: 1px;
+}
+
+.activityModal {
+  width: 90%;
+  height: 60rem;
+}
+
+.activityHeader {
+  margin: auto;
+  font-size: 4rem;
 }
 /*******************Media Queries***************/
 
