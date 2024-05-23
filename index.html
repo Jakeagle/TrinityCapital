@@ -10,8 +10,8 @@
       integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="Frontend/Styles/style.css" />
-    <link rel="stylesheet" href="Frontend/Styles/check.css">
+    <link rel="stylesheet" href="Styles/style.css" />
+    <link rel="stylesheet" href="Styles/check.css">
     <script
       src="https://kit.fontawesome.com/60a3862749.js"
       crossorigin="anonymous"
@@ -47,7 +47,7 @@
           <div class="col">
             <div class="col-1 pfp">
               <p class="lessonImg"></p>
-              <p class="pfpName">JF</p>
+              <img class ="logoImg" src="img/Untitled_design__2_-removebg-preview.png" alt="">
             </div>
           </div>
         </div>
@@ -103,6 +103,17 @@
             </div>
             <div class="col">
               <p class="transfer bankingText">Send Money</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col transferBox">
+              <p class="">
+                <i class="fa-solid fa-language bankingImg changeLanguageBTN"></i>
+              </p>
+            </div>
+            <div class="col">
+              <p class="transfer bankingText">Change Language</p>
             </div>
           </div>
         </div>
@@ -175,7 +186,7 @@
                   <div class="col-sm col-md col-lg bankLogo">
                     <img
                       class="bankImg"
-                      src="Frontend/img/pngaaa.com-4372256.png"
+                      src="img/pngaaa.com-4372256.png"
                       alt="logo"
                     />
                   </div>
@@ -379,14 +390,15 @@
       </div>
     </div>
 
-    <script src="Frontend/Javascript/script.js" type="module"></script>
-    <script src="Frontend/Javascript/billsAndPayments.js" type="module"></script>
-    <script src="Frontend/Javascript/numberCrunch.js" type="module"></script>
-    <script src="Frontend/Javascript/transfer.js" type="module"></script>
-    <script src="Frontend/Javascript/accountSwitch.js" type="module"></script>
-    <script src="Frontend/Javascript/check.js" type="module"></script>
-    <script src="Frontend/Javascript/deposit.js" type="module"></script>
-    <script src="Frontend/Javascript/sendMoney.js" type="module"></script>
+    <script src="Javascript/script.js" type="module"></script>
+    <script src="Javascript/billsAndPayments.js" type="module"></script>
+    <script src="Javascript/numberCrunch.js" type="module"></script>
+    <script src="Javascript/transfer.js" type="module"></script>
+    <script src="Javascript/accountSwitch.js" type="module"></script>
+    <script src="Javascript/check.js" type="module"></script>
+    <script src="Javascript/deposit.js" type="module"></script>
+    <script src="Javascript/sendMoney.js" type="module"></script>
+    <script src="Javascript/lessons.js" type="module"></script>
   </body>
 
   <dialog class="transferModal baseModal">
@@ -620,7 +632,7 @@
           Sign in to continue, or sign up below
         </h3>
 
-        <div class="signUpBtn"><h1 class="SignUpText">Sign Up</h1></div>
+        <a href="https://trinitycapitalsignup.netlify.app"><div class="signUpBtn"><h1 class="SignUpText">Sign Up</h1></div></a>
       </div>
       <div class="col-9 sec2">
         <h1 class="welcomeBackSignOn signInToApp">
@@ -648,7 +660,7 @@
           <div class="col-11">
             <input
               class="login__input--user userNameInput login__input--pin"
-              type="password"
+              type="text"
             />
           </div>
         </div>
@@ -983,5 +995,104 @@
 
   </dialog>
 
+
+  <dialog 3 class="baseModal changeLanguageModal">
+    <div class="transferHeader row">
+      <div class="col-10">
+        <h1 class="transferText">Change Language</h1>
+      </div>
+      <div class="col-2">
+        <p class="exitMark">
+          <i class="fa-solid fa-circle-xmark closeLanguageModal"></i>
+        </p>
+      </div>
+
+      <div class="row accountsRow">
+        <div class="col fromTrans billSelection">
+          
+          <label
+            for="billType"
+            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
+          >
+           Select Language</label
+          >
+
+          <select
+            name="billType"
+            class="accountsListFrom billType col-lg-6 col-md-6 col-sm-12"
+          >
+            <option value="Lang">Language</option>
+            <option value="eng">English</option>
+            <option value="en">Español</option>
+            
+          </select>
+          
+          <div class="changeLangBtn">
+            <h4 class="submitTransfer">Submit</h4>
+            <button class="form__btn form__btn--transfer form__btn--bills">
+              <i class="fa-solid fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        
+      </div>
+    </div>
+  </dialog>
+
+  <!-- LESSON TEST -->
+
+  <dialog class="baseModal lessonModal">
+  
+
+
+    
+  </dialog>
+
+
+  <dialog class="baseModal activityModal">
+  
+    <div id="carouselExampleControls" class="carousel slide" data-ride="false" data-bs-wrap="false">
+      <div class="carousel-inner">
+        <div class="carousel-item modal-item active container-fluid">
+          <video class="L1Vid" width="960" height="540" controls>
+            <source src="Activites/N&W Q1.mp4" type="video/mp4" />
+          </video>
+        </div>
+       
+        <div class="carousel-item modal-item container-fluid">
+          <video class="L1Vid" width="960" height="540" controls>
+            <source src="Activites/N&W Q2.mp4" type="video/mp4" />
+          </video>
+        </div>
+        <div class="carousel-item modal-item container-fluid">
+          <video class="L1Vid" width="960" height="540" controls>
+            <source src="Activites/N&W Q3.mp4" type="video/mp4" />
+          </video>
+        </div>
+      </div>
+      <button
+        class="carousel-control-prev"
+        type="button"
+        data-bs-target="#carouselExampleControls"
+        data-bs-slide="prev"
+      >
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button
+        class="carousel-control-next"
+        type="button"
+        data-bs-target="#carouselExampleControls"
+        data-bs-slide="next"
+      >
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
+    </div>
+
+    
+   
+  </dialog>
   
 </html>
