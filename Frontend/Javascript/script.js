@@ -149,15 +149,15 @@ socket.on('donationSaving', updatedDonSav => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'http://localhost:3000/profiles';
+const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
 
-const loanURL = 'http://localhost:3000/loans';
+const loanURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/loans';
 
-const donationURL = 'http://localhost:3000/donations';
+const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donations';
 
-const donationSavingsURL = 'http://localhost:3000/donationsSavings';
+const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
 
-const balanceURL = 'http://localhost:3000/initialBalance';
+const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
 
 const productivityURL = 'http://localhost:5040/timers';
 
