@@ -1,10 +1,10 @@
 'use strict';
 
-const lessonRow = 'http://localhost:3000/lessonArrays';
-const lessonModalURL = 'http://localhost:3000/lessonModals';
-const activityModalURL = 'http://localhost:3000/activityModals';
+const lessonRow = 'https://trinitycapitaltestserver-2.azurewebsites.net/lessonArrays';
+const lessonModalURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/lessonModals';
+const activityModalURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/activityModals';
 
-export const socket = io('http://localhost:3000');
+export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
 
 console.log('Running');
 
