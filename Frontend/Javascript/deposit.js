@@ -81,7 +81,7 @@ const checkAll = function () {
 
   if (userSig !== currentProfile.sig) {
     alert(
-      'Your signature is the first and last initial of the name on your account'
+      'Your signature is the first and last initial of the name on your account. Initial must be lowercased'
     );
   } else if (userSig === currentProfile.sig) {
     sigComplete = true;
