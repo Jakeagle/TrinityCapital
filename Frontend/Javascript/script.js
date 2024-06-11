@@ -99,7 +99,7 @@ if (mainApp) mainApp.style.display = 'none';
 
 /***********************************************************Server Listeners**********************************************/
 
-export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net/');
+export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
 
 
 console.log('User connected:' + socket.id);
