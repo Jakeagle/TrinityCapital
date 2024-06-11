@@ -37,7 +37,12 @@ recipient.addEventListener('change', function (event) {
 inputBTN.addEventListener('click', function () {
   let amount = parseInt(inputAmount.value);
   let sender = currentProfile.memberName;
-  sendFunds(theRecipient, sender, amount);
+
+  if (amount <= 0) {
+    alert('You must send a positive amount');
+  } else {
+    sendFunds(theRecipient, sender, amount);
+  }
 
   inputAmount.textContent = '';
 });
