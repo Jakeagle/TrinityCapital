@@ -5,7 +5,7 @@ if (
     navigator.userAgent,
   )
 ) {
-  //window.location.replace('https://trinitycapitalmobile.netlify.app');
+  window.location.replace('https://trinitycapitalmobile.netlify.app');
 } else {
   console.log('Were on MOBILE!');
 }
@@ -100,7 +100,7 @@ if (mainApp) mainApp.style.display = 'none';
 /***********************************************************Server Listeners**********************************************/
 
 export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net/');
-export const socket2 = io('http://localhost:5040');
+
 
 console.log('User connected:' + socket.id);
 socket.on('checkingAccountUpdate', updatedChecking => {
@@ -164,17 +164,7 @@ const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initial
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
 
-export async function startTimers() {
-  const res = await fetch(productivityURL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      parcel: currentProfile,
-    }),
-  });
-}
+
 
 export async function getInfoProfiles() {
   try {
