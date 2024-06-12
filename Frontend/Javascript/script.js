@@ -352,12 +352,7 @@ const loginFunc = function (PIN, user, screen) {
     mainApp.style.display = 'flex';
     mainApp.style.opacity = 100;
 
-    if (
-      currentProfile.memberName === 'Darlene Jones' ||
-      currentProfile.memberName === 'Jakob Ferguson'
-    ) {
-      startTimers();
-    }
+
 
     const lessonName = document.querySelector('.lessonHeaderText');
 
