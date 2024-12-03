@@ -164,27 +164,42 @@ export async function getInfoProfiles() {
     });
 
     if (res.ok) {
-      Profiles = await res.json();
+      try {
+        Profiles = await res.json();
 
-      // Log the initial profiles
-      console.log(Profiles);
+        // Log the initial profiles
+        console.log(Profiles);
 
-      // Now, listen for updates from the Socket.IO server
-      socket.on('profiles', updatedProfiles => {
-        // Update your UI with the updated profiles
-        console.log('Received updated profiles:', updatedProfiles);
-
-        // For example, you can update a list of profiles
-        // Assuming you have a function to update the UI
-      });
-      return Profiles;
+        // Listen for updates from the Socket.IO server
+        socket.on('profiles', updatedProfiles => {
+          console.log('Received updated profiles:', updatedProfiles);
+          // Update the UI or perform necessary actions
+        });
+        return Profiles;
+      } catch (jsonError) {
+        console.error('Failed to parse JSON:', jsonError.message);
+        throw new Error('Invalid JSON response from server');
+      }
     } else {
-      console.error('Failed to fetch profiles:', res.statusText);
+      console.error(
+        `Failed to fetch profiles: ${res.status} ${res.statusText}`
+      );
+      const errorDetails = await res.text(); // Attempt to get error details
+      console.error('Server responded with:', errorDetails);
+      throw new Error(`HTTP error: ${res.status} ${res.statusText}`);
     }
   } catch (error) {
-    console.error(error.message);
+    console.error('An unexpected error occurred:', error.message);
+
+    if (error.stack) {
+      console.error('Stack trace:', error.stack);
+    }
+
+    // Optionally rethrow the error or return a fallback value
+    throw error;
   }
 }
+
 
 export async function initialBalance() {
   const res = await fetch(balanceURL, {
