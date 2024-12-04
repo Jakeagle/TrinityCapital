@@ -3,7 +3,7 @@ import { getInfoProfiles } from './script.js';
 
 /**********************************************Variables****************************************/
 
-//let profiles = await getInfoProfiles();
+let profiles = await getInfoProfiles();
 let targetProfile;
 let profileSend;
 
