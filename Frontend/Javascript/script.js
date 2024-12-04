@@ -267,7 +267,7 @@ async function donationPushSavings() {
   });
 }
 
-//export let profiles = await getInfoProfiles();
+export let profiles = await getInfoProfiles();
 
 
 
