@@ -9,6 +9,7 @@ if (
 } else {
   console.log('Were on MOBILE!');
 }
+
 /********************************************Modal control*************************************/
 
 //Modals
@@ -113,13 +114,6 @@ socket.on('checkingAccountUpdate', updatedChecking => {
   displayTransactions(checkingAccount);
 });
 
-const timerModal = document.querySelector('.timerModal');
-
-timerModal.addEventListener('cancel', event => {
-  event.preventDefault();
-});
-
-
 
 socket.on('donationChecking', updatedDonCheck => {
   const checkingAccount = updatedDonCheck;
@@ -150,11 +144,10 @@ const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net
 
 const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
 
-
+const productivityURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/timers';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
-
 
 
 export async function getInfoProfiles() {
@@ -182,7 +175,7 @@ export async function getInfoProfiles() {
       }
     } else {
       console.error(
-        `Failed to fetch profiles: ${res.status} ${res.statusText}`
+        `Failed to fetch profiles: ${res.status} ${res.statusText}`,
       );
       const errorDetails = await res.text(); // Attempt to get error details
       console.error('Server responded with:', errorDetails);
@@ -199,7 +192,6 @@ export async function getInfoProfiles() {
     throw error;
   }
 }
-
 
 export async function initialBalance() {
   const res = await fetch(balanceURL, {
@@ -367,7 +359,12 @@ const loginFunc = function (PIN, user, screen) {
     mainApp.style.display = 'flex';
     mainApp.style.opacity = 100;
 
-
+    if (
+      currentProfile.memberName === 'Darlene Jones' ||
+      currentProfile.memberName === 'Jakob Ferguson'
+    ) {
+      startTimers();
+    }
 
     const lessonName = document.querySelector('.lessonHeaderText');
 
