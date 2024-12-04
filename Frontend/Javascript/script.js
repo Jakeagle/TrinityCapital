@@ -269,7 +269,7 @@ async function donationPushSavings() {
 
 //export let profiles = await getInfoProfiles();
 
-//console.log(profiles);
+
 
 /******************************************Variables ***************************************************/
 
