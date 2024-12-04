@@ -152,37 +152,62 @@ let Profiles = [];
 
 export async function getInfoProfiles() {
   try {
+    console.log(
+      'Step 1: Starting the process to fetch profiles from the server.',
+    );
+
     const res = await fetch(testServerProfiles, {
       method: 'GET',
     });
 
+    console.log('Step 2: Received a response from the server.');
+
     if (res.ok) {
+      console.log(
+        `Step 3: Server responded successfully with status ${res.status}. Attempting to parse the JSON response.`,
+      );
       try {
-        Profiles = await res.json();
+        const Profiles = await res.json();
+        console.log('Step 4: Successfully parsed JSON response:', Profiles);
 
-        // Log the initial profiles
-        console.log(Profiles);
-
-        // Listen for updates from the Socket.IO server
+        // Log the initialization of Socket.IO listener
+        console.log(
+          'Step 5: Setting up Socket.IO listener for profile updates.',
+        );
         socket.on('profiles', updatedProfiles => {
-          console.log('Received updated profiles:', updatedProfiles);
-          // Update the UI or perform necessary actions
+          console.log(
+            'Step 6: Received updated profiles from the server:',
+            updatedProfiles,
+          );
+          // Update the UI or perform any necessary actions with updated profiles
         });
+
+        console.log('Step 7: Returning the fetched and parsed profiles.');
         return Profiles;
       } catch (jsonError) {
-        console.error('Failed to parse JSON:', jsonError.message);
+        console.error(
+          'Step 4 Error: Failed to parse JSON response:',
+          jsonError.message,
+        );
+        console.error('The server response may not be in the correct format.');
         throw new Error('Invalid JSON response from server');
       }
     } else {
       console.error(
-        `Failed to fetch profiles: ${res.status} ${res.statusText}`,
+        `Step 3 Error: Server responded with status ${res.status} (${res.statusText}).`,
       );
-      const errorDetails = await res.text(); // Attempt to get error details
-      console.error('Server responded with:', errorDetails);
+      const errorDetails = await res.text(); // Attempt to read error details
+      console.error(
+        'Additional details from the server response:',
+        errorDetails,
+      );
       throw new Error(`HTTP error: ${res.status} ${res.statusText}`);
     }
   } catch (error) {
-    console.error('An unexpected error occurred:', error.message);
+    console.error(
+      'Final Step Error: An unexpected error occurred during the process.',
+    );
+    console.error('Error message:', error.message);
 
     if (error.stack) {
       console.error('Stack trace:', error.stack);
