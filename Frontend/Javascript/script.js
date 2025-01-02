@@ -100,38 +100,58 @@ if (mainApp) mainApp.style.display = 'none';
 
 /***********************************************************Server Listeners**********************************************/
 
-export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
 
+// Emit 'identify' event to associate the client with a user ID
+socket.on('connect', () => {
+  console.log('User connected:', socket.id);
 
-console.log('User connected:' + socket.id);
+  // Emit the 'identify' event with the user ID (replace 'userId' with actual logic)
+});
+
+// Listen for checking account updates
 socket.on('checkingAccountUpdate', updatedChecking => {
-  // Access the checkingAccount data from updatedUserProfile
-  const checkingAccount = updatedChecking;
-  console.log(checkingAccount, 'This is working');
+  console.log('Checking account update received:', updatedChecking);
 
-  // Call your existing updateUI function with the updated checking account data
-  displayBalance(checkingAccount);
-  displayTransactions(checkingAccount);
+  // Update the UI with the received checking account data
+  displayBalance(updatedChecking);
+  displayTransactions(updatedChecking);
 });
 
-
+// Listen for donation updates for checking accounts
 socket.on('donationChecking', updatedDonCheck => {
-  const checkingAccount = updatedDonCheck;
-  console.log(checkingAccount, 'This is working');
+  console.log('Donation to checking account update received:', updatedDonCheck);
 
-  // Call your existing updateUI function with the updated checking account data
-  displayBalance(checkingAccount);
-  displayTransactions(checkingAccount);
+  // Update the UI with the received donation data
+  displayBalance(updatedDonCheck);
+  displayTransactions(updatedDonCheck);
 });
 
+// Listen for donation updates for savings accounts
 socket.on('donationSaving', updatedDonSav => {
-  const savingsAccount = updatedDonSav;
-  console.log(savingsAccount, 'This is working');
+  console.log('Donation to savings account update received:', updatedDonSav);
 
-  // Call your existing updateUI function with the updated checking account data
-  displayBalance(savingsAccount);
-  displayTransactions(savingsAccount);
+  // Update the UI with the received donation data
+  displayBalance(updatedDonSav);
+  displayTransactions(updatedDonSav);
 });
+
+// Handle potential timer modal logic (if used elsewhere)
+const timerModal = document.querySelector('.timerModal');
+if (timerModal) {
+  timerModal.addEventListener('cancel', event => {
+    event.preventDefault();
+  });
+
+  socket.on('timer', active => {
+    console.log('Timer event received:', active);
+    if (active) {
+      timerModal.showModal();
+    } else {
+      timerModal.close();
+    }
+  });
+}
 
 /***********************************************************Server Functions**********************************************/
 const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
@@ -144,11 +164,10 @@ const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net
 
 const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
 
-const productivityURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/timers';
+
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
-
 
 export async function getInfoProfiles() {
   try {
@@ -269,8 +288,6 @@ async function donationPushSavings() {
 
 export let profiles = await getInfoProfiles();
 
-
-
 /******************************************Variables ***************************************************/
 
 export let currentAccount;
@@ -356,61 +373,49 @@ const loginFunc = function (PIN, user, screen) {
     if (user.value === profiles[i].userName && pin === profiles[i].pin) {
       currentProfile = profiles[i];
     } else if (user.value === profiles[i].userName && pin !== profiles[i].pin) {
-      alert('incorrect PIN');
+      alert('Incorrect PIN');
     } else if (user.value !== profiles[i].userName && pin === profiles[i].pin) {
-      alert('incorrect Username');
+      alert('Incorrect Username');
     }
   }
 
   if (currentProfile) {
+    // Emit the identify event with the logged-in user's memberName
+    const userId = currentProfile.memberName;
+    console.log(`Emitting identify event for user: ${userId}`);
+    socket.emit('identify', userId);
+
+    // Call initial balance
     initialBalance();
 
-    // Retrieve saved transactions for current account
-
+    // Close the login modal
     screen.close();
 
+    // Hide login section
     const signOnSection = document.querySelector('.signOnSection');
-
     signOnSection.style.display = 'none';
 
     // Display welcome message
     const signOnText = document.querySelector('.signOnText');
     signOnText.textContent = currentProfile.memberName.split(' ')[0];
 
-    // Hide login form and display main app
-    const formDiv = document.querySelector('.formDiv');
+    // Show the main app
     const mainApp = document.querySelector('.mainApp');
-
     mainApp.style.display = 'flex';
     mainApp.style.opacity = 100;
 
-   
-
-    const lessonName = document.querySelector('.lessonHeaderText');
-
-    lessonName.textContent = currentProfile.currentLesson;
-
+    // Update the UI
     currentAccount = currentProfile.checkingAccount;
     if (currentAccount) {
-      console.log(currentAccount);
-      //Add currentAccount here
-      // Update the UI with the first account's information
+      console.log('User logged in successfully:', currentAccount);
       updateUI(currentAccount);
-      //Starts loop function that displays the current Accounts bills
 
-      //Displays the "Current Balanace for "x" string
-      // balanceLabel.textContent = `Current balance for: #${currentAccount.accountNumber.slice(
-      //   -4
-      // )}`;
-
-      //Displays the "As of" portion with the current date
+      // Update the displayed time
       updateTime();
       balanceDate.textContent = `As of ${new Intl.DateTimeFormat(
         currentProfile.locale,
         options,
       ).format(currentTime)}`;
-      //Display saved transactions for current account
-      displayTransactions(currentAccount);
     } else {
       alert('No checking account found. Please contact customer service.');
     }
@@ -666,23 +671,22 @@ export const displayTransactions = function (currentAccount) {
       transType = 'posTrans';
     }
     const html = `<div class="transaction row">
-                    <div class="transIcon col-4">
-                      ${movIcon}
-                    </div>
-                    <div class="transNameAndDate col">
-                      <p class="transName">${transName} (${mov.Category})</p>
-                      <p class="transDate">${displayDate}</p>
-                    </div>
-                    <div class="transAmount col">
-                      <p class="transAmountText ${transType}">${formattedMov}</p>
-                    </div>
-                  </div>`;
+                          <div class="transIcon col-4">
+                            ${movIcon}
+                          </div>
+                          <div class="transNameAndDate col">
+                            <p class="transName">${transName} (${mov.Category})</p>
+                            <p class="transDate">${displayDate}</p>
+                          </div>
+                          <div class="transAmount col">
+                            <p class="transAmountText ${transType}">${formattedMov}</p>
+                          </div>
+                        </div>`;
     //Inserts HTML with required data
     transactionContainer.insertAdjacentHTML('afterbegin', html);
     displayBillList(currentAccount);
   });
 };
-
 export const displayBillList = function (currentAccount) {
   let bills;
 
@@ -811,11 +815,11 @@ export const displayBillList = function (currentAccount) {
   }
 };
 
-//formats the transactions dates to the users locale
 export const formatMovementDate = function (date, locale) {
-  //international time format based on the date given in this fuction
+  //international time format based on the date given in this function
   return new Intl.DateTimeFormat(locale).format(date);
 };
+
 //formats currency based on user locale
 function formatCur(value, currency, locale) {
   //Sets currency based on locale currency code. (Defaults to USD if no locale can be found)
@@ -839,7 +843,6 @@ export const displayBalance = function (acc) {
   );
 };
 
-//Updates the webpage UI with all of the needed data
 export const updateUI = function (acc) {
   //Displays the Transactions data
   displayTransactions(acc);
