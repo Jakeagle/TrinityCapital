@@ -1,0 +1,1448 @@
+@import url('https://fonts.googleapis.com/css2?family=Josefin+Sans&family=Poppins:wght@200;400&display=swap');
+
+/******************************Special Items********************************/
+
+.dollarSignImg {
+  padding-left: 0.37rem;
+}
+
+.waterIcon {
+  padding-left: 0.25rem;
+}
+
+.wifiIcon {
+  font-size: 1.2rem;
+  position: relative;
+  right: 0.47rem;
+  bottom: 0.1rem;
+}
+
+.billListCustom {
+  font-size: 1.35rem;
+  position: relative;
+  right: 0.4rem;
+  bottom: 0.1rem;
+}
+
+.accountsText {
+  font-weight: 600;
+}
+
+.accountListBg {
+  border-radius: 2rem;
+  margin: auto;
+  height: 26rem;
+  width: 50rem;
+  background-color: #61563e;
+}
+
+.selectAccText {
+  font-size: 1.5rem;
+  padding-top: 1.5rem;
+}
+
+.theList {
+  padding-top: 2rem;
+  position: relative;
+  left: 6rem;
+  margin: auto;
+  text-align: left;
+}
+
+.account {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+
+.rentIcon {
+  position: relative;
+  right: 0.54rem;
+  bottom: 0.15rem;
+}
+
+.inputRowSend {
+  margin-top: 6rem;
+  margin-bottom: 6rem;
+}
+
+.sndMon {
+  position: relative;
+  left: 0.4rem;
+}
+
+/****************************Sign on section*****************************/
+
+.back1 {
+  background-color: #ccc2a6;
+  height: 100vh;
+}
+
+.backGround {
+  height: 100%;
+  width: 100%;
+  background-color: #ccc2a6;
+  overflow: hidden;
+  margin: auto;
+}
+
+.signOnBox {
+  height: 70%;
+  width: 50%;
+  border-style: none;
+  background-color: #ccc2a6;
+}
+.sec1 {
+  background-color: #61563e;
+  height: 100%;
+}
+
+.sec2 {
+  background-color: #94845f;
+  height: 100%;
+}
+
+.signUpBtn {
+  background-color: transparent;
+  border-radius: 28px;
+  border: 1px solid white;
+  display: inline-block;
+  cursor: pointer;
+  color: white;
+  font-family: Arial;
+  font-size: 100%;
+  padding: 17px 65px;
+  text-decoration: none;
+  margin: 0 0.1rem;
+  width: 100%;
+  text-align: center;
+}
+.signInBtn {
+  background-color: #61563e;
+  border-radius: 28px;
+  border: 1px solid #94845f;
+  display: inline-block;
+  cursor: pointer;
+  color: white;
+  font-family: Arial;
+  font-size: 17px;
+  padding: 17px 65px;
+  text-decoration: none;
+  margin: 1rem 10rem;
+  width: 50%;
+  text-align: center;
+}
+.signUpBtn:hover {
+  background-color: transparent;
+}
+.signUpBtn:active {
+  position: relative;
+  top: 1px;
+}
+
+.signInBtn:hover {
+  background-color: #61563e;
+}
+
+.SignUpText {
+  margin: auto;
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  font-size: 90%;
+}
+
+.welcomeBackSignOn {
+  text-align: center;
+  color: white;
+  font-size: 2rem;
+  font-weight: 600;
+  width: 70%;
+  margin: auto;
+  margin-top: 5rem;
+}
+
+.signInText {
+  font-size: 1rem;
+  font-weight: 400;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+  width: 100%;
+}
+
+.signInToApp {
+  margin-top: 3rem;
+}
+
+.loginBox {
+  height: 3rem;
+  border-style: solid;
+  border-radius: 0.5rem;
+  border-width: 0.2rem;
+  border-color: #61563e;
+  margin: 1rem 0 1rem;
+}
+
+.userIcon {
+  color: #ccc2a6;
+  font-size: 1.8rem;
+  position: relative;
+  left: 5rem;
+}
+
+.userNameInput {
+  background-color: #94845f;
+  border-color: #61563e;
+  border-style: solid;
+  border-radius: 0.5rem;
+  height: 70%;
+  width: 90%;
+  padding-left: 4rem;
+  color: white;
+  font-weight: 400;
+}
+
+.userNameInput:focus + .userLabel {
+  display: none;
+}
+
+.userLabel {
+  position: relative;
+  color: white;
+
+  left: 4rem;
+}
+
+.mobileSignOnBox {
+  height: 80%;
+  width: 60%;
+  background-color: #94845f;
+  border-style: none;
+}
+
+.mobileWelcome {
+  width: 80%;
+}
+
+.mobileRow {
+  margin: 0 0 0.5rem;
+  position: relative;
+  left: 1rem;
+}
+
+.mobilePinRow {
+  position: relative;
+  bottom: 2rem;
+}
+
+.mobileIcon {
+  position: relative;
+  top: 2.3rem;
+  left: 1rem;
+  font-size: 0.8rem;
+}
+
+.mobileLoginBtn {
+  position: relative;
+  left: 0.5rem;
+  margin: auto;
+
+  width: 90%;
+}
+
+.mobileSignInText {
+  font-size: 0.75rem;
+  width: 100%;
+}
+
+.mobileInput {
+  padding-left: 2rem;
+}
+
+/******************************Main app*********************************/
+body {
+  font-family: 'Poppins', sans-serif;
+
+  color: white;
+}
+
+.section1 {
+  background-color: #94845f;
+  width: 20%;
+  height: 110vh;
+}
+
+.section2 {
+  background-color: #61563e;
+  width: 80%;
+  height: 110vh;
+}
+
+.pfp {
+  border: #ae8626;
+  border-style: inset;
+  border-radius: 100%;
+  margin: 2.5rem auto;
+  width: 5.5rem;
+  height: 5.3rem;
+  background-color: #94845f;
+}
+
+.pfpName {
+  font-size: 2.5rem;
+  font-weight: 300;
+  margin: 0 1.3rem;
+}
+
+.topText {
+  font-weight: 300;
+  font-size: 1.5rem;
+  padding: 2rem 3rem 0 3rem;
+}
+
+.bottomText {
+  font-size: 1.8rem;
+  font-weight: 800;
+  padding: 0 3rem 0 3rem;
+}
+
+.budgetClass {
+  margin: auto;
+  padding-top: 5rem;
+}
+
+.monthly {
+  padding-top: 0;
+  font-size: 1rem;
+}
+
+.budget {
+  padding-bottom: 0;
+}
+
+.bankingTools {
+  padding-top: 5rem;
+}
+
+.bankingImg {
+  color: #e0d6bf;
+  font-size: 2.3rem;
+  padding: 0 3rem;
+}
+
+.bankingText {
+  margin-top: 0.3rem;
+  position: relative;
+  right: 6rem;
+}
+
+.bankingImg:hover {
+  color: #61563e;
+}
+
+.accountsLogout {
+  margin-top: 5rem;
+}
+
+.copyright {
+  margin-top: 7rem;
+}
+
+.CopyRight {
+  font-size: 1.7rem;
+}
+
+.copyRight {
+  margin: 0 0 0 0;
+  font-size: 0.7rem;
+  font-weight: 200;
+}
+
+.header {
+  height: 10rem;
+}
+
+.headerText {
+  margin: 1rem 2rem;
+  font-size: 2rem;
+  font-weight: 500;
+}
+
+.verseofTheDay {
+  position: relative;
+  bottom: 3rem;
+  width: 70%;
+  margin: auto;
+  margin-bottom: 4rem;
+  margin-top: 3rem;
+  text-align: center;
+}
+
+.votd {
+  font-weight: 800;
+  font-size: 1.5rem;
+}
+
+.verseTitle {
+  font-weight: 200;
+  font-size: 1rem;
+}
+.verse {
+  font-size: 1rem;
+  padding-bottom: 2rem;
+}
+
+.main {
+  margin-top: 4rem;
+}
+.leftSide {
+  height: 78.7vh;
+}
+
+.rightSide {
+  height: 78.7vh;
+}
+
+.balanceBlock {
+  margin: 0 4rem;
+  border-radius: 1rem;
+  width: 35rem;
+  height: 40%;
+  background-image: linear-gradient(to top left, #ae8626, #f7ef8a);
+}
+
+.bankImg {
+  position: relative;
+  left: 65%;
+  margin: 2rem 0;
+  width: 20%;
+}
+
+.balanceText {
+  width: 55%;
+  font-weight: 600;
+  font-size: 100%;
+  margin: 2rem 2rem;
+  padding: 0;
+}
+
+.dateText {
+  width: 40%;
+  margin: -1.5rem 2rem;
+  font-size: 80%;
+}
+
+.balance {
+  position: relative;
+  top: 0.1rem;
+  width: 100%;
+  height: 6vh;
+}
+
+.actualBalance {
+  margin: 0.3rem 1.7rem;
+  font-weight: 900;
+}
+
+.incomeSpending {
+  margin: 2rem 4rem;
+  width: 75%;
+}
+.incomeBlock {
+  position: relative;
+  right: 1rem;
+  height: 15vh;
+  margin: 0 0 0 1rem;
+  border-radius: 1rem;
+  background-color: #94845f;
+}
+
+.spendingBlock {
+  height: 15vh;
+  margin: 0 0 0 1rem;
+  border-radius: 1rem;
+  background-color: #94845f;
+}
+.billsBlock {
+  margin: 0 4rem;
+  border-radius: 1rem;
+  height: 25vh;
+  width: 75%;
+  background-color: #94845f;
+  overflow: scroll;
+}
+
+.billsBlock::-webkit-scrollbar {
+  display: none;
+}
+
+.accountSwitchModal::-webkit-scrollbar {
+  display: none;
+}
+
+.accountInfo {
+  position: relative;
+  left: 2rem;
+  bottom: 1.2rem;
+  width: 2px;
+  margin: 3rem 0 0 0;
+}
+
+.bankInfo {
+  position: relative;
+  right: 1.3rem;
+  bottom: 1.2rem;
+
+  margin: 3rem 0 0 3rem;
+}
+
+.accountNum {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.accountType {
+  position: relative;
+  left: 1.5rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+.accountNumber {
+  font-size: 1rem;
+  font-weight: 400;
+}
+
+.bankName {
+  position: relative;
+  left: 8.3rem;
+  font-size: 1rem;
+}
+
+.isText {
+  margin: 2rem 1rem;
+  font-size: 1rem;
+}
+
+.isAmount {
+  display: block;
+  position: relative;
+  bottom: 1rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  margin: 0 1rem 1rem;
+  width: 900%;
+}
+
+.siIcon {
+  position: relative;
+  left: 10rem;
+  bottom: 3rem;
+}
+.incomeAmount {
+  color: #32cd32;
+}
+
+.spendingAmount {
+  color: #cf0202;
+}
+
+.isImage {
+  position: relative;
+  bottom: 1.2rem;
+  left: 2.5rem;
+  font-size: 1.5rem;
+}
+
+.billsTitle {
+  margin: 2rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.bills {
+  margin: 0 2.7rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.billText {
+  font-size: 1rem;
+  margin: 0.3rem 0;
+}
+
+.button {
+  position: relative;
+  left: 12rem;
+  font-size: 2rem;
+  margin: 1.5rem 0;
+}
+
+.icon {
+  border-radius: 0.5rem;
+  width: 2rem;
+  height: 2rem;
+  background-color: #61563e;
+}
+
+.billIcon {
+  font-size: 1rem;
+  position: relative;
+  right: 0.34rem;
+  bottom: 0.3rem;
+}
+
+.billDate {
+  font-weight: 400;
+  margin: 0rem 0;
+  font-size: 1rem;
+}
+
+.transactionBlock {
+  border-radius: 2rem;
+  background-color: #94845f;
+  height: 53vh;
+  width: 90%;
+  margin: 0 0 2.2rem 0;
+  overflow: scroll;
+}
+
+.transactionBlock::-webkit-scrollbar {
+  display: none;
+}
+
+.transactionTitleText {
+  font-weight: 700;
+  font-size: 2rem;
+  padding: 2rem 2rem;
+}
+
+.lessonsBlock {
+  border-radius: 2rem;
+  background-color: #94845f;
+  width: 90%;
+  height: 20vh;
+}
+
+.transaction {
+  margin: 0 1.2rem;
+}
+
+.note {
+  font-size: 1.2rem;
+}
+
+.carousel-item {
+  width: 70%;
+  margin-left: 8.5rem;
+}
+
+.modal-item {
+  margin-top: 1.5rem;
+  margin-left: 16rem;
+}
+
+.qaHeader {
+  font-size: 1.5rem;
+  margin-right: 9rem;
+}
+
+.answers {
+  text-align: left;
+}
+
+.answerForm {
+  margin-left: 38rem;
+  margin-top: 3rem;
+}
+
+.form__btn--answers {
+  margin-top: 2rem;
+}
+.transIcon {
+  background-color: #61563e;
+  margin: 0.4rem 1rem;
+  width: 8%;
+  height: 2.8rem;
+  border-radius: 0.5rem;
+}
+
+.transImg {
+  text-align: center;
+  font-size: 1.8rem;
+  margin: 0.5rem 0 0 -0.15rem;
+}
+.transNameAndDate {
+  position: relative;
+  bottom: 1rem;
+  margin: 0 0 1rem 0;
+}
+.transDate {
+  font-weight: 400;
+  margin: -0.7rem -0.5rem;
+}
+
+.transName {
+  font-weight: 600;
+  margin: 1rem -0.5rem;
+}
+
+.transAmountText {
+  position: relative;
+  left: 8rem;
+  margin: 0.5rem 0;
+  font-size: 1.5rem;
+}
+
+.negTrans {
+  color: #cf0202;
+}
+
+.posTrans {
+  color: #32cd32;
+}
+
+.payCheck {
+  margin-left: 0.25rem;
+}
+
+.user {
+  margin-left: 0.03rem;
+}
+
+.lessonHeaderText {
+  padding-top: 1rem;
+  margin: 0 2rem;
+  font-weight: 600;
+  font-size: 1.5rem;
+}
+
+.lessonRow {
+  position: relative;
+  left: 2.5rem;
+  margin: 0.5rem 1rem;
+}
+
+.lessonDiv {
+  border: #ae8626;
+  border-style: inset;
+  border-radius: 100%;
+  margin: 0 0.3rem;
+  width: 13%;
+  height: 5.3rem;
+  background-color: #61563e;
+}
+
+.lessonImg {
+  color: #e0d6bf;
+  margin: 0.5rem 0.1rem;
+  font-size: 2.5rem;
+}
+
+.lessonName {
+  margin: 1rem 0 0 -0.3rem;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.bpImg {
+  margin: 0 0.6rem;
+}
+
+.depositImg {
+  margin: 0 0.1rem;
+}
+
+.smImg {
+  margin: 0 0.75rem;
+}
+
+.creditImg {
+  margin: 0 0.1rem;
+}
+
+.logoImg {
+  width: 100%;
+  margin: auto;
+  position: relative;
+  bottom: 0.2rem;
+}
+
+/*******************Modals***********************/
+
+.baseModal {
+  background-color: #94845f;
+  border-radius: 2rem;
+  width: 50%;
+  height: 60%;
+  text-align: center;
+  border-style: none;
+  color: white;
+}
+
+.signOnBox::backdrop {
+  opacity: 005;
+}
+
+.transferText {
+  font-weight: 600;
+  margin-left: 10rem;
+}
+
+.accountSelection {
+  margin: 2rem 0 2rem 0;
+}
+
+.exitMark {
+  font-size: 2rem;
+  color: #ccc2a6;
+}
+
+.exitMark:hover {
+  color: #61563e;
+}
+
+.form__input--amount--transfer {
+  margin: 0.5rem 0 1rem 0;
+  text-align: center;
+}
+
+.transferBtn {
+  margin-top: 5rem;
+}
+
+select {
+  font-weight: 600;
+  background-color: #ccc2a6;
+  color: #61563e;
+  border-style: none;
+  border-radius: 1rem;
+}
+
+input {
+  font-weight: 600;
+  background-color: #ccc2a6;
+  color: #61563e;
+  border-style: none;
+  border-radius: 1rem;
+}
+
+.form__btn--transfer {
+  border-style: none;
+  background: linear-gradient(to bottom, #eae0c2 5%, #ccc2a6 100%);
+  background-color: #eae0c2;
+  border-radius: 42px;
+  width: 40%;
+  display: inline-block;
+  cursor: pointer;
+  color: #505739;
+  font-family: Arial;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 10px 24px;
+  text-decoration: none;
+  text-shadow: 0px 1px 0px #ffffff;
+}
+.form__btn--transfer:hover {
+  background: linear-gradient(to bottom, #ccc2a6 5%, #eae0c2 100%);
+  background-color: #ccc2a6;
+}
+.form__btn--transfer:active {
+  position: relative;
+  top: 1px;
+}
+
+.activityModal {
+  width: 90%;
+  height: 60rem;
+}
+
+.activityHeader {
+  margin: auto;
+  font-size: 4rem;
+}
+/*******************Media Queries***************/
+
+@media screen and (max-width: 1300px) {
+  .signOnBox {
+    display: none;
+  }
+
+  @media screen and (max-width: 414px) {
+    .pfp {
+      margin: 1.5rem 0.2rem;
+      width: 4.1rem;
+      height: 4.1rem;
+    }
+
+    .pfpName {
+      margin: -0.5rem 0.7rem;
+    }
+  }
+
+  @media screen and (max-width: 1900px) {
+    .bankingText {
+      display: none;
+    }
+  }
+
+  @media screen and (max-width: 745px) {
+    .bankingTools {
+      margin: 0 0 0 -0.7rem;
+    }
+  }
+
+  @media screen and (max-width: 620px) {
+    .bankingTools {
+      margin: 0 0 0 -2rem;
+    }
+  }
+
+  @media screen and (max-width: 745px) {
+  }
+
+  @media screen and (max-width: 745px) {
+    .accountsLogout {
+      margin: 0 0 0 -0.7rem;
+    }
+
+    .copyright {
+      margin: 0 0 0 -0.7rem;
+    }
+  }
+
+  @media screen and (max-width: 620px) {
+    .accountsLogout {
+      margin: 0 0 0 -2rem;
+    }
+
+    .copyright {
+      margin: 0 0 0 -2rem;
+    }
+  }
+
+  @media screen and (max-width: 1045px) {
+    .welcomeBack {
+      display: none;
+    }
+    .budget {
+      font-size: 0.1rem;
+    }
+  }
+
+  /*******************Cell Phones*****************/
+
+  @media screen and (max-width: 940px) {
+    .budgetClass {
+      position: relative;
+      right: 1.5rem;
+    }
+  }
+
+  @media screen and (max-width: 850px) {
+    .balanceBlock {
+      width: 30rem;
+    }
+
+    .budgetClass {
+      display: none;
+    }
+  }
+
+  @media screen and (max-width: 700px) {
+    .balanceBlock {
+      width: 25rem;
+    }
+  }
+
+  @media screen and (max-width: 610px) {
+    .balanceBlock {
+      width: 20rem;
+    }
+  }
+
+  @media screen and (max-width: 500px) {
+    .balanceBlock {
+      width: 15rem;
+    }
+  }
+
+  @media screen and (max-width: 361px) {
+    .actualBalance {
+      margin-bottom: 0;
+    }
+    .balanceBlock {
+      width: 10rem;
+      margin-left: 1rem;
+    }
+
+    .accountInfo {
+      position: relative;
+      bottom: 2.5rem;
+    }
+
+    .bankInfo {
+      position: relative;
+      bottom: 2.5rem;
+    }
+  }
+
+  @media screen and (max-width: 376px) {
+    .section1 {
+      height: 200vh;
+    }
+  }
+
+  @media screen and (max-width: 415px) {
+    body {
+      background-color: #61563e;
+    }
+
+    .section1 {
+      height: 235vh;
+    }
+    .rightSide {
+      background-color: #61563e;
+      position: relative;
+      top: 22rem;
+    }
+
+    .bankImg {
+      left: 13rem;
+      bottom: 4rem;
+      width: 15%;
+    }
+    .bankLogo {
+      height: 1rem;
+    }
+
+    .verseofTheDay {
+      width: 100%;
+      margin: 4rem 6rem;
+    }
+
+    .actualBalance {
+      position: relative;
+      bottom: 1.7rem;
+    }
+
+    .incomeSpending {
+      position: relative;
+      left: 6rem;
+    }
+
+    .balanceBlock {
+      position: relative;
+      left: 4.8rem;
+      margin-top: 2rem;
+      margin-left: 0.7rem;
+      width: 17rem;
+    }
+
+    .balanceText {
+      margin: 1rem 2rem;
+    }
+
+    .dateText {
+      margin: -1.1rem 2rem 0.1rem;
+    }
+
+    .accountInfo {
+      position: relative;
+      bottom: 4rem;
+    }
+
+    .bankInfo {
+      position: relative;
+      bottom: 4rem;
+    }
+
+    .accountNum {
+      font-size: 90%;
+    }
+    .accountNumber {
+      font-size: 70%;
+    }
+
+    .accountType {
+      font-size: 90%;
+    }
+
+    .bankName {
+      font-size: 70%;
+      left: 0.5rem;
+    }
+
+    .billsBlock {
+      margin-left: 8rem;
+      width: 100%;
+    }
+
+    .transactionBlock {
+      position: relative;
+      left: 7rem;
+      font-size: 70%;
+      height: 30rem;
+    }
+
+    .lessonsBlock {
+      position: relative;
+      left: 3rem;
+      height: 15rem;
+      width: 25rem;
+    }
+  }
+
+  @media screen and (max-width: 395px) {
+    .balanceBlock {
+      margin-top: 3.5rem;
+      margin-left: 0.8rem;
+      width: 17rem;
+    }
+
+    .bankImg {
+      left: 13rem;
+      bottom: 4rem;
+      width: 15%;
+    }
+    .bankLogo {
+      height: 1rem;
+    }
+    .balanceBlock {
+      margin-top: 3.5rem;
+      margin-left: 0.8rem;
+      width: 19rem;
+      height: 35%;
+    }
+
+    .balanceText {
+      margin: 1rem 2rem;
+    }
+
+    .dateText {
+      margin: -1.1rem 2rem 0.1rem;
+    }
+
+    .accountNum {
+      position: relative;
+      bottom: 0.5rem;
+      font-size: 90%;
+    }
+    .accountNumber {
+      position: relative;
+      bottom: 0.5rem;
+      font-size: 70%;
+    }
+
+    .accountType {
+      position: relative;
+      bottom: 0.5rem;
+      font-size: 90%;
+      position: relative;
+      bottom: 0.5rem;
+    }
+
+    .bankName {
+      font-size: 70%;
+      left: 1.5rem;
+    }
+
+    .billsBlock {
+      position: relative;
+      right: 4.3rem;
+      width: 100%;
+      height: 60%;
+    }
+  }
+
+  @media screen and (max-width: 415px) {
+    body {
+      background-color: #61563e;
+    }
+
+    .rightSide {
+      position: relative;
+      top: 22rem;
+    }
+    .bankImg {
+      left: 13rem;
+      bottom: 4rem;
+      width: 15%;
+    }
+    .bankLogo {
+      height: 1rem;
+    }
+    .balanceBlock {
+      margin-top: 3.5rem;
+      margin-left: 0.8rem;
+      width: 19rem;
+      height: 35%;
+    }
+
+    .balanceText {
+      margin: 1rem 2rem;
+    }
+
+    .actualBalance {
+      margin-top: 1.5rem;
+      position: relative;
+      bottom: 1rem;
+    }
+
+    .dateText {
+      margin: -1.1rem 2rem 0.1rem;
+    }
+
+    .accountInfo {
+      position: relative;
+      bottom: 4rem;
+    }
+
+    .bankInfo {
+      position: relative;
+      bottom: 4rem;
+    }
+
+    .accountType {
+      position: relative;
+      left: 0.5rem;
+    }
+
+    .bankName {
+      position: relative;
+      left: 0.5rem;
+    }
+
+    .incomeBlock {
+      position: relative;
+      right: 2.3rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .spendingBlock {
+      position: relative;
+      right: 2.3rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .siIcon {
+      left: 6rem;
+    }
+
+    .billsBlock {
+      margin-bottom: 10rem;
+      position: relative;
+      left: -1.8rem;
+      height: 18rem;
+    }
+
+    .billBtn {
+      position: relative;
+      right: 10rem;
+    }
+    .billsRow {
+      width: 100%;
+      position: relative;
+      right: 1rem;
+    }
+
+    .billText {
+      font-size: 40%;
+    }
+
+    .billDate {
+      font-size: 50%;
+    }
+
+    .transAmountText {
+      position: relative;
+      left: 1rem;
+      font-size: 100%;
+    }
+
+    .transIcon {
+      position: relative;
+      right: 1rem;
+      width: 20%;
+    }
+
+    .transNameAndDate {
+      position: relative;
+      right: 1.5rem;
+    }
+
+    .lessonRow {
+      margin-right: 5rem;
+    }
+
+    .lessonDiv {
+      height: 2.5rem;
+      width: 2.5rem;
+      margin: 1rem 0.5rem;
+    }
+
+    .lessonImg {
+      font-size: 1.3rem;
+      position: relative;
+      right: 0.6rem;
+      bottom: 0.5rem;
+    }
+    .lessonName {
+      font-size: 50%;
+      margin: auto;
+    }
+
+    .rocketIcon {
+      position: relative;
+      top: 0.1rem;
+      left: 0.1rem;
+    }
+
+    .bpImg {
+      position: relative;
+      right: 0.3rem;
+    }
+
+    .smImg {
+      position: relative;
+      right: 0.35rem;
+    }
+
+    .tutName {
+      position: relative;
+      right: 0.7rem;
+    }
+
+    .tranName {
+      position: relative;
+      right: 0.85rem;
+    }
+
+    .bpName {
+      position: relative;
+      right: 0.2rem;
+    }
+
+    .dpName {
+      position: relative;
+      right: 0.6rem;
+    }
+
+    .smName {
+      position: relative;
+      right: 0.6rem;
+    }
+
+    .creditName {
+      position: relative;
+      right: 0.45rem;
+    }
+  }
+
+  /*********************************************Tablets**********************************************/
+
+  @media screen and (min-width: 820px) {
+    .section1 {
+      height: 180vh;
+    }
+    .body {
+      background-color: #61563e;
+    }
+
+    .rightSide {
+      position: relative;
+      top: 2.6rem;
+      background-color: #61563e;
+    }
+    .accountNum {
+      font-size: 1.3rem;
+    }
+    .accountType {
+      font-size: 1.3rem;
+    }
+    .bankName {
+      position: relative;
+      left: 6.5rem;
+    }
+    .siIcon {
+      position: relative;
+      left: 8rem;
+    }
+
+    .transactionBlock {
+      position: relative;
+      margin-left: 1rem;
+    }
+    .lessonsBlock {
+      position: relative;
+      left: 1rem;
+    }
+
+    .lessonRow {
+      position: relative;
+      left: 1rem;
+    }
+
+    .lessonDiv {
+      width: 5rem;
+      height: 5rem;
+    }
+  }
+
+  @media screen and (min-width: 768px) {
+    .section1 {
+      height: 180vh;
+    }
+
+    .section2 {
+      background-color: #61563e;
+    }
+    .body {
+      background-color: #61563e;
+    }
+
+    .rightSide {
+      position: relative;
+      top: 2.6rem;
+      background-color: #61563e;
+    }
+    .accountNum {
+      font-size: 1.2rem;
+    }
+    .accountType {
+      font-size: 1.2rem;
+    }
+    .bankName {
+      position: relative;
+      left: 5.5rem;
+    }
+    .siIcon {
+      position: relative;
+      left: 8rem;
+    }
+
+    .transactionBlock {
+      position: relative;
+      margin-left: 1rem;
+    }
+    .lessonsBlock {
+      position: relative;
+      left: 1rem;
+    }
+
+    .lessonRow {
+      position: relative;
+      left: 1rem;
+    }
+
+    .lessonDiv {
+      width: 5rem;
+      height: 5rem;
+    }
+  }
+
+  /*********************Desktop************************/
+
+  @media screen and (min-width: 1920px) {
+    .section1 {
+      height: 110vh;
+    }
+  }
+}

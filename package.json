@@ -1,0 +1,22 @@
+{
+  "name": "trinity-capital-prod-local",
+  "version": "1.0.0",
+  "description": "Financial literacy web application",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Ferguson Software Solutions, LLC",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "express": "^4.18.2",
+    "mongodb": "^6.11.0",
+    "node": "^21.6.1",
+    "node-cron": "^3.0.3",
+    "nodecron": "^0.2.0",
+    "prettier": "^3.2.5",
+    "socket.io": "^4.7.4"
+  }
+}
