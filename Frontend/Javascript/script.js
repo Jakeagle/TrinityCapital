@@ -5,7 +5,7 @@ if (
     navigator.userAgent,
   )
 ) {
-  //window.location.replace('https://trinitycapitalmobile.netlify.app');
+  window.location.replace('https://trinitycapitalmobile.netlify.app');
 } else {
   console.log('Were on MOBILE!');
 }
