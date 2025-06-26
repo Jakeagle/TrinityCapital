@@ -10,8 +10,8 @@
       integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN"
       crossorigin="anonymous"
     />
-    <link rel="stylesheet" href="Frontend/Styles/style.css" />
-    <link rel="stylesheet" href="Frontend/Styles/check.css">
+    <link rel="stylesheet" href="Styles/style.css" />
+    <link rel="stylesheet" href="Styles/check.css">
     <script
       src="https://kit.fontawesome.com/60a3862749.js"
       crossorigin="anonymous"
@@ -47,7 +47,7 @@
           <div class="col">
             <div class="col-1 pfp">
               <p class="lessonImg"></p>
-              <img class ="logoImg" src="Frontend/img/Untitled_design__2_-removebg-preview.png" alt="">
+              <img class ="logoImg" src="img/Untitled_design__2_-removebg-preview.png" alt="">
             </div>
           </div>
         </div>
@@ -108,12 +108,12 @@
 
           <div class="row">
             <div class="col transferBox">
-              <p class="">
-                <i class="fa-solid fa-language bankingImg changeLanguageBTN"></i>
+              <p>
+                <i class="fa-solid fa-comments bankingImg messagesBTN"></i>
               </p>
             </div>
             <div class="col">
-              <p class="transfer bankingText">Change Language</p>
+              <p class="transfer bankingText">Messages</p>
             </div>
           </div>
         </div>
@@ -186,7 +186,7 @@
                   <div class="col-sm col-md col-lg bankLogo">
                     <img
                       class="bankImg"
-                      src="Frontend/img/pngaaa.com-4372256.png"
+                      src="img/pngaaa.com-4372256.png"
                       alt="logo"
                     />
                   </div>
@@ -390,15 +390,15 @@
       </div>
     </div>
 
-    <script src="Frontend/Javascript/script.js" type="module"></script>
-    <script src="Frontend/Javascript/billsAndPayments.js" type="module"></script>
-    <script src="Frontend/Javascript/numberCrunch.js" type="module"></script>
-    <script src="Frontend/Javascript/transfer.js" type="module"></script>
-    <script src="Frontend/Javascript/accountSwitch.js" type="module"></script>
-    <script src="Frontend/Javascript/check.js" type="module"></script>
-    <script src="Frontend/Javascript/deposit.js" type="module"></script>
-    <script src="Frontend/Javascript/sendMoney.js" type="module"></script>
-    <script src="Frontend/Javascript/lessons.js" type="module"></script>
+    <script src="Javascript/script.js" type="module"></script>
+    <script src="Javascript/billsAndPayments.js" type="module"></script>
+    <script src="Javascript/numberCrunch.js" type="module"></script>
+    <script src="Javascript/transfer.js" type="module"></script>
+    <script src="Javascript/accountSwitch.js" type="module"></script>
+    <script src="Javascript/check.js" type="module"></script>
+    <script src="Javascript/deposit.js" type="module"></script>
+    <script src="Javascript/sendMoney.js" type="module"></script>
+    <script src="Javascript/lessons.js" type="module"></script>
   </body>
 
   <dialog class="transferModal baseModal">
@@ -994,49 +994,30 @@
     <h1 class="bottomText">Time for a break</h1>
 
   </dialog>
-
-
-  <dialog 3 class="baseModal changeLanguageModal">
-    <div class="transferHeader row">
-      <div class="col-10">
-        <h1 class="transferText">Change Language</h1>
-      </div>
-      <div class="col-2">
-        <p class="exitMark">
-          <i class="fa-solid fa-circle-xmark closeLanguageModal"></i>
-        </p>
-      </div>
-
-      <div class="row accountsRow">
-        <div class="col fromTrans billSelection">
-          
-          <label
-            for="billType"
-            class="col-lg-6 col-md-6 col-sm-12 chooseAccountLabel"
-          >
-           Select Language</label
-          >
-
-          <select
-            name="billType"
-            class="accountsListFrom billType col-lg-6 col-md-6 col-sm-12"
-          >
-            <option value="Lang">Language</option>
-            <option value="eng">English</option>
-            <option value="en">Español</option>
-            
-          </select>
-          
-          <div class="changeLangBtn">
-            <h4 class="submitTransfer">Submit</h4>
-            <button class="form__btn form__btn--transfer form__btn--bills">
-              <i class="fa-solid fa-arrow-right"></i>
-            </button>
-          </div>
+  
+  <dialog class="baseModal messagesModal">
+    <div class="messages-container">
+        <div class="message-threads">
+            <h2 class="threads-header">Conversations</h2>
+            <ul class="thread-list">
+                <!-- Thread list will be populated by script.js -->
+            </ul>
+            <div class="new-thread-button">
+                New Conversation
+            </div>
         </div>
-
-        
-      </div>
+        <div class="message-content">
+            <!-- This is the new wrapper that was missing -->
+            <div class="conversation-view">
+            <div class="conversation-header">
+                <h2 class="conversation-with">Select a conversation</h2>
+                <button class="close-messages-modal">&times;</button>
+            </div>
+            <div class="conversation-body">
+                <!-- Messages will be populated by script.js -->
+            </div>
+            </div>
+        </div>
     </div>
   </dialog>
 
@@ -1045,8 +1026,12 @@
   <dialog class="baseModal lessonModal">
   
 
+          </div>
+        </div>
 
-    
+        
+      </div>
+    </div>
   </dialog>
 
 
