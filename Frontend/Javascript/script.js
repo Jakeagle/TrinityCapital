@@ -100,10 +100,10 @@ async function initializeStudentMessaging(studentName) {
   try {
     console.log(
       'Attempting to fetch messages from:',
-      `https://trinitycapitaltestserver-2.azurewebsites.net/messages/${studentName}`,
+      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
     );
     const response = await fetch(
-      `https://trinitycapitaltestserver-2.azurewebsites.net/messages/${studentName}`,
+      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
     );
 
     if (!response.ok) {
@@ -171,7 +171,7 @@ async function openMessageCenter() {
       try {
         // Fetch classmates from the server
         const response = await fetch(
-          `https://trinitycapitaltestserver-2.azurewebsites.net/classmates/${currentProfile.memberName}`,
+          `https://tcstudentserver-production.up.railway.app/classmates/${currentProfile.memberName}`,
         );
         if (!response.ok) {
           throw new Error('Failed to fetch classmates');
@@ -237,7 +237,7 @@ async function openMessageCenter() {
   }
   try {
     const response = await fetch(
-      `https://trinitycapitaltestserver-2.azurewebsites.net/messages/${currentProfile.memberName}`,
+      `https://tcstudentserver-production.up.railway.app/messages/${currentProfile.memberName}`,
     );
     if (!response.ok) throw new Error('Failed to fetch threads');
     const { threads } = await response.json(); // Expect { threads: [...] }
@@ -505,7 +505,7 @@ function displayConversation(threadId, messages) {
  */
 async function createNewThread(recipientId) {
   try {
-    const response = await fetch('https://trinitycapitaltestserver-2.azurewebsites.net/newThread', {
+    const response = await fetch('https://tcstudentserver-production.up.railway.app/newThread', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -742,7 +742,7 @@ if (mainApp) mainApp.style.display = 'none';
 
 /***********************************************************Server Listeners**********************************************/
 
-const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+const socket = io('https://tcstudentserver-production.up.railway.app');
 
 // Emit 'identify' event to associate the client with a user ID
 socket.on('connect', () => {
@@ -809,15 +809,15 @@ socket.on('classMessage', dialogHtml => {
   document.body.appendChild(messageContainer.firstChild);
 });
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://trinitycapitaltestserver-2.azurewebsites.net/profiles';
+const testServerProfiles = 'https://tcstudentserver-production.up.railway.app/profiles';
 
-const loanURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/loans';
+const loanURL = 'https://tcstudentserver-production.up.railway.app/loans';
 
-const donationURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donations';
+const donationURL = 'https://tcstudentserver-production.up.railway.app/donations';
 
-const donationSavingsURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/donationsSavings';
+const donationSavingsURL = 'https://tcstudentserver-production.up.railway.app/donationsSavings';
 
-const balanceURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/initialBalance';
+const balanceURL = 'https://tcstudentserver-production.up.railway.app/initialBalance';
 
 //const productivityURL = 'http://localhost:5040/timers';
 
