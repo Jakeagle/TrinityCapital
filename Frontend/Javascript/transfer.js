@@ -30,7 +30,7 @@ let accountRecieve;
 
 let amount;
 
-const transferLink = `https://trinitycapitaltestserver-2.azurewebsites.net/transfer`;
+const transferLink = `https://tcstudentserver-production.up.railway.app/transfer`;
 
 /************************************************Functions*************************************************/
 
