@@ -20,13 +20,13 @@ let billType;
 let paymentType;
 let chosenSelect;
 
-const socket = io('trinitycapitaltestserver-2.azurewebsites.net');
+const socket = io('https://tcstudentserver-production.up.railway.app');
 
 /**********************************************Functions***********************************************/
 
 //Handles login
 
-const billURL = `https://trinitycapitaltestserver-2.azurewebsites.net/bills`;
+const billURL = `https://tcstudentserver-production.up.railway.app/bills`;
 
 async function sendBillData(type, amount, interval, name, cat, date) {
   const res = await fetch(billURL, {
