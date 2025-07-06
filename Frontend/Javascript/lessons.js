@@ -1,10 +1,10 @@
 'use strict';
 
-const lessonRow = 'https://trinitycapitaltestserver-2.azurewebsites.net/lessonArrays';
-const lessonModalURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/lessonModals';
-const activityModalURL = 'https://trinitycapitaltestserver-2.azurewebsites.net/activityModals';
+const lessonRow = 'https://tcstudentserver-production.up.railway.app/lessonArrays';
+const lessonModalURL = 'https://tcstudentserver-production.up.railway.app/lessonModals';
+const activityModalURL = 'https://tcstudentserver-production.up.railway.app/activityModals';
 
-export const socket = io('https://trinitycapitaltestserver-2.azurewebsites.net');
+export const socket = io('https://tcstudentserver-production.up.railway.app');
 
 console.log('Running');
 
