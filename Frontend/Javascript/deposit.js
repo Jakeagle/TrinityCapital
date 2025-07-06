@@ -25,7 +25,7 @@ const backBTN = $('.backBtn');
 
 const loginBTN = document.querySelector('.login__btn');
 
-const depositLink = 'https://trinitycapitaltestserver-2.azurewebsites.net/deposits';
+const depositLink = 'https://tcstudentserver-production.up.railway.app/deposits';
 
 mainApp.css('display', 'none');
 
