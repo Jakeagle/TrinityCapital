@@ -1,7 +1,7 @@
 'use strict';
 
 import { renderLessons } from './lessonEngine.js';
-const socket = io('http://localhost:3000');
+const socket = io('https://tcstudentserver-production.up.railway.app');
 
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
@@ -833,7 +833,7 @@ const donationSavingsURL = 'https://tcstudentserver-production.up.railway.app/do
 
 const balanceURL = 'https://tcstudentserver-production.up.railway.app/initialBalance';
 
-const productivityURL = 'http://localhost:5040/timers';
+
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
