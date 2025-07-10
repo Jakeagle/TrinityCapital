@@ -720,42 +720,38 @@ body {
   margin: 0.5rem 1rem;
 }
 
-.lessonDiv {
-  border: #ae8626;
-  border-style: inset;
-  border-radius: 100%;
-  margin: 0 0.3rem;
-  width: 13%;
-  height: 5.3rem;
-  background-color: #61563e;
+.lesson-item-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 15%; /* A bit more space for text */
+  margin: 0 0.3rem 1rem; /* Added bottom margin for wrapping */
 }
 
-.lessonImg {
+.lessonDiv {
+  border: 2px inset #ae8626;
+  border-radius: 50%; /* Use 50% for a perfect circle */
+  height: 5.3rem;
+  width: 5.3rem;
+  background-color: #61563e;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-shrink: 0; /* Prevent the circle from shrinking */
+}
+
+.lessonIcon {
   color: #e0d6bf;
-  margin: 0.5rem 0.1rem;
   font-size: 2.5rem;
+  line-height: 1;
 }
 
 .lessonName {
-  margin: 1rem 0 0 -0.3rem;
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 400;
   text-align: center;
-  font-size: 1rem;
-}
-
-.bpImg {
-  margin: 0 0.6rem;
-}
-
-.depositImg {
-  margin: 0 0.1rem;
-}
-
-.smImg {
-  margin: 0 0.75rem;
-}
-
-.creditImg {
-  margin: 0 0.1rem;
+  width: 100%;
 }
 
 .logoImg {
@@ -1481,67 +1477,22 @@ input {
       margin-right: 5rem;
     }
 
+    .lesson-item-wrapper {
+      width: 28%; /* Allow more items per row on mobile */
+    }
+
     .lessonDiv {
-      height: 2.5rem;
-      width: 2.5rem;
-      margin: 1rem 0.5rem;
+      height: 4rem;
+      width: 4rem;
     }
 
-    .lessonImg {
-      font-size: 1.3rem;
-      position: relative;
-      right: 0.6rem;
-      bottom: 0.5rem;
+    .lessonIcon {
+      font-size: 1.8rem;
     }
+
     .lessonName {
-      font-size: 50%;
-      margin: auto;
-    }
-
-    .rocketIcon {
-      position: relative;
-      top: 0.1rem;
-      left: 0.1rem;
-    }
-
-    .bpImg {
-      position: relative;
-      right: 0.3rem;
-    }
-
-    .smImg {
-      position: relative;
-      right: 0.35rem;
-    }
-
-    .tutName {
-      position: relative;
-      right: 0.7rem;
-    }
-
-    .tranName {
-      position: relative;
-      right: 0.85rem;
-    }
-
-    .bpName {
-      position: relative;
-      right: 0.2rem;
-    }
-
-    .dpName {
-      position: relative;
-      right: 0.6rem;
-    }
-
-    .smName {
-      position: relative;
-      right: 0.6rem;
-    }
-
-    .creditName {
-      position: relative;
-      right: 0.45rem;
+      font-size: 0.75rem;
+      margin-top: 0.25rem;
     }
   }
 
