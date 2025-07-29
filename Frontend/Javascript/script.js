@@ -1,6 +1,49 @@
 'use strict';
 
 import { renderLessons } from './lessonEngine.js';
+import {
+  showNotification,
+  validateText,
+  setButtonLoading,
+} from './validation.js';
+import {
+  initializeUIEnhancements,
+  showNotification as showModernNotification,
+} from './uiEnhancements.js';
+
+// Show loading modal immediately
+document.addEventListener('DOMContentLoaded', function () {
+  const loadingModal = document.getElementById('loadingModal');
+  if (loadingModal) {
+    loadingModal.style.display = 'flex';
+  }
+
+  // Initialize modern UI enhancements
+  initializeUIEnhancements();
+});
+
+// Function to hide loading modal and show login
+function hideLoadingAndShowLogin() {
+  const loadingModal = document.getElementById('loadingModal');
+  if (loadingModal) {
+    loadingModal.classList.add('fade-out');
+    setTimeout(() => {
+      loadingModal.style.display = 'none';
+      // Show appropriate login modal
+      if ((mobileLoginBox, loginBox)) {
+        window.screen.width <= 1300
+          ? mobileLoginBox.showModal()
+          : loginBox.showModal();
+      }
+
+      // Show welcome notification with modern styling
+      setTimeout(() => {
+        showModernNotification('Welcome to Trinity Capital! 🎉', 'info', 4000);
+      }, 800);
+    }, 500); // Wait for fade animation to complete
+  }
+}
+
 const socket = io('https://tcstudentserver-production.up.railway.app');
 
 if (
@@ -703,23 +746,59 @@ const displayAccounts = function (currentAccount) {
 
   //Sort the accounts by type (checking first) and creation date
 
-  let balance = formatCur(
-    currentProfile.locale,
+  // Note: This balance variable appears to be unused in the function
+  // let balance = formatCur(0, currentProfile.currency, currentProfile.locale);
 
-    currentProfile.currency,
-  );
+  let lastTransactionDate;
+  let lastTransactionDateSavings;
 
-  let lastTransactionDate = new Date(
-    currentProfile.checkingAccount.movementsDates[
-      currentProfile.checkingAccount.movementsDates.length - 1
-    ],
-  ).toLocaleDateString(currentProfile.locale);
+  // Safe date handling for checking account
+  if (
+    currentProfile.checkingAccount.movementsDates &&
+    currentProfile.checkingAccount.movementsDates.length > 0
+  ) {
+    const checkingDate = new Date(
+      currentProfile.checkingAccount.movementsDates[
+        currentProfile.checkingAccount.movementsDates.length - 1
+      ],
+    );
+    if (!isNaN(checkingDate.getTime())) {
+      lastTransactionDate = checkingDate.toLocaleDateString(
+        currentProfile.locale,
+      );
+    } else {
+      lastTransactionDate = new Date().toLocaleDateString(
+        currentProfile.locale,
+      );
+    }
+  } else {
+    lastTransactionDate = new Date().toLocaleDateString(currentProfile.locale);
+  }
 
-  let lastTransactionDateSavings = new Date(
-    currentProfile.savingsAccount.movementsDates[
-      currentProfile.savingsAccount.movementsDates.length - 1
-    ],
-  ).toLocaleDateString(currentProfile.locale);
+  // Safe date handling for savings account
+  if (
+    currentProfile.savingsAccount.movementsDates &&
+    currentProfile.savingsAccount.movementsDates.length > 0
+  ) {
+    const savingsDate = new Date(
+      currentProfile.savingsAccount.movementsDates[
+        currentProfile.savingsAccount.movementsDates.length - 1
+      ],
+    );
+    if (!isNaN(savingsDate.getTime())) {
+      lastTransactionDateSavings = savingsDate.toLocaleDateString(
+        currentProfile.locale,
+      );
+    } else {
+      lastTransactionDateSavings = new Date().toLocaleDateString(
+        currentProfile.locale,
+      );
+    }
+  } else {
+    lastTransactionDateSavings = new Date().toLocaleDateString(
+      currentProfile.locale,
+    );
+  }
 
   const html = [
     `
@@ -747,12 +826,6 @@ const displayAccounts = function (currentAccount) {
 
   accountContainer.insertAdjacentHTML('beforeEnd', html);
 };
-
-if ((mobileLoginBox, loginBox)) {
-  window.screen.width <= 1300
-    ? mobileLoginBox.showModal()
-    : loginBox.showModal();
-}
 
 if (mainApp) mainApp.style.display = 'none';
 
@@ -957,6 +1030,9 @@ async function donationPushSavings() {
 
 export let profiles = await getInfoProfiles();
 
+// Hide loading modal and show login after profiles are loaded
+hideLoadingAndShowLogin();
+
 /******************************************Variables ***************************************************/
 
 export let currentAccount;
@@ -1016,99 +1092,182 @@ const options = {
 if (loginButton) {
   loginButton.addEventListener('click', function (event) {
     event.preventDefault();
+
+    const originalText = loginButton.textContent;
+    setButtonLoading(loginButton, true, originalText);
+
     const loginPIN = document.querySelector('.login__input--pin');
     const loginText = document.querySelector('.login__input--user');
-    loginFunc(loginPIN, loginText, loginBox);
-    // Get the value of the input field
+
+    setTimeout(() => {
+      loginFunc(loginPIN, loginText, loginBox);
+      setButtonLoading(loginButton, false, originalText);
+    }, 500);
   });
 }
 
 if (mobileLoginButton) {
   mobileLoginButton.addEventListener('click', function (event) {
     event.preventDefault();
+
+    const originalText = mobileLoginButton.textContent;
+    setButtonLoading(mobileLoginButton, true, originalText);
+
     const mobileLoginPIN = document.querySelector('.mobile_login__input--pin');
     const mobileLoginText = document.querySelector(
       '.mobile_login__input--user',
     );
-    loginFunc(mobileLoginPIN, mobileLoginText, mobileLoginBox);
+
+    setTimeout(() => {
+      loginFunc(mobileLoginPIN, mobileLoginText, mobileLoginBox);
+      setButtonLoading(mobileLoginButton, false, originalText);
+    }, 500);
+
     console.log('running');
   });
 }
 
 const loginFunc = function (PIN, user, screen) {
-  const pin = parseInt(PIN.value);
+  try {
+    // Validate inputs
+    const usernameErrors = validateText(user.value, {
+      minLength: 1,
+      maxLength: 50,
+      fieldName: 'Username',
+      required: true,
+    });
 
-  for (let i = 0; i < profiles.length; i++) {
-    if (user.value === profiles[i].userName && pin === profiles[i].pin) {
-      currentProfile = profiles[i];
-    } else if (user.value === profiles[i].userName && pin !== profiles[i].pin) {
-      alert('Incorrect PIN');
-    } else if (user.value !== profiles[i].userName && pin === profiles[i].pin) {
-      alert('Incorrect Username');
+    if (usernameErrors.length > 0) {
+      showNotification(usernameErrors.join(', '), 'error');
+      return;
     }
-  }
 
-  // Mock data for demonstration. In a real app, this would come from the database.
-  if (currentProfile && !currentProfile.currentUnit) {
-    console.log('Assigning default unit to profile for demo.');
-    currentProfile.currentUnit = 'Unit 1: Introduction to Banking';
-  }
+    const pin = parseInt(PIN.value);
 
-  if (currentProfile) {
-    // Emit the identify event with the logged-in user's memberName
-    const userId = currentProfile.memberName;
-    console.log(`Emitting identify event for user: ${userId}`);
-    socket.emit('identify', userId);
+    if (!PIN.value || PIN.value.trim() === '') {
+      showNotification('PIN is required', 'error');
+      return;
+    }
 
-    // Call initial balance
-    initialBalance();
+    if (isNaN(pin) || pin < 1000 || pin > 9999) {
+      showNotification('PIN must be a 4-digit number', 'error');
+      return;
+    }
 
-    // Close the login modal
-    screen.close();
+    let foundUser = false;
+    let correctPin = false;
 
-    // Hide login section
-    const signOnSection = document.querySelector('.signOnSection');
-    signOnSection.style.display = 'none';
-
-    // Display welcome message
-    const signOnText = document.querySelector('.signOnText');
-    signOnText.textContent = currentProfile.memberName.split(' ')[0];
-
-    // Show the main app
-    const mainApp = document.querySelector('.mainApp');
-    mainApp.style.display = 'flex';
-    mainApp.style.opacity = 100;
-
-    // Update the UI
-    currentAccount = currentProfile.checkingAccount;
-    if (currentAccount) {
-      console.log('User logged in successfully:', currentAccount);
-      updateUI(currentAccount);
-      // Fetch and render lessons based on the student's teacher
-      if (currentProfile) {
-        renderLessons(currentProfile);
-      } else {
-        console.error('Student profile does not have a teacher assigned.');
-        // Optionally, display a message in the lesson block
-        const lessonHeader = document.querySelector('.lessonHeaderText');
-        const lessonContainer = document.querySelector('.lessonRow');
-        lessonHeader.textContent = 'Lessons';
-        lessonContainer.innerHTML =
-          '<p>No teacher assigned. Cannot load lessons.</p>';
+    for (let i = 0; i < profiles.length; i++) {
+      if (user.value === profiles[i].userName) {
+        foundUser = true;
+        if (pin === profiles[i].pin) {
+          correctPin = true;
+          currentProfile = profiles[i];
+          break;
+        }
       }
-
-      // Update the displayed time
-      updateTime();
-      balanceDate.textContent = `As of ${new Intl.DateTimeFormat(
-        currentProfile.locale,
-        options,
-      ).format(currentTime)}`;
-
-      // Initialize student messaging system
-      initializeStudentMessaging(currentProfile.memberName);
-    } else {
-      alert('No checking account found. Please contact customer service.');
     }
+
+    if (!foundUser) {
+      showNotification('Username not found', 'error');
+      return;
+    }
+
+    if (!correctPin) {
+      showNotification('Incorrect PIN', 'error');
+      return;
+    }
+
+    // Mock data for demonstration. In a real app, this would come from the database.
+    if (currentProfile && !currentProfile.currentUnit) {
+      console.log('Assigning default unit to profile for demo.');
+      currentProfile.currentUnit = 'Unit 1: Introduction to Banking';
+    }
+
+    if (currentProfile) {
+      showNotification(
+        `Welcome back, ${currentProfile.memberName.split(' ')[0]}!`,
+        'success',
+      );
+
+      // Emit the identify event with the logged-in user's memberName
+      const userId = currentProfile.memberName;
+      console.log(`Emitting identify event for user: ${userId}`);
+      socket.emit('identify', userId);
+
+      // Call initial balance
+      initialBalance();
+
+      // Close the login modal
+      screen.close();
+
+      // Hide login section
+      const signOnSection = document.querySelector('.signOnSection');
+      signOnSection.style.display = 'none';
+
+      // Display welcome message
+      const signOnText = document.querySelector('.signOnText');
+      signOnText.textContent = currentProfile.memberName.split(' ')[0];
+
+      // Show the main app
+      const mainApp = document.querySelector('.mainApp');
+      mainApp.style.display = 'flex';
+      mainApp.style.opacity = 100;
+
+      // Update the UI
+      currentAccount = currentProfile.checkingAccount;
+      if (currentAccount) {
+        console.log('User logged in successfully:', currentAccount);
+        updateUI(currentAccount);
+
+        // Initialize all module functions after successful login
+        // These functions will now have access to currentProfile
+        try {
+          // Call setup functions from other modules
+          if (window.incomeSpendingCalc) window.incomeSpendingCalc();
+          if (window.accountSetup) window.accountSetup();
+          if (window.initializeAccountSwitch) window.initializeAccountSwitch();
+          if (window.initializeDeposit) window.initializeDeposit();
+          if (window.initializeSendMoney) window.initializeSendMoney();
+        } catch (setupError) {
+          console.warn('Some module setup functions failed:', setupError);
+        }
+
+        // Fetch and render lessons based on the student's teacher
+        if (currentProfile) {
+          renderLessons(currentProfile);
+        } else {
+          console.error('Student profile does not have a teacher assigned.');
+          // Optionally, display a message in the lesson block
+          const lessonHeader = document.querySelector('.lessonHeaderText');
+          const lessonContainer = document.querySelector('.lessonRow');
+          lessonHeader.textContent = 'Lessons';
+          lessonContainer.innerHTML =
+            '<p>No teacher assigned. Cannot load lessons.</p>';
+        }
+
+        // Update the displayed time
+        updateTime();
+        balanceDate.textContent = `As of ${new Intl.DateTimeFormat(
+          currentProfile.locale,
+          options,
+        ).format(currentTime)}`;
+
+        // Initialize student messaging system
+        initializeStudentMessaging(currentProfile.memberName);
+      } else {
+        showNotification(
+          'No checking account found. Please contact customer service.',
+          'error',
+        );
+      }
+    }
+  } catch (error) {
+    console.error('Login error:', error);
+    showNotification(
+      'An error occurred during login. Please try again.',
+      'error',
+    );
   }
 };
 
@@ -1116,49 +1275,74 @@ const loginFunc = function (PIN, user, screen) {
 if (accBtnSwitch) {
   accBtnSwitch.addEventListener('click', function (e) {
     e.preventDefault();
-    console.log(currentAccount);
-    //The value for the account you want to switch too
-    let targetAccount = accNumSwitch.value;
-    accPIN = parseInt(accPinSwitch.value);
-    //Variable that matches the above with the matching account number
-    let accountToSwitch;
 
-    if (accPIN === currentProfile.pin) {
+    try {
+      console.log(currentAccount);
+
+      // Get form values
+      let targetAccount = accNumSwitch.value;
+      let pinInput = accPinSwitch.value;
+
+      // Validate inputs
+      if (!targetAccount || targetAccount === 'default') {
+        showNotification('Please select an account to switch to', 'error');
+        return;
+      }
+
+      if (!pinInput || pinInput.trim() === '') {
+        showNotification('PIN is required', 'error');
+        return;
+      }
+
+      let accPIN = parseInt(pinInput);
+
+      if (isNaN(accPIN) || accPIN < 1000 || accPIN > 9999) {
+        showNotification('PIN must be a 4-digit number', 'error');
+        return;
+      }
+
+      if (accPIN !== currentProfile.pin) {
+        showNotification('Incorrect PIN', 'error');
+        return;
+      }
+
+      // Switch accounts
       if (
         targetAccount === currentProfile.checkingAccount.accountNumber.slice(-4)
       ) {
         currentAccount = currentProfile.checkingAccount;
-        balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(
-          -4,
-        )}`;
+        balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(-4)}`;
         updateUI(currentAccount);
+        showNotification('Switched to Checking Account', 'success');
       } else if (
         targetAccount === currentProfile.savingsAccount.accountNumber.slice(-4)
       ) {
         currentAccount = currentProfile.savingsAccount;
-        balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(
-          -4,
-        )}`;
+        balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(-4)}`;
         updateUI(currentAccount);
+        showNotification('Switched to Savings Account', 'success');
+      } else {
+        showNotification('Invalid account selection', 'error');
+        return;
       }
-    } else {
-      alert('Incorrect PIN');
-    }
 
-    //Variable for the loan section
-    const loanBox = document.querySelector('.operation--loan');
-    //checks for savings accounr
+      // Handle loan section visibility
+      const loanBox = document.querySelector('.operation--loan');
+      if (loanBox) {
+        if (currentAccount.accountType === 'Savings') {
+          loanBox.style.display = 'none';
+        } else if (currentAccount.accountType === 'Checking') {
+          loanBox.style.display = 'inline';
+        }
+      }
 
-    if (currentAccount.accountType === 'Savings') {
-      loanBox.style.display = 'none';
+      // Clear form
+      accNumSwitch.value = '';
+      accPinSwitch.value = '';
+    } catch (error) {
+      console.error('Account switch error:', error);
+      showNotification('An error occurred while switching accounts', 'error');
     }
-    //takes away loans if savings
-    else if (currentAccount.accountType === 'Checking') {
-      loanBox.style.display = 'inline';
-    }
-
-    accNumSwitch.value = '';
-    accPinSwitch.value = '';
   });
 }
 
@@ -1216,7 +1400,22 @@ export const displayTransactions = function (currentAccount) {
     //Sets the date for each transaction according to the date set in the current Account object
 
     //Sets up the date variable for the transactions
-    date = new Date(currentAccount.movementsDates[i]);
+    // Check if movementsDates array exists and has the index, otherwise use current date
+    if (currentAccount.movementsDates && currentAccount.movementsDates[i]) {
+      date = new Date(currentAccount.movementsDates[i]);
+      // Check if the date is valid
+      if (isNaN(date.getTime())) {
+        // Only log if we have invalid date data, not missing data
+        console.warn(
+          'Invalid date found, using current date:',
+          currentAccount.movementsDates[i],
+        );
+        date = new Date();
+      }
+    } else {
+      // Use current date silently for missing dates - this is expected behavior
+      date = new Date();
+    }
 
     //displays date next to transactions
     const displayDate = formatMovementDate(date, currentAccount.locale);
