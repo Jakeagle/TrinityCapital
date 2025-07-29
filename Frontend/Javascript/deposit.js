@@ -2,6 +2,15 @@
 
 import { getInfoProfiles } from './script.js';
 import { currentProfile } from './script.js';
+import {
+  showNotification,
+  validateAmount,
+  validateText,
+  validateDate,
+  validateSignature,
+  setButtonLoading,
+  validateForm,
+} from './validation.js';
 
 console.log(currentProfile);
 
@@ -36,85 +45,186 @@ backBTN.click(function () {
 
 submit.click(function (e) {
   e.preventDefault();
-  checkAll();
+
+  const originalText = submit.text();
+  setButtonLoading(submit[0], true, originalText);
+
+  try {
+    validateAndProcessDeposit();
+  } finally {
+    setTimeout(() => {
+      setButtonLoading(submit[0], false, originalText);
+    }, 1500);
+  }
 });
 
-loginBTN.addEventListener('click', function () {
+// Expose function to global scope to be called after login
+window.initializeDeposit = initializeDeposit;
+
+function initializeDeposit() {
+  // Check if user is logged in
+  if (!currentProfile || !currentProfile.memberName) {
+    console.warn('User not logged in or member name not found');
+    return;
+  }
+
   console.log(currentProfile.memberName);
-});
+}
 
 /********************************************************Functions *****************************************/
 
-const checkAll = function () {
-  let dateComplete = false;
-  const userDate = new Date(date.val());
-  const currentDate = new Date();
-  let nameComplete = false;
-  let prfUser = name.val();
-  let userSig = signature.val();
-  let sigComplete = false;
-  let amountComplete = false;
-  let userAmount = amount.val();
-
-  console.log(userDate);
-  console.log(currentDate);
-
-  if (userDate > currentDate) {
-    alert('Cannot use a date in the future. Please Try Again');
-  } else if (userDate <= currentDate) {
-    dateComplete = true;
+/**
+ * Generate expected signature for current user
+ */
+function generateExpectedSignature() {
+  if (!currentProfile || !currentProfile.memberName) {
+    return '';
   }
 
-  if (prfUser !== currentProfile.memberName) {
-    alert('You must enter the name on your account');
-  } else if (prfUser === currentProfile.memberName) {
-    nameComplete = true;
-  }
-
-  currentProfile.sig = currentProfile.memberName
+  return currentProfile.memberName
     .toLowerCase()
     .split(' ')
     .map(name => name[0])
     .join('');
+}
 
-  console.log(currentProfile.sig);
+/**
+ * Validate and process deposit with comprehensive validation
+ */
+const validateAndProcessDeposit = function () {
+  const nameValue = name.val();
+  const amountValue = amount.val();
+  const dateValue = date.val();
+  const signatureValue = signature.val();
+  const destValue = dest.value;
 
-  if (userSig !== currentProfile.sig) {
-    alert(
-      'Your signature is the first and last initial of the name on your account. Initial must be lowercased'
-    );
-  } else if (userSig === currentProfile.sig) {
-    sigComplete = true;
-  }
-  if (userAmount > 1000000) {
-    alert('The Maximum deposit amount per day is $10000');
-  } else if (userAmount <= 1000000) {
-    amountComplete = true;
-  }
+  const expectedSignature = generateExpectedSignature();
 
-  if (nameComplete && sigComplete && dateComplete && amountComplete) {
-    loanAdd();
-  }
-};
-
-const loanAdd = function () {
-  console.log('Ran');
-
-  let userLoan = parseInt(amount.val());
-
-  let member = currentProfile.memberName;
-
-  sendDeposit(userLoan, dest.value, member);
-};
-
-export async function sendDeposit(loan, destination, member) {
-  const res = await fetch(depositLink, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
+  // Define validation rules
+  const validationRules = [
+    {
+      field: name[0],
+      value: nameValue,
+      validations: [
+        value =>
+          validateText(value, {
+            fieldName: 'Name',
+            allowNumbers: false,
+            allowSpecialChars: false,
+          }),
+        value => {
+          if (value && value.trim() !== currentProfile.memberName) {
+            return ['Name must match the account holder name'];
+          }
+          return [];
+        },
+      ],
+      fieldName: 'Name',
     },
-    body: JSON.stringify({
-      parcel: [loan, destination, member],
-    }),
-  });
+    {
+      field: amount[0],
+      value: amountValue,
+      validations: [
+        value =>
+          validateAmount(value, {
+            min: 0.01,
+            max: 10000,
+            fieldName: 'Deposit Amount',
+          }),
+      ],
+      fieldName: 'Amount',
+    },
+    {
+      field: date[0],
+      value: dateValue,
+      validations: [
+        value =>
+          validateDate(value, {
+            allowFuture: false,
+            fieldName: 'Date',
+            maxPastDays: 30,
+          }),
+      ],
+      fieldName: 'Date',
+    },
+    {
+      field: signature[0],
+      value: signatureValue,
+      validations: [
+        value => validateSignature(value, expectedSignature, 'Signature'),
+      ],
+      fieldName: 'Signature',
+    },
+  ];
+
+  // Validate destination account
+  if (!destValue || destValue === 'default') {
+    showNotification('Please select a destination account', 'error');
+    return;
+  }
+
+  // Run validation
+  const validation = validateForm(validationRules);
+
+  if (!validation.isValid) {
+    showNotification(validation.errors.join(', '), 'error');
+    return;
+  }
+
+  // If validation passes, process the deposit
+  processDeposit();
+};
+
+const processDeposit = function () {
+  console.log('Processing deposit...');
+
+  let userDeposit = parseFloat(amount.val());
+  let member = currentProfile.memberName;
+  let destination = dest.value;
+
+  sendDeposit(userDeposit, destination, member);
+};
+
+// Legacy function - keeping for backward compatibility but with validation
+const checkAll = function () {
+  validateAndProcessDeposit();
+};
+export async function sendDeposit(loan, destination, member) {
+  try {
+    showNotification('Processing deposit...', 'info');
+
+    const res = await fetch(depositLink, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        parcel: [loan, destination, member],
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Server error: ${res.status}`);
+    }
+
+    const result = await res.json();
+
+    showNotification(
+      `Deposit of $${loan.toFixed(2)} completed successfully!`,
+      'success',
+    );
+
+    // Clear form
+    name.val('');
+    amount.val('');
+    date.val('');
+    signature.val('');
+    dest.selectedIndex = 0;
+
+    return result;
+  } catch (error) {
+    console.error('Deposit failed:', error);
+    showNotification(`Deposit failed: ${error.message}`, 'error');
+    throw error;
+  }
 }
