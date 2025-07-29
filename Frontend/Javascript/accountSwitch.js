@@ -16,7 +16,20 @@ const testServerProfiles = 'https://tcstudentserver-production.up.railway.app/pr
 
 let btnNum = 0;
 
-loginButton.addEventListener('click', function () {
+// Expose function to global scope to be called after login
+window.initializeAccountSwitch = initializeAccountSwitch;
+
+function initializeAccountSwitch() {
+  // Check if user is logged in
+  if (
+    !currentProfile ||
+    !currentProfile.checkingAccount ||
+    !currentProfile.savingsAccount
+  ) {
+    console.warn('User not logged in or accounts not found');
+    return;
+  }
+
   let accounts = [];
 
   accounts.push(currentProfile.checkingAccount);
@@ -81,4 +94,4 @@ loginButton.addEventListener('click', function () {
     accountType.textContent = `${newProfile.savingsAccount.accountType} account`;
     console.log(Profiles);
   });
-});
+}
