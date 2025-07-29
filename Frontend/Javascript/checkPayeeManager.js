@@ -166,7 +166,7 @@ class CheckPayeeManager {
       }
 
       const response = await fetch(
-        `http://localhost:3000/getBillInfo/${currentProfile.memberName}`,
+        `https://tcstudentserver-production.up.railway.app/getBillInfo/${currentProfile.memberName}`,
       );
 
       if (!response.ok) {
@@ -215,7 +215,7 @@ class CheckPayeeManager {
       }
 
       const response = await fetch(
-        `http://localhost:3000/classmates/${currentProfile.memberName}`,
+        `https://tcstudentserver-production.up.railway.app/classmates/${currentProfile.memberName}`,
       );
 
       if (!response.ok) {
