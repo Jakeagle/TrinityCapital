@@ -46,15 +46,15 @@ function hideLoadingAndShowLogin() {
 
 const socket = io('https://tcstudentserver-production.up.railway.app');
 
-// if (
-//   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
-//     navigator.userAgent,
-//   )
-// ) {
-//   window.location.replace('https://trinitycapitalmobile.netlify.app');
-// } else {
-//   console.log('Were on MOBILE!');
-// }
+if (
+  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
+    navigator.userAgent,
+  )
+) {
+  window.location.replace('https://trinitycapitalmobile.netlify.app');
+} else {
+  console.log('Were on MOBILE!');
+}
 
 /********************************************Modal control*************************************/
 
@@ -906,7 +906,7 @@ const donationSavingsURL = 'https://tcstudentserver-production.up.railway.app/do
 
 const balanceURL = 'https://tcstudentserver-production.up.railway.app/initialBalance';
 
-
+const productivityURL = 'http://localhost:5040/timers';
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
@@ -1220,6 +1220,9 @@ const loginFunc = function (PIN, user, screen) {
         console.log('User logged in successfully:', currentAccount);
         updateUI(currentAccount);
 
+        // Update account number display on initial login
+        updateAccountNumberDisplay(currentAccount);
+
         // Initialize all module functions after successful login
         // These functions will now have access to currentProfile
         try {
@@ -1313,6 +1316,10 @@ if (accBtnSwitch) {
         currentAccount = currentProfile.checkingAccount;
         balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(-4)}`;
         updateUI(currentAccount);
+
+        // Update account number display when switching to checking
+        updateAccountNumberDisplay(currentAccount);
+
         showNotification('Switched to Checking Account', 'success');
       } else if (
         targetAccount === currentProfile.savingsAccount.accountNumber.slice(-4)
@@ -1320,6 +1327,10 @@ if (accBtnSwitch) {
         currentAccount = currentProfile.savingsAccount;
         balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(-4)}`;
         updateUI(currentAccount);
+
+        // Update account number display when switching to savings
+        updateAccountNumberDisplay(currentAccount);
+
         showNotification('Switched to Savings Account', 'success');
       } else {
         showNotification('Invalid account selection', 'error');
@@ -1651,6 +1662,42 @@ function formatCur(value, currency, locale) {
     style: 'currency',
     currency: currencyCode,
   }).format(value);
+}
+
+/**
+ * Format account number with dashes every 4 digits
+ * @param {string} accountNumber - The raw account number
+ * @returns {string} - Formatted account number with dashes
+ */
+export function formatAccountNumber(accountNumber) {
+  if (!accountNumber) return '';
+
+  // Convert to string and remove any existing formatting
+  const cleanNumber = accountNumber.toString().replace(/\D/g, '');
+
+  // Add dashes every 4 digits
+  return cleanNumber.replace(/(\d{4})(?=\d)/g, '$1-');
+}
+
+/**
+ * Update account number display in the balance section
+ * @param {Object} account - The account object with accountNumber property
+ */
+export function updateAccountNumberDisplay(account) {
+  if (!account || !account.accountNumber) return;
+
+  const accountNumberElement = document.querySelector('.accountNumber');
+  const accountTypeElement = document.querySelector('.accountType');
+
+  if (accountNumberElement) {
+    accountNumberElement.textContent = formatAccountNumber(
+      account.accountNumber,
+    );
+  }
+
+  if (accountTypeElement) {
+    accountTypeElement.textContent = `${account.accountType} Account`;
+  }
 }
 
 //Displays the current balance based on the transactions array
