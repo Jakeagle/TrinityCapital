@@ -2,18 +2,23 @@
 
 import { currentProfile } from './script.js';
 
-
+console.log(currentProfile, 'numberCrunch');
 
 const loginButton = document.querySelector('.login__btn');
 const incomeText = document.querySelector('.incomeAmount');
 const spendingText = document.querySelector('.spendingAmount');
 const budgetText = document.querySelector('.budget');
 
-loginButton.addEventListener('click', function () {
-  incomeSpendingCalc();
-  console.log(currentProfile);
-});
-const incomeSpendingCalc = function () {
+// Expose function to global scope to be called after login
+window.incomeSpendingCalc = incomeSpendingCalc;
+
+function incomeSpendingCalc() {
+  // Check if user is logged in
+  if (!currentProfile || !currentProfile.checkingAccount) {
+    console.warn('User not logged in or no checking account found');
+    return;
+  }
+
   let payArray = [];
   let billArray = [];
   let payInterval;
@@ -54,7 +59,7 @@ const incomeSpendingCalc = function () {
     billArray.push(billAmount);
   }
   incomeSpending('spending', billArray);
-};
+}
 
 const incomeSpending = function (type, arr) {
   let finalAmount;
