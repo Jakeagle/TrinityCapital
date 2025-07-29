@@ -7,6 +7,7 @@ import {
   displayTransactions,
   displayBillList,
   getInfoProfiles,
+  updateAccountNumberDisplay,
 } from './script.js';
 
 const loginButton = document.querySelector('.login__btn');
@@ -71,8 +72,9 @@ function initializeAccountSwitch() {
 
     updateUI(newProfile.checkingAccount);
 
-    accountNumber.textContent = newProfile.checkingAccount.accountNumber;
-    accountType.textContent = `${newProfile.checkingAccount.accountType} account`;
+    // Use the proper formatting function for account number display
+    updateAccountNumberDisplay(newProfile.checkingAccount);
+
     console.log(Profiles);
   });
 
@@ -90,8 +92,9 @@ function initializeAccountSwitch() {
 
     updateUI(newProfile.savingsAccount);
 
-    accountNumber.textContent = newProfile.savingsAccount.accountNumber;
-    accountType.textContent = `${newProfile.savingsAccount.accountType} account`;
+    // Use the proper formatting function for account number display
+    updateAccountNumberDisplay(newProfile.savingsAccount);
+
     console.log(Profiles);
   });
 }
