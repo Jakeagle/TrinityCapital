@@ -198,6 +198,9 @@ class VerseManager {
           .replace(/[\r\n]+/g, ' ')
           .trim();
 
+        // Extract only the first verse if multiple verses are returned
+        verseText = this.extractSingleVerse(verseText);
+
         this.currentVerse = {
           reference: verseRef,
           text: verseText,
@@ -216,6 +219,45 @@ class VerseManager {
       console.error('❌ Error fetching verse from Bible API:', error);
       this.useFallbackVerse();
     }
+  }
+
+  /**
+   * Extract only the first verse from a text that might contain multiple verses
+   */
+  extractSingleVerse(text) {
+    // Common patterns that indicate verse numbers or multiple verses
+    const versePatterns = [
+      /\d+\s/, // Numbers followed by space (verse numbers)
+      /\d+:\d+/, // Chapter:verse patterns
+      /\.\s*\d+/, // Period followed by number (next verse)
+    ];
+
+    // Split by common verse separators and take the first part
+    let singleVerse = text;
+
+    // Look for verse number patterns that indicate a new verse starting
+    const verseBreak = text.search(/\.\s*\d+\s/);
+    if (verseBreak > 0) {
+      singleVerse = text.substring(0, verseBreak + 1).trim();
+    }
+
+    // Also check for patterns like "2 For..." or "3 And..." that indicate new verses
+    const newVersePattern = /\.\s*\d+\s+[A-Z]/;
+    const newVerseMatch = text.match(newVersePattern);
+    if (newVerseMatch && newVerseMatch.index > 0) {
+      singleVerse = text.substring(0, newVerseMatch.index + 1).trim();
+    }
+
+    // Remove any leading verse numbers from the beginning
+    singleVerse = singleVerse.replace(/^\d+\s*/, '').trim();
+
+    // Ensure the verse ends with proper punctuation
+    if (!singleVerse.match(/[.!?]$/)) {
+      singleVerse += '.';
+    }
+
+    console.log('📝 Extracted single verse:', singleVerse);
+    return singleVerse;
   }
 
   /**
@@ -242,7 +284,7 @@ class VerseManager {
 
   /**
    * Get a random Bible verse reference
-   * Focus on verses related to wisdom, money, and faith
+   * Focus on single verses related to wisdom, money, and faith
    */
   getRandomVerseReference() {
     const verseReferences = [
@@ -257,15 +299,26 @@ class VerseManager {
       'Matthew 25:21',
       'Proverbs 27:23',
       'Luke 14:28',
-      'Philippians 4:11-13',
-      'Proverbs 3:9-10',
-      'Matthew 6:19-21',
+      'Philippians 4:13', // Changed from passage 4:11-13 to single verse
+      'Proverbs 3:9', // Changed from passage 3:9-10 to single verse
+      'Matthew 6:21', // Changed from passage 6:19-21 to single verse
       'James 1:17',
       'Deuteronomy 8:18',
       'Proverbs 16:3',
       'Colossians 3:23',
       'Proverbs 10:4',
-      'Matthew 25:14-30',
+      'Matthew 25:21', // Changed from passage 25:14-30 to single verse
+      // Additional single verses for variety
+      'Proverbs 21:5',
+      'Ecclesiastes 5:10',
+      'Luke 16:11',
+      'Proverbs 11:25',
+      'Matthew 6:26',
+      'Hebrews 13:5',
+      '1 Timothy 6:10',
+      'Proverbs 13:22',
+      'Luke 12:15',
+      'Ecclesiastes 7:12',
     ];
 
     const randomIndex = Math.floor(Math.random() * verseReferences.length);
@@ -389,6 +442,8 @@ class VerseManager {
    */
   async manualUpdate() {
     console.log('🔄 Manual verse update requested...');
+    // Clear stored date to force fresh fetch
+    localStorage.removeItem(this.LAST_UPDATE_KEY);
     await this.fetchNewVerse();
     this.displayVerse();
   }
