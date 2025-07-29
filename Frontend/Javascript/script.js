@@ -46,15 +46,15 @@ function hideLoadingAndShowLogin() {
 
 const socket = io('https://tcstudentserver-production.up.railway.app');
 
-if (
-  /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
-    navigator.userAgent,
-  )
-) {
-  window.location.replace('https://trinitycapitalmobile.netlify.app');
-} else {
-  console.log('Were on MOBILE!');
-}
+// if (
+//   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
+//     navigator.userAgent,
+//   )
+// ) {
+//   window.location.replace('https://trinitycapitalmobile.netlify.app');
+// } else {
+//   console.log('Were on MOBILE!');
+// }
 
 /********************************************Modal control*************************************/
 
