@@ -2415,7 +2415,7 @@ const sendLessonCompletionToServer = async function (completionResult) {
       completedConditions: positiveConditions,
     };
 
-    const response = await fetch('https://tcstudentserver-production.up.railway.app/lesson-completion', {
+    const response = await fetch('http://localhost:3000/lesson-completion', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
