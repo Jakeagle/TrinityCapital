@@ -1,6 +1,6 @@
 /****************Variables****************/
-const lessonHeader = document.querySelector('.lessonHeaderText');
-const lessonContainer = document.querySelector('.lessonRow');
+const lessonHeader = document.querySelector(".lessonHeaderText");
+const lessonContainer = document.querySelector(".lessonRow");
 
 /****************Lesson Creation****************/
 
@@ -14,33 +14,33 @@ const lessonContainer = document.querySelector('.lessonRow');
 const getIconForLesson = function (title) {
   const lowerCaseTitle = title.toLowerCase();
 
-  if (lowerCaseTitle.includes('test')) return 'fa-solid fa-screwdriver-wrench';
+  if (lowerCaseTitle.includes("test")) return "fa-solid fa-screwdriver-wrench";
 
-  if (lowerCaseTitle.includes('transfer'))
-    return 'fa-solid fa-money-bill-transfer';
-  if (lowerCaseTitle.includes('bill') || lowerCaseTitle.includes('paycheck'))
-    return 'fa-solid fa-file-invoice-dollar';
-  if (lowerCaseTitle.includes('deposit'))
-    return 'fa-solid fa-money-check-dollar';
-  if (lowerCaseTitle.includes('send')) return 'fa-solid fa-paper-plane';
-  if (lowerCaseTitle.includes('credit')) return 'fa-regular fa-credit-card';
-  if (lowerCaseTitle.includes('invest')) return 'fa-solid fa-chart-line';
+  if (lowerCaseTitle.includes("transfer"))
+    return "fa-solid fa-money-bill-transfer";
+  if (lowerCaseTitle.includes("bill") || lowerCaseTitle.includes("paycheck"))
+    return "fa-solid fa-file-invoice-dollar";
+  if (lowerCaseTitle.includes("deposit"))
+    return "fa-solid fa-money-check-dollar";
+  if (lowerCaseTitle.includes("send")) return "fa-solid fa-paper-plane";
+  if (lowerCaseTitle.includes("credit")) return "fa-regular fa-credit-card";
+  if (lowerCaseTitle.includes("invest")) return "fa-solid fa-chart-line";
   if (
-    lowerCaseTitle.includes('saving') ||
-    lowerCaseTitle.includes('retirement')
+    lowerCaseTitle.includes("saving") ||
+    lowerCaseTitle.includes("retirement")
   )
-    return 'fa-solid fa-piggy-bank';
-  if (lowerCaseTitle.includes('loan')) return 'fa-solid fa-hand-holding-dollar';
-  if (lowerCaseTitle.includes('budget')) return 'fa-solid fa-calculator';
-  if (lowerCaseTitle.includes('bank')) return 'fa-solid fa-building-columns';
+    return "fa-solid fa-piggy-bank";
+  if (lowerCaseTitle.includes("loan")) return "fa-solid fa-hand-holding-dollar";
+  if (lowerCaseTitle.includes("budget")) return "fa-solid fa-calculator";
+  if (lowerCaseTitle.includes("bank")) return "fa-solid fa-building-columns";
   if (
-    lowerCaseTitle.includes('tutorial') ||
-    lowerCaseTitle.includes('introduction')
+    lowerCaseTitle.includes("tutorial") ||
+    lowerCaseTitle.includes("introduction")
   )
-    return 'fa-solid fa-rocket';
+    return "fa-solid fa-rocket";
 
   // Default icon if no keywords match
-  return 'fa-solid fa-book';
+  return "fa-solid fa-book";
 };
 
 /****************Lesson Rendering****************/
@@ -48,10 +48,10 @@ const getIconForLesson = function (title) {
 // The main exported function that script.js will call
 export const renderLessons = function (studentProfile) {
   if (!studentProfile) {
-    console.error('Student profile is required to render lessons.');
-    lessonHeader.textContent = 'Lessons';
+    console.error("Student profile is required to render lessons.");
+    lessonHeader.textContent = "Lessons";
     lessonContainer.innerHTML =
-      '<p>Could not identify student to load lessons.</p>';
+      "<p>Could not identify student to load lessons.</p>";
     return;
   }
 
@@ -68,8 +68,8 @@ export const renderLessons = function (studentProfile) {
     const unitToRender = assignedUnits[0];
 
     // Set the header to the unit's name. Fallback if name is missing.
-    lessonHeader.textContent = unitToRender.name || 'Assigned Lessons';
-    lessonContainer.innerHTML = ''; // Clear the container once
+    lessonHeader.textContent = unitToRender.name || "Assigned Lessons";
+    lessonContainer.innerHTML = ""; // Clear the container once
 
     // Render lessons only from the first unit, if it has any.
     if (
@@ -88,21 +88,21 @@ export const renderLessons = function (studentProfile) {
               <h5 class="lessonName">${lesson.lesson_title}</h5>
             </div>
           `;
-        lessonContainer.insertAdjacentHTML('beforeend', lessonHtml);
+        lessonContainer.insertAdjacentHTML("beforeend", lessonHtml);
       });
 
       // Store lessons data globally for carousel access
       window.currentLessonsData = unitToRender.lessons;
     } else {
       // This handles if the first unit has no lessons.
-      lessonContainer.innerHTML = '<p>No lessons available in this unit.</p>';
+      lessonContainer.innerHTML = "<p>No lessons available in this unit.</p>";
     }
   } else {
     console.log(
-      `No assigned units found in profile for student '${studentProfile.memberName}'.`,
+      `No assigned units found in profile for student '${studentProfile.memberName}'.`
     );
-    lessonHeader.textContent = 'Lessons';
-    lessonContainer.innerHTML = '<p>No lessons assigned yet.</p>';
+    lessonHeader.textContent = "Lessons";
+    lessonContainer.innerHTML = "<p>No lessons assigned yet.</p>";
   }
 };
 
@@ -124,7 +124,7 @@ let carouselState = {
  */
 window.openLessonCarousel = function (lessonIndex) {
   if (!window.currentLessonsData || !window.currentLessonsData[lessonIndex]) {
-    console.error('Lesson data not found for index:', lessonIndex);
+    console.error("Lesson data not found for index:", lessonIndex);
     return;
   }
 
@@ -159,37 +159,37 @@ const parseLessonContent = function (lesson) {
     lesson.text ||
     lesson.description ||
     lesson.lesson_content ||
-    '';
+    "";
 
   if (!contentText) {
     // If no content found, create a default slide with the lesson title
     slides.push({
-      type: 'header-only',
-      content: lesson.lesson_title || 'Lesson Content',
+      type: "header-only",
+      content: lesson.lesson_title || "Lesson Content",
       isHeader: true,
     });
     return slides;
   }
 
   // Split content by common delimiters (new lines, etc.)
-  const lines = contentText.split(/\n+/).filter(line => line.trim() !== '');
+  const lines = contentText.split(/\n+/).filter((line) => line.trim() !== "");
 
   // Identify headers and text blocks
-  const contentBlocks = lines.map(line => {
+  const contentBlocks = lines.map((line) => {
     const trimmed = line.trim();
 
     // Identify headers - could be markdown-style (#), all caps, or other patterns
     const isHeader =
-      trimmed.startsWith('#') ||
+      trimmed.startsWith("#") ||
       trimmed.match(/^[A-Z\s]{3,}:?\s*$/) ||
-      trimmed.endsWith(':') ||
+      trimmed.endsWith(":") ||
       trimmed.match(/^\d+\.\s*[A-Z]/) ||
       (trimmed.length < 50 &&
         trimmed === trimmed.toUpperCase() &&
         trimmed.length > 5);
 
     return {
-      content: trimmed.replace(/^#+\s*/, ''), // Remove markdown headers
+      content: trimmed.replace(/^#+\s*/, ""), // Remove markdown headers
       isHeader: isHeader,
     };
   });
@@ -206,7 +206,7 @@ const parseLessonContent = function (lesson) {
       if (next && !next.isHeader) {
         // Rule 1: Header followed by text - combine them
         currentSlide = {
-          type: 'header-with-text',
+          type: "header-with-text",
           header: current.content,
           text: next.content,
         };
@@ -215,7 +215,7 @@ const parseLessonContent = function (lesson) {
       } else {
         // Rule 3: Header preceded by another header or standalone header
         slides.push({
-          type: 'header-only',
+          type: "header-only",
           content: current.content,
           isHeader: true,
         });
@@ -225,7 +225,7 @@ const parseLessonContent = function (lesson) {
       if (previous && !previous.isHeader) {
         // Rule 2: Text preceded by text - show without header
         slides.push({
-          type: 'text-only',
+          type: "text-only",
           content: current.content,
           isHeader: false,
         });
@@ -237,7 +237,7 @@ const parseLessonContent = function (lesson) {
   // If no slides were created, create a default slide
   if (slides.length === 0) {
     slides.push({
-      type: 'text-only',
+      type: "text-only",
       content: contentText,
       isHeader: false,
     });
@@ -251,19 +251,21 @@ const parseLessonContent = function (lesson) {
  */
 const createCarouselDialog = function () {
   // Remove existing dialog if present
-  const existingDialog = document.getElementById('lessonCarouselDialog');
+  const existingDialog = document.getElementById("lessonCarouselDialog");
   if (existingDialog) {
     existingDialog.remove();
   }
 
-  const dialog = document.createElement('dialog');
-  dialog.id = 'lessonCarouselDialog';
-  dialog.className = 'lesson-carousel-dialog';
+  const dialog = document.createElement("dialog");
+  dialog.id = "lessonCarouselDialog";
+  dialog.className = "lesson-carousel-dialog";
 
   dialog.innerHTML = `
     <div class="carousel-container">
       <div class="carousel-header">
-        <h2 class="lesson-title">${carouselState.lessonData.lesson_title || 'Lesson'}</h2>
+        <h2 class="lesson-title">${
+          carouselState.lessonData.lesson_title || "Lesson"
+        }</h2>
         <button class="close-btn" onclick="closeLessonCarousel()">
           <i class="fa-solid fa-times"></i>
         </button>
@@ -303,7 +305,7 @@ const createCarouselDialog = function () {
   `;
 
   // Add carousel styles
-  const style = document.createElement('style');
+  const style = document.createElement("style");
   style.textContent = `
     .lesson-carousel-dialog {
       width: 90%;
@@ -486,43 +488,47 @@ const createCarouselDialog = function () {
  * Show the current slide content
  */
 const showCurrentSlide = function () {
-  const slideContent = document.getElementById('carouselSlideContent');
-  const slideCounter = document.getElementById('slideCounter');
-  const prevBtn = document.getElementById('prevSlideBtn');
-  const nextBtn = document.getElementById('nextSlideBtn');
+  const slideContent = document.getElementById("carouselSlideContent");
+  const slideCounter = document.getElementById("slideCounter");
+  const prevBtn = document.getElementById("prevSlideBtn");
+  const nextBtn = document.getElementById("nextSlideBtn");
 
   if (!slideContent || carouselState.slides.length === 0) return;
 
   const currentSlide = carouselState.slides[carouselState.currentSlideIndex];
-  let contentHtml = '';
+  let contentHtml = "";
 
   switch (currentSlide.type) {
-    case 'header-with-text':
+    case "header-with-text":
       contentHtml = `
         <div class="slide-header">${currentSlide.header}</div>
         <div class="slide-text">${currentSlide.text}</div>
       `;
       break;
-    case 'header-only':
+    case "header-only":
       contentHtml = `
         <div class="slide-header-only">${currentSlide.content}</div>
       `;
       break;
-    case 'text-only':
+    case "text-only":
       contentHtml = `
         <div class="slide-text-only">${currentSlide.content}</div>
       `;
       break;
     default:
       contentHtml = `
-        <div class="slide-text-only">${currentSlide.content || 'No content available'}</div>
+        <div class="slide-text-only">${
+          currentSlide.content || "No content available"
+        }</div>
       `;
   }
 
   slideContent.innerHTML = contentHtml;
 
   // Update navigation
-  slideCounter.textContent = `${carouselState.currentSlideIndex + 1} / ${carouselState.slides.length}`;
+  slideCounter.textContent = `${carouselState.currentSlideIndex + 1} / ${
+    carouselState.slides.length
+  }`;
   prevBtn.disabled = carouselState.currentSlideIndex === 0;
   nextBtn.disabled =
     carouselState.currentSlideIndex === carouselState.slides.length - 1;
@@ -552,7 +558,7 @@ window.nextSlide = function () {
  * Close the lesson carousel dialog
  */
 window.closeLessonCarousel = function () {
-  const dialog = document.getElementById('lessonCarouselDialog');
+  const dialog = document.getElementById("lessonCarouselDialog");
   if (dialog) {
     dialog.close();
     dialog.remove();
@@ -580,7 +586,7 @@ window.closeLessonCarousel = function () {
 export const initializeLessonWithRequirements = function (
   lessonId,
   lessonTitle,
-  requiredConditions = [],
+  requiredConditions = []
 ) {
   lessonTracker.initializeLesson(lessonId, lessonTitle, requiredConditions);
 
@@ -599,7 +605,7 @@ export const initializeLessonWithRequirements = function (
  */
 export const recordLessonAction = function (actionType, details = {}) {
   if (!lessonTracker.currentLesson) {
-    console.log('No active lesson to record action for:', actionType);
+    console.log("No active lesson to record action for:", actionType);
     return null;
   }
 
@@ -639,11 +645,11 @@ export const recordLessonMistake = function (actionType, details = {}) {
  */
 const showLessonStartedNotification = function (
   lessonTitle,
-  requiredConditions,
+  requiredConditions
 ) {
   // Create a subtle notification that doesn't interrupt the user
-  const notification = document.createElement('div');
-  notification.className = 'lesson-start-notification';
+  const notification = document.createElement("div");
+  notification.className = "lesson-start-notification";
   notification.innerHTML = `
     <div class="notification-content">
       <div class="notification-header">
@@ -673,9 +679,9 @@ const showLessonStartedNotification = function (
   `;
 
   // Add animation styles if not already present
-  if (!document.getElementById('lessonNotificationStyles')) {
-    const style = document.createElement('style');
-    style.id = 'lessonNotificationStyles';
+  if (!document.getElementById("lessonNotificationStyles")) {
+    const style = document.createElement("style");
+    style.id = "lessonNotificationStyles";
     style.textContent = `
       @keyframes slideInFromRight {
         from {
@@ -720,7 +726,7 @@ const showLessonStartedNotification = function (
 
   // Auto-remove after 4 seconds
   setTimeout(() => {
-    notification.style.animation = 'slideOutToRight 0.5s ease-in';
+    notification.style.animation = "slideOutToRight 0.5s ease-in";
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
@@ -737,8 +743,8 @@ const showLessonProgressUpdate = function (progress) {
   // Only show progress updates occasionally to avoid spam
   if (progress.conditionsMet % 2 !== 0 && progress.conditionsMet > 1) return;
 
-  const notification = document.createElement('div');
-  notification.className = 'lesson-progress-notification';
+  const notification = document.createElement("div");
+  notification.className = "lesson-progress-notification";
   notification.innerHTML = `
     <div class="progress-content">
       <div class="progress-header">
@@ -802,9 +808,9 @@ const showLessonProgressUpdate = function (progress) {
   `;
 
   // Add styles if not present
-  if (!document.getElementById('progressNotificationStyles')) {
-    const style = document.createElement('style');
-    style.id = 'progressNotificationStyles';
+  if (!document.getElementById("progressNotificationStyles")) {
+    const style = document.createElement("style");
+    style.id = "progressNotificationStyles";
     style.textContent = progressStyle;
     document.head.appendChild(style);
   }
@@ -813,7 +819,7 @@ const showLessonProgressUpdate = function (progress) {
 
   // Auto-remove after 3 seconds
   setTimeout(() => {
-    notification.style.animation = 'slideOutToRight 0.3s ease-in';
+    notification.style.animation = "slideOutToRight 0.3s ease-in";
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
@@ -830,15 +836,15 @@ window.completeLessonFromCarousel = function () {
   if (!lessonTracker.currentLesson) {
     lessonTracker.initializeLesson(
       carouselState.currentLessonIndex,
-      carouselState.lessonData.lesson_title,
+      carouselState.lessonData.lesson_title
     );
   }
 
   // Record that the lesson was viewed completely
-  lessonTracker.recordPositiveCondition('lesson_content_viewed', {
+  lessonTracker.recordPositiveCondition("lesson_content_viewed", {
     slidesViewed: carouselState.slides.length, // All slides viewed
     totalSlides: carouselState.slides.length,
-    completionMethod: 'manual',
+    completionMethod: "manual",
   });
 
   // Determine if this is a slider-only lesson (no app requirements, no quiz)
@@ -853,14 +859,14 @@ window.completeLessonFromCarousel = function () {
   if (isSliderOnly) {
     baseScore = 100;
     message = `Perfect! You completed "${carouselState.lessonData.lesson_title}" by viewing all content!`;
-    console.log('Slider-only lesson completed - awarding 100%');
+    console.log("Slider-only lesson completed - awarding 100%");
   }
 
   // Complete the lesson manually
   completeLesson({
     message: message,
     baseScore: baseScore,
-    completionType: 'manual',
+    completionType: "manual",
   });
 
   // Close the carousel
@@ -877,12 +883,12 @@ export const testLessonActions = {
   // Test a single action and see its impact
   testSingleAction: function (actionType, details = {}, isPositive = true) {
     if (!lessonTracker.currentLesson) {
-      lessonTracker.initializeLesson('quick_test', 'Quick Test Lesson', []);
+      lessonTracker.initializeLesson("quick_test", "Quick Test Lesson", []);
     }
 
     const scoreBefore = lessonTracker.appUsageScore;
     console.log(
-      `\n🧪 Testing ${actionType} (${isPositive ? 'positive' : 'negative'})`,
+      `\n🧪 Testing ${actionType} (${isPositive ? "positive" : "negative"})`
     );
     console.log(`Score before: ${scoreBefore}`);
 
@@ -895,7 +901,7 @@ export const testLessonActions = {
     const scoreAfter = lessonTracker.appUsageScore;
     const change = scoreAfter - scoreBefore;
     console.log(
-      `Score after: ${scoreAfter} (change: ${change > 0 ? '+' : ''}${change})`,
+      `Score after: ${scoreAfter} (change: ${change > 0 ? "+" : ""}${change})`
     );
 
     return { before: scoreBefore, after: scoreAfter, change: change };
@@ -904,19 +910,19 @@ export const testLessonActions = {
   // Test excellent student actions
   testExcellentPath: function () {
     lessonTracker.initializeLesson(
-      'test_excellent',
-      'Excellent Student Test',
-      [],
+      "test_excellent",
+      "Excellent Student Test",
+      []
     );
-    console.log('\n🌟 Testing Excellent Student Path');
+    console.log("\n🌟 Testing Excellent Student Path");
 
-    this.testSingleAction('lesson_content_viewed', {
+    this.testSingleAction("lesson_content_viewed", {
       slidesViewed: 10,
       totalSlides: 10,
     });
-    this.testSingleAction('deposit_made', { amount: 1000, successful: true });
-    this.testSingleAction('efficiency_bonus', { timeSeconds: 30 });
-    this.testSingleAction('creative_solution', { approach: 'automation' });
+    this.testSingleAction("deposit_made", { amount: 1000, successful: true });
+    this.testSingleAction("efficiency_bonus", { timeSeconds: 30 });
+    this.testSingleAction("creative_solution", { approach: "automation" });
 
     return lessonTracker.getLessonProgress();
   },
@@ -924,66 +930,68 @@ export const testLessonActions = {
   // Test struggling student actions
   testStrugglingPath: function () {
     lessonTracker.initializeLesson(
-      'test_struggling',
-      'Struggling Student Test',
-      [],
+      "test_struggling",
+      "Struggling Student Test",
+      []
     );
-    console.log('\n😰 Testing Struggling Student Path');
+    console.log("\n😰 Testing Struggling Student Path");
 
-    this.testSingleAction('lesson_content_viewed', {
+    this.testSingleAction("lesson_content_viewed", {
       slidesViewed: 2,
       totalSlides: 10,
     });
-    this.testSingleAction('financial_mistake', { severity: 'critical' }, false);
-    this.testSingleAction('incorrect_answer', { attemptNumber: 3 }, false);
+    this.testSingleAction("financial_mistake", { severity: "critical" }, false);
+    this.testSingleAction("incorrect_answer", { attemptNumber: 3 }, false);
     this.testSingleAction(
-      'timeout_occurred',
+      "timeout_occurred",
       { progressPercentage: 20 },
-      false,
+      false
     );
-    this.testSingleAction('multiple_attempts_failed', { attempts: 4 }, false);
+    this.testSingleAction("multiple_attempts_failed", { attempts: 4 }, false);
 
     return lessonTracker.getLessonProgress();
   },
 
   // Test mixed performance
   testMixedPath: function () {
-    lessonTracker.initializeLesson('test_mixed', 'Mixed Performance Test', []);
-    console.log('\n🎭 Testing Mixed Performance Path');
+    lessonTracker.initializeLesson("test_mixed", "Mixed Performance Test", []);
+    console.log("\n🎭 Testing Mixed Performance Path");
 
-    this.testSingleAction('lesson_content_viewed', {
+    this.testSingleAction("lesson_content_viewed", {
       slidesViewed: 6,
       totalSlides: 10,
     });
-    this.testSingleAction('deposit_made', { amount: 100 });
-    this.testSingleAction('incorrect_answer', { attemptNumber: 1 }, false);
-    this.testSingleAction('help_used', { helpType: 'tutorial' });
-    this.testSingleAction('transfer_completed', { transferType: 'internal' });
-    this.testSingleAction('financial_mistake', { severity: 'minor' }, false);
+    this.testSingleAction("deposit_made", { amount: 100 });
+    this.testSingleAction("incorrect_answer", { attemptNumber: 1 }, false);
+    this.testSingleAction("help_used", { helpType: "tutorial" });
+    this.testSingleAction("transfer_completed", { transferType: "internal" });
+    this.testSingleAction("financial_mistake", { severity: "minor" }, false);
 
     return lessonTracker.getLessonProgress();
   },
 
   // Test different lesson scenarios
   testDifferentScenarios: function () {
-    console.log('\n🎯 Testing Different Lesson Scenarios');
+    console.log("\n🎯 Testing Different Lesson Scenarios");
 
     const scenarios = [
-      { title: 'Intro to Banking Tutorial', id: 1 },
-      { title: 'Advanced Investment Mastery', id: 2 },
-      { title: 'Practical Budget Application', id: 3 },
-      { title: 'Basic Savings Lesson', id: 4 },
-      { title: 'Expert Financial Planning', id: 5 },
+      { title: "Intro to Banking Tutorial", id: 1 },
+      { title: "Advanced Investment Mastery", id: 2 },
+      { title: "Practical Budget Application", id: 3 },
+      { title: "Basic Savings Lesson", id: 4 },
+      { title: "Expert Financial Planning", id: 5 },
     ];
 
-    scenarios.forEach(lesson => {
+    scenarios.forEach((lesson) => {
       lessonTracker.initializeLesson(lesson.id, lesson.title, []);
       console.log(`\nLesson: ${lesson.title}`);
       console.log(`Scenario: ${lessonTracker.currentLesson.scenario.name}`);
       console.log(`Starting score: ${lessonTracker.appUsageScore}`);
       console.log(`Difficulty: ${lessonTracker.difficultyLevel}`);
       console.log(
-        `Multipliers: +${lessonTracker.scoreMultipliers.positive.toFixed(2)}, -${lessonTracker.scoreMultipliers.negative.toFixed(2)}`,
+        `Multipliers: +${lessonTracker.scoreMultipliers.positive.toFixed(
+          2
+        )}, -${lessonTracker.scoreMultipliers.negative.toFixed(2)}`
       );
     });
   },
@@ -991,18 +999,18 @@ export const testLessonActions = {
   // Complete current test lesson
   completeCurrentTest: function () {
     if (!lessonTracker.currentLesson) {
-      console.log('No active lesson to complete');
+      console.log("No active lesson to complete");
       return null;
     }
 
     const result = completeLesson({
-      message: 'Test lesson completed',
-      completionType: 'test',
+      message: "Test lesson completed",
+      completionType: "test",
     });
 
-    console.log('\n✅ Test Lesson Completed');
+    console.log("\n✅ Test Lesson Completed");
     console.log(
-      `Final Score: ${result.score.finalScore}% (${result.score.grade})`,
+      `Final Score: ${result.score.finalScore}% (${result.score.grade})`
     );
 
     return result;
@@ -1021,10 +1029,10 @@ export const testLessonActions = {
  * @returns {Object} Validation result with scores for each SMART criteria
  */
 export const validateSMARTGoal = function (goal) {
-  if (!goal || typeof goal !== 'object') {
+  if (!goal || typeof goal !== "object") {
     return {
       isValid: false,
-      error: 'Goal object is required',
+      error: "Goal object is required",
       scores: {
         specific: 0,
         measurable: 0,
@@ -1045,7 +1053,7 @@ export const validateSMARTGoal = function (goal) {
 
   const totalScore = Object.values(validation).reduce(
     (sum, score) => sum + score,
-    0,
+    0
   );
   const averageScore = totalScore / 5;
 
@@ -1063,30 +1071,30 @@ export const validateSMARTGoal = function (goal) {
  */
 const validateSpecific = function (goal) {
   let score = 0;
-  const title = goal.title || '';
-  const description = goal.description || '';
-  const combined = (title + ' ' + description).toLowerCase();
+  const title = goal.title || "";
+  const description = goal.description || "";
+  const combined = (title + " " + description).toLowerCase();
 
   // Check for specific action words
   const actionWords = [
-    'save',
-    'pay',
-    'invest',
-    'reduce',
-    'increase',
-    'build',
-    'create',
-    'establish',
+    "save",
+    "pay",
+    "invest",
+    "reduce",
+    "increase",
+    "build",
+    "create",
+    "establish",
   ];
-  if (actionWords.some(word => combined.includes(word))) score += 0.3;
+  if (actionWords.some((word) => combined.includes(word))) score += 0.3;
 
   // Check for specific amounts or percentages
   if (goal.amount && goal.amount > 0) score += 0.3;
   if (combined.match(/\d+%|\d+\s*(percent|percentage)/)) score += 0.2;
 
   // Check for specific purpose or reason
-  const purposeWords = ['for', 'to', 'because', 'so that', 'in order to'];
-  if (purposeWords.some(word => combined.includes(word))) score += 0.2;
+  const purposeWords = ["for", "to", "because", "so that", "in order to"];
+  if (purposeWords.some((word) => combined.includes(word))) score += 0.2;
 
   return Math.min(score, 1.0);
 };
@@ -1096,9 +1104,9 @@ const validateSpecific = function (goal) {
  */
 const validateMeasurable = function (goal) {
   let score = 0;
-  const title = goal.title || '';
-  const description = goal.description || '';
-  const combined = (title + ' ' + description).toLowerCase();
+  const title = goal.title || "";
+  const description = goal.description || "";
+  const combined = (title + " " + description).toLowerCase();
 
   // Check for numeric values
   if (goal.amount && goal.amount > 0) score += 0.4;
@@ -1117,14 +1125,10 @@ const validateAchievable = function (goal) {
   // Check if amount seems reasonable for a student
   if (goal.amount) {
     if (goal.amount <= 0) score = 0;
-    else if (goal.amount <= 50)
-      score = 1.0; // Very achievable
-    else if (goal.amount <= 500)
-      score = 0.8; // Achievable
-    else if (goal.amount <= 2000)
-      score = 0.6; // Challenging but achievable
-    else if (goal.amount <= 10000)
-      score = 0.4; // Very challenging
+    else if (goal.amount <= 50) score = 1.0; // Very achievable
+    else if (goal.amount <= 500) score = 0.8; // Achievable
+    else if (goal.amount <= 2000) score = 0.6; // Challenging but achievable
+    else if (goal.amount <= 10000) score = 0.4; // Very challenging
     else score = 0.2; // Potentially unrealistic
   }
 
@@ -1136,42 +1140,42 @@ const validateAchievable = function (goal) {
  */
 const validateRelevant = function (goal) {
   let score = 0;
-  const title = goal.title || '';
-  const description = goal.description || '';
-  const combined = (title + ' ' + description).toLowerCase();
+  const title = goal.title || "";
+  const description = goal.description || "";
+  const combined = (title + " " + description).toLowerCase();
 
   // Financial keywords that indicate relevance
   const financialKeywords = [
-    'save',
-    'saving',
-    'savings',
-    'money',
-    'dollar',
-    'budget',
-    'budgeting',
-    'invest',
-    'investment',
-    'debt',
-    'loan',
-    'credit',
-    'bank',
-    'account',
-    'emergency',
-    'fund',
-    'retirement',
-    'income',
-    'expense',
-    'spending',
-    'financial',
-    'finance',
-    'economy',
-    'economic',
-    'purchase',
-    'buy',
+    "save",
+    "saving",
+    "savings",
+    "money",
+    "dollar",
+    "budget",
+    "budgeting",
+    "invest",
+    "investment",
+    "debt",
+    "loan",
+    "credit",
+    "bank",
+    "account",
+    "emergency",
+    "fund",
+    "retirement",
+    "income",
+    "expense",
+    "spending",
+    "financial",
+    "finance",
+    "economy",
+    "economic",
+    "purchase",
+    "buy",
   ];
 
-  const keywordMatches = financialKeywords.filter(keyword =>
-    combined.includes(keyword),
+  const keywordMatches = financialKeywords.filter((keyword) =>
+    combined.includes(keyword)
   );
   score = Math.min(keywordMatches.length * 0.2, 1.0);
 
@@ -1183,9 +1187,9 @@ const validateRelevant = function (goal) {
  */
 const validateTimebound = function (goal) {
   let score = 0;
-  const title = goal.title || '';
-  const description = goal.description || '';
-  const combined = (title + ' ' + description).toLowerCase();
+  const title = goal.title || "";
+  const description = goal.description || "";
+  const combined = (title + " " + description).toLowerCase();
 
   // Check for deadline
   if (goal.deadline && goal.deadline instanceof Date) {
@@ -1193,39 +1197,38 @@ const validateTimebound = function (goal) {
     const timeDiff = goal.deadline.getTime() - now.getTime();
     const daysDiff = timeDiff / (1000 * 3600 * 24);
 
-    if (daysDiff > 0 && daysDiff <= 365)
-      score += 0.5; // Reasonable timeframe
+    if (daysDiff > 0 && daysDiff <= 365) score += 0.5; // Reasonable timeframe
     else if (daysDiff > 365) score += 0.3; // Long-term but still bounded
   }
 
   // Check for time expressions in text
   const timeWords = [
-    'by',
-    'within',
-    'before',
-    'after',
-    'during',
-    'week',
-    'month',
-    'year',
-    'day',
-    'semester',
-    'quarter',
-    'january',
-    'february',
-    'march',
-    'april',
-    'may',
-    'june',
-    'july',
-    'august',
-    'september',
-    'october',
-    'november',
-    'december',
+    "by",
+    "within",
+    "before",
+    "after",
+    "during",
+    "week",
+    "month",
+    "year",
+    "day",
+    "semester",
+    "quarter",
+    "january",
+    "february",
+    "march",
+    "april",
+    "may",
+    "june",
+    "july",
+    "august",
+    "september",
+    "october",
+    "november",
+    "december",
   ];
 
-  if (timeWords.some(word => combined.includes(word))) score += 0.5;
+  if (timeWords.some((word) => combined.includes(word))) score += 0.5;
 
   return Math.min(score, 1.0);
 };
@@ -1238,32 +1241,32 @@ const generateSMARTFeedback = function (scores) {
 
   if (scores.specific < 0.7) {
     feedback.push(
-      'Make your goal more specific by clearly stating what you want to accomplish and why.',
+      "Make your goal more specific by clearly stating what you want to accomplish and why."
     );
   }
   if (scores.measurable < 0.7) {
     feedback.push(
-      'Add a specific amount or percentage to make your goal measurable.',
+      "Add a specific amount or percentage to make your goal measurable."
     );
   }
   if (scores.achievable < 0.7) {
     feedback.push(
-      'Consider if this goal is realistic given your current situation and resources.',
+      "Consider if this goal is realistic given your current situation and resources."
     );
   }
   if (scores.relevant < 0.7) {
     feedback.push(
-      'Ensure your goal is relevant to your financial well-being and learning objectives.',
+      "Ensure your goal is relevant to your financial well-being and learning objectives."
     );
   }
   if (scores.timebound < 0.7) {
     feedback.push(
-      'Set a specific deadline or timeframe for achieving your goal.',
+      "Set a specific deadline or timeframe for achieving your goal."
     );
   }
 
   if (feedback.length === 0) {
-    feedback.push('Great job! Your goal meets all SMART criteria.');
+    feedback.push("Great job! Your goal meets all SMART criteria.");
   }
 
   return feedback;
@@ -1278,8 +1281,8 @@ const generateSMARTRecommendations = function (scores) {
   if (scores.specific < 0.7) {
     recommendations.specific = [
       "Use action words like 'save', 'pay off', or 'invest'",
-      'Specify the exact purpose of your goal',
-      'Include details about what exactly you want to achieve',
+      "Specify the exact purpose of your goal",
+      "Include details about what exactly you want to achieve",
     ];
   }
 
@@ -1287,23 +1290,23 @@ const generateSMARTRecommendations = function (scores) {
     recommendations.measurable = [
       "Add a specific dollar amount (e.g., '$500')",
       "Include a percentage (e.g., '10% of income')",
-      'Define what success looks like in numbers',
+      "Define what success looks like in numbers",
     ];
   }
 
   if (scores.achievable < 0.7) {
     recommendations.achievable = [
-      'Consider your current income and expenses',
-      'Break large goals into smaller, manageable steps',
-      'Start with smaller amounts and increase over time',
+      "Consider your current income and expenses",
+      "Break large goals into smaller, manageable steps",
+      "Start with smaller amounts and increase over time",
     ];
   }
 
   if (scores.relevant < 0.7) {
     recommendations.relevant = [
-      'Connect your goal to your financial future',
-      'Explain how this goal will improve your financial situation',
-      'Consider if this goal aligns with your values and priorities',
+      "Connect your goal to your financial future",
+      "Explain how this goal will improve your financial situation",
+      "Consider if this goal aligns with your values and priorities",
     ];
   }
 
@@ -1311,7 +1314,7 @@ const generateSMARTRecommendations = function (scores) {
     recommendations.timebound = [
       "Set a specific date (e.g., 'by December 31st')",
       "Use time periods (e.g., 'within 6 months')",
-      'Create milestones with intermediate deadlines',
+      "Create milestones with intermediate deadlines",
     ];
   }
 
@@ -1326,17 +1329,17 @@ export const checkSMARTCriteria = function (goal, criteria) {
   const validation = validateSMARTGoal(goal);
 
   switch (criteria) {
-    case 'specific':
+    case "specific":
       return validation.scores.specific >= 0.7;
-    case 'measurable':
+    case "measurable":
       return validation.scores.measurable >= 0.7;
-    case 'achievable':
+    case "achievable":
       return validation.scores.achievable >= 0.7;
-    case 'relevant':
+    case "relevant":
       return validation.scores.relevant >= 0.7;
-    case 'timebound':
+    case "timebound":
       return validation.scores.timebound >= 0.7;
-    case 'all_criteria':
+    case "all_criteria":
       return validation.isValid;
     default:
       return false;
@@ -1352,148 +1355,148 @@ export const checkSMARTCriteria = function (goal, criteria) {
 export const generateTestScenarios = function () {
   return {
     excellent_student: {
-      name: 'Excellent Student Path',
-      description: 'Perfect execution with exploration and efficiency',
+      name: "Excellent Student Path",
+      description: "Perfect execution with exploration and efficiency",
       actions: [
         {
-          type: 'lesson_content_viewed',
+          type: "lesson_content_viewed",
           details: { slidesViewed: 10, totalSlides: 10 },
         },
-        { type: 'deposit_made', details: { amount: 500, successful: true } },
+        { type: "deposit_made", details: { amount: 500, successful: true } },
         {
-          type: 'transfer_completed',
-          details: { transferType: 'external', successful: true },
+          type: "transfer_completed",
+          details: { transferType: "external", successful: true },
         },
         {
-          type: 'budget_created',
+          type: "budget_created",
           details: {
             categories: [
-              'housing',
-              'food',
-              'transport',
-              'savings',
-              'entertainment',
+              "housing",
+              "food",
+              "transport",
+              "savings",
+              "entertainment",
             ],
             successful: true,
           },
         },
-        { type: 'goal_set', details: { smartScore: 0.9, successful: true } },
+        { type: "goal_set", details: { smartScore: 0.9, successful: true } },
         {
-          type: 'efficiency_bonus',
+          type: "efficiency_bonus",
           details: { timeSeconds: 45, featuresUsed: 5 },
         },
-        { type: 'exploration_bonus', details: { featuresExplored: 4 } },
+        { type: "exploration_bonus", details: { featuresExplored: 4 } },
       ],
     },
 
     struggling_student: {
-      name: 'Struggling Student Path',
-      description: 'Multiple mistakes and failed attempts',
+      name: "Struggling Student Path",
+      description: "Multiple mistakes and failed attempts",
       actions: [
         {
-          type: 'lesson_content_viewed',
+          type: "lesson_content_viewed",
           details: { slidesViewed: 3, totalSlides: 10 },
         },
         {
-          type: 'financial_mistake',
-          details: { severity: 'critical', type: 'overdraft' },
+          type: "financial_mistake",
+          details: { severity: "critical", type: "overdraft" },
         },
-        { type: 'incorrect_answer', details: { attemptNumber: 3 } },
-        { type: 'deposit_made', details: { amount: 5, successful: false } },
-        { type: 'help_used', details: { helpType: 'hint', successful: false } },
-        { type: 'timeout_occurred', details: { progressPercentage: 25 } },
-        { type: 'multiple_attempts_failed', details: { attempts: 4 } },
+        { type: "incorrect_answer", details: { attemptNumber: 3 } },
+        { type: "deposit_made", details: { amount: 5, successful: false } },
+        { type: "help_used", details: { helpType: "hint", successful: false } },
+        { type: "timeout_occurred", details: { progressPercentage: 25 } },
+        { type: "multiple_attempts_failed", details: { attempts: 4 } },
         {
-          type: 'budget_created',
-          details: { categories: ['other'], successful: false },
+          type: "budget_created",
+          details: { categories: ["other"], successful: false },
         },
       ],
     },
 
     average_student: {
-      name: 'Average Student Path',
-      description: 'Mix of successes and minor mistakes',
+      name: "Average Student Path",
+      description: "Mix of successes and minor mistakes",
       actions: [
         {
-          type: 'lesson_content_viewed',
+          type: "lesson_content_viewed",
           details: { slidesViewed: 7, totalSlides: 10 },
         },
-        { type: 'deposit_made', details: { amount: 100, successful: true } },
-        { type: 'incorrect_answer', details: { attemptNumber: 1 } },
+        { type: "deposit_made", details: { amount: 100, successful: true } },
+        { type: "incorrect_answer", details: { attemptNumber: 1 } },
         {
-          type: 'transfer_completed',
-          details: { transferType: 'internal', successful: true },
+          type: "transfer_completed",
+          details: { transferType: "internal", successful: true },
         },
         {
-          type: 'help_used',
-          details: { helpType: 'tutorial', successful: true },
+          type: "help_used",
+          details: { helpType: "tutorial", successful: true },
         },
-        { type: 'goal_set', details: { smartScore: 0.6, successful: true } },
+        { type: "goal_set", details: { smartScore: 0.6, successful: true } },
         {
-          type: 'account_checked',
-          details: { accountType: 'checking', successful: true },
+          type: "account_checked",
+          details: { accountType: "checking", successful: true },
         },
       ],
     },
 
     explorer_student: {
-      name: 'Explorer Student Path',
-      description: 'Tries many features but makes some mistakes',
+      name: "Explorer Student Path",
+      description: "Tries many features but makes some mistakes",
       actions: [
         {
-          type: 'lesson_content_viewed',
+          type: "lesson_content_viewed",
           details: { slidesViewed: 5, totalSlides: 10 },
         },
-        { type: 'exploration_bonus', details: { featuresExplored: 6 } },
-        { type: 'deposit_made', details: { amount: 250, successful: true } },
+        { type: "exploration_bonus", details: { featuresExplored: 6 } },
+        { type: "deposit_made", details: { amount: 250, successful: true } },
         {
-          type: 'investment_made',
-          details: { riskLevel: 'high_risk', successful: false },
+          type: "investment_made",
+          details: { riskLevel: "high_risk", successful: false },
         },
         {
-          type: 'transfer_completed',
-          details: { transferType: 'external', successful: true },
+          type: "transfer_completed",
+          details: { transferType: "external", successful: true },
         },
         {
-          type: 'financial_mistake',
-          details: { severity: 'minor', type: 'small_fee' },
+          type: "financial_mistake",
+          details: { severity: "minor", type: "small_fee" },
         },
         {
-          type: 'bill_paid',
-          details: { billType: 'credit_card', onTime: true, successful: true },
+          type: "bill_paid",
+          details: { billType: "credit_card", onTime: true, successful: true },
         },
         {
-          type: 'creative_solution',
-          details: { approach: 'automated_savings', successful: true },
+          type: "creative_solution",
+          details: { approach: "automated_savings", successful: true },
         },
       ],
     },
 
     efficient_student: {
-      name: 'Efficient Student Path',
-      description: 'Fast completion with good results',
+      name: "Efficient Student Path",
+      description: "Fast completion with good results",
       actions: [
         {
-          type: 'lesson_content_viewed',
+          type: "lesson_content_viewed",
           details: { slidesViewed: 8, totalSlides: 10 },
         },
         {
-          type: 'efficiency_bonus',
+          type: "efficiency_bonus",
           details: { timeSeconds: 30, featuresUsed: 3 },
         },
-        { type: 'deposit_made', details: { amount: 1000, successful: true } },
+        { type: "deposit_made", details: { amount: 1000, successful: true } },
         {
-          type: 'efficiency_bonus',
+          type: "efficiency_bonus",
           details: { timeSeconds: 45, featuresUsed: 2 },
         },
         {
-          type: 'budget_created',
+          type: "budget_created",
           details: {
-            categories: ['housing', 'food', 'savings'],
+            categories: ["housing", "food", "savings"],
             successful: true,
           },
         },
-        { type: 'goal_set', details: { smartScore: 0.8, successful: true } },
+        { type: "goal_set", details: { smartScore: 0.8, successful: true } },
       ],
     },
   };
@@ -1507,13 +1510,13 @@ export const generateTestScenarios = function () {
  */
 export const runTestScenario = function (
   scenarioName,
-  lessonTitle = 'Test Lesson',
+  lessonTitle = "Test Lesson"
 ) {
   const scenarios = generateTestScenarios();
   const scenario = scenarios[scenarioName];
 
   if (!scenario) {
-    console.error('Unknown test scenario:', scenarioName);
+    console.error("Unknown test scenario:", scenarioName);
     return null;
   }
 
@@ -1523,7 +1526,7 @@ export const runTestScenario = function (
   console.log(`\n=== Running Test Scenario: ${scenario.name} ===`);
   console.log(`Description: ${scenario.description}`);
   console.log(
-    `Starting with scenario: ${lessonTracker.currentLesson.scenario.name}`,
+    `Starting with scenario: ${lessonTracker.currentLesson.scenario.name}`
   );
   console.log(`Base app score: ${lessonTracker.appUsageScore}`);
 
@@ -1534,10 +1537,12 @@ export const runTestScenario = function (
     // Check if lesson is already completed
     if (
       lessonTracker.currentLesson &&
-      lessonTracker.currentLesson.status === 'completed'
+      lessonTracker.currentLesson.status === "completed"
     ) {
       console.log(
-        `\nAction ${index + 1}: ${action.type} (skipped - lesson already completed)`,
+        `\nAction ${index + 1}: ${
+          action.type
+        } (skipped - lesson already completed)`
       );
       return;
     }
@@ -1553,9 +1558,9 @@ export const runTestScenario = function (
   // Check if lesson was auto-completed during actions
   if (
     !lessonTracker.currentLesson ||
-    lessonTracker.currentLesson.status === 'completed'
+    lessonTracker.currentLesson.status === "completed"
   ) {
-    console.log('Lesson was auto-completed during scenario execution');
+    console.log("Lesson was auto-completed during scenario execution");
     // Create a mock completion result for display purposes
     completionResult = {
       score: {
@@ -1574,14 +1579,14 @@ export const runTestScenario = function (
     // Complete the lesson manually if it wasn't auto-completed
     completionResult = completeLesson({
       message: `Test completed using ${scenario.name} approach`,
-      completionType: 'test',
+      completionType: "test",
       autoCompleted: false,
     });
   }
 
   // Ensure completionResult is not null before accessing its properties
   if (!completionResult) {
-    console.error('Failed to get completion result');
+    console.error("Failed to get completion result");
     return null;
   }
 
@@ -1589,16 +1594,16 @@ export const runTestScenario = function (
   console.log(`Final Score: ${completionResult.score.finalScore}%`);
   console.log(`Letter Grade: ${completionResult.score.grade}`);
   console.log(
-    `Content Score: ${completionResult.score.breakdown.contentScore}/30`,
+    `Content Score: ${completionResult.score.breakdown.contentScore}/30`
   );
   console.log(
-    `App Usage Score: ${completionResult.score.breakdown.appUsageScore}/70`,
+    `App Usage Score: ${completionResult.score.breakdown.appUsageScore}/70`
   );
   console.log(
-    `Positive Conditions: ${completionResult.score.breakdown.positiveConditions}`,
+    `Positive Conditions: ${completionResult.score.breakdown.positiveConditions}`
   );
   console.log(
-    `Negative Conditions: ${completionResult.score.breakdown.negativeConditions}`,
+    `Negative Conditions: ${completionResult.score.breakdown.negativeConditions}`
   );
 
   return completionResult;
@@ -1610,23 +1615,23 @@ export const runTestScenario = function (
  * @returns {Object} Comparison of all test results
  */
 export const runAllTestScenarios = function (
-  lessonTitle = 'Comprehensive Test Lesson',
+  lessonTitle = "Comprehensive Test Lesson"
 ) {
   const scenarios = generateTestScenarios();
   const results = {};
 
-  console.log('\n🧪 === RUNNING ALL TEST SCENARIOS ===');
+  console.log("\n🧪 === RUNNING ALL TEST SCENARIOS ===");
 
-  Object.keys(scenarios).forEach(scenarioName => {
+  Object.keys(scenarios).forEach((scenarioName) => {
     results[scenarioName] = runTestScenario(scenarioName, lessonTitle);
   });
 
   // Summary comparison
-  console.log('\n📊 === TEST SCENARIO COMPARISON ===');
-  Object.keys(results).forEach(scenarioName => {
+  console.log("\n📊 === TEST SCENARIO COMPARISON ===");
+  Object.keys(results).forEach((scenarioName) => {
     const result = results[scenarioName];
     console.log(
-      `${scenarioName}: ${result.score.finalScore}% (${result.score.grade}) - ${result.message}`,
+      `${scenarioName}: ${result.score.finalScore}% (${result.score.grade}) - ${result.message}`
     );
   });
 
@@ -1656,9 +1661,9 @@ export const lessonTracker = {
     const lessonScenario = this.determineLessonScenario(lessonTitle, lessonId);
 
     this.currentLesson = {
-      id: lessonId,
+      id: String(lessonId),
       title: lessonTitle,
-      status: 'in-progress',
+      status: "in-progress",
       scenario: lessonScenario,
     };
     this.positiveConditionsMet = [];
@@ -1677,8 +1682,8 @@ export const lessonTracker = {
     this.difficultyLevel = lessonScenario.difficulty;
 
     console.log(`Lesson tracking initialized for: ${lessonTitle}`);
-    console.log('Lesson scenario:', lessonScenario);
-    console.log('Required conditions for auto-completion:', requiredConditions);
+    console.log("Lesson scenario:", lessonScenario);
+    console.log("Required conditions for auto-completion:", requiredConditions);
   },
 
   // Determine lesson scenario for varied testing outcomes
@@ -1688,39 +1693,39 @@ export const lessonTracker = {
     // Create different scenarios based on lesson content and randomization
     const scenarios = {
       beginner_friendly: {
-        name: 'Beginner Friendly',
+        name: "Beginner Friendly",
         baseAppScore: 75, // Higher starting score
-        difficulty: 'easy',
+        difficulty: "easy",
         multipliers: { positive: 1.2, negative: 0.8 }, // More forgiving
-        description: 'Extra support for new learners',
+        description: "Extra support for new learners",
       },
       standard_challenge: {
-        name: 'Standard Challenge',
+        name: "Standard Challenge",
         baseAppScore: 70, // Normal starting score
-        difficulty: 'medium',
+        difficulty: "medium",
         multipliers: { positive: 1.0, negative: 1.0 }, // Balanced
-        description: 'Balanced learning experience',
+        description: "Balanced learning experience",
       },
       advanced_mastery: {
-        name: 'Advanced Mastery',
+        name: "Advanced Mastery",
         baseAppScore: 65, // Lower starting score
-        difficulty: 'hard',
+        difficulty: "hard",
         multipliers: { positive: 0.8, negative: 1.3 }, // More demanding
-        description: 'Higher expectations for mastery',
+        description: "Higher expectations for mastery",
       },
       practical_application: {
-        name: 'Practical Application',
+        name: "Practical Application",
         baseAppScore: 60, // Focus on demonstrating skills
-        difficulty: 'hard',
+        difficulty: "hard",
         multipliers: { positive: 1.5, negative: 1.5 }, // High stakes
-        description: 'Emphasis on real-world application',
+        description: "Emphasis on real-world application",
       },
       exploratory_learning: {
-        name: 'Exploratory Learning',
+        name: "Exploratory Learning",
         baseAppScore: 80, // Encourage experimentation
-        difficulty: 'easy',
+        difficulty: "easy",
         multipliers: { positive: 1.0, negative: 0.5 }, // Very forgiving
-        description: 'Safe space to explore and learn',
+        description: "Safe space to explore and learn",
       },
     };
 
@@ -1728,31 +1733,31 @@ export const lessonTracker = {
     let selectedScenario;
 
     if (
-      titleLower.includes('intro') ||
-      titleLower.includes('basic') ||
-      titleLower.includes('tutorial')
+      titleLower.includes("intro") ||
+      titleLower.includes("basic") ||
+      titleLower.includes("tutorial")
     ) {
       selectedScenario =
-        Math.random() < 0.7 ? 'beginner_friendly' : 'exploratory_learning';
+        Math.random() < 0.7 ? "beginner_friendly" : "exploratory_learning";
     } else if (
-      titleLower.includes('advanced') ||
-      titleLower.includes('mastery') ||
-      titleLower.includes('expert')
+      titleLower.includes("advanced") ||
+      titleLower.includes("mastery") ||
+      titleLower.includes("expert")
     ) {
       selectedScenario =
-        Math.random() < 0.8 ? 'advanced_mastery' : 'practical_application';
+        Math.random() < 0.8 ? "advanced_mastery" : "practical_application";
     } else if (
-      titleLower.includes('practice') ||
-      titleLower.includes('application') ||
-      titleLower.includes('real')
+      titleLower.includes("practice") ||
+      titleLower.includes("application") ||
+      titleLower.includes("real")
     ) {
-      selectedScenario = 'practical_application';
+      selectedScenario = "practical_application";
     } else {
       // For other lessons, add some randomization based on lesson ID
       const scenarioKeys = Object.keys(scenarios);
       let randomFactor;
 
-      if (typeof lessonId === 'string') {
+      if (typeof lessonId === "string") {
         // Use string hash for test scenarios
         let hash = 0;
         for (let i = 0; i < lessonId.length; i++) {
@@ -1767,7 +1772,7 @@ export const lessonTracker = {
     }
 
     console.log(
-      `Lesson: "${lessonTitle}" -> Selected scenario: "${selectedScenario}"`,
+      `Lesson: "${lessonTitle}" -> Selected scenario: "${selectedScenario}"`
     );
 
     const scenario = scenarios[selectedScenario];
@@ -1775,9 +1780,9 @@ export const lessonTracker = {
     // Safety check: if scenario is undefined, default to standard_challenge
     if (!scenario) {
       console.warn(
-        `Unknown scenario: ${selectedScenario}, defaulting to standard_challenge`,
+        `Unknown scenario: ${selectedScenario}, defaulting to standard_challenge`
       );
-      const fallbackScenario = scenarios['standard_challenge'];
+      const fallbackScenario = scenarios["standard_challenge"];
       // Create a copy to avoid modifying the original
       return {
         ...fallbackScenario,
@@ -1845,13 +1850,13 @@ export const lessonTracker = {
     // Get scenario multipliers for varied scoring
     const positiveMultiplier = this.scoreMultipliers?.positive || 1.0;
     const negativeMultiplier = this.scoreMultipliers?.negative || 1.0;
-    const difficulty = this.difficultyLevel || 'medium';
+    const difficulty = this.difficultyLevel || "medium";
 
     // Base score changes (before multipliers)
     let baseScoreChange = 0;
 
     switch (conditionType) {
-      case 'lesson_content_viewed':
+      case "lesson_content_viewed":
         // Award points for viewing lesson content (only positive)
         if (isPositive) {
           const viewingScore =
@@ -1862,7 +1867,7 @@ export const lessonTracker = {
         }
         break;
 
-      case 'deposit_made':
+      case "deposit_made":
         baseScoreChange = isPositive ? 10 : -15;
         // Vary based on difficulty and amount
         if (details.amount) {
@@ -1873,18 +1878,18 @@ export const lessonTracker = {
         }
         break;
 
-      case 'transfer_completed':
+      case "transfer_completed":
         baseScoreChange = isPositive ? 8 : -12;
         // Bonus for complex transfers
-        if (details.transferType === 'external' || details.recurring) {
+        if (details.transferType === "external" || details.recurring) {
           baseScoreChange *= 1.2;
         }
         break;
 
-      case 'bill_paid':
+      case "bill_paid":
         baseScoreChange = isPositive ? 12 : -18;
         // Vary based on bill type and timing
-        if (details.billType === 'credit_card' || details.billType === 'loan') {
+        if (details.billType === "credit_card" || details.billType === "loan") {
           baseScoreChange *= 1.2; // More important bills
         }
         if (details.onTime === false && isPositive === false) {
@@ -1892,17 +1897,17 @@ export const lessonTracker = {
         }
         break;
 
-      case 'investment_made':
+      case "investment_made":
         baseScoreChange = isPositive ? 15 : -22;
         // Reward thoughtful investment choices
-        if (details.riskLevel === 'balanced' || details.diversified) {
+        if (details.riskLevel === "balanced" || details.diversified) {
           baseScoreChange *= 1.3;
-        } else if (details.riskLevel === 'high_risk') {
+        } else if (details.riskLevel === "high_risk") {
           baseScoreChange *= 0.8; // Slight penalty for risky choices without analysis
         }
         break;
 
-      case 'budget_created':
+      case "budget_created":
         baseScoreChange = isPositive ? 10 : -15;
         // Reward comprehensive budgets
         if (details.categories && details.categories.length >= 5) {
@@ -1912,7 +1917,7 @@ export const lessonTracker = {
         }
         break;
 
-      case 'goal_set':
+      case "goal_set":
         baseScoreChange = isPositive ? 8 : -12;
         // Use SMART goal validation if available
         if (details.smartScore) {
@@ -1920,22 +1925,22 @@ export const lessonTracker = {
         }
         break;
 
-      case 'account_checked':
+      case "account_checked":
         baseScoreChange = isPositive ? 3 : -5;
         // Bonus for checking multiple accounts or frequently
-        if (details.accountType === 'all_accounts') {
+        if (details.accountType === "all_accounts") {
           baseScoreChange *= 1.5;
         }
         break;
 
-      case 'financial_mistake':
+      case "financial_mistake":
         // Always negative, scale by severity and scenario
         baseScoreChange = -15;
-        if (details.severity === 'critical') baseScoreChange *= 1.8;
-        else if (details.severity === 'minor') baseScoreChange *= 0.6;
+        if (details.severity === "critical") baseScoreChange *= 1.8;
+        else if (details.severity === "minor") baseScoreChange *= 0.6;
         break;
 
-      case 'incorrect_answer':
+      case "incorrect_answer":
         baseScoreChange = -8;
         // Scale by attempt number
         if (details.attemptNumber) {
@@ -1943,14 +1948,14 @@ export const lessonTracker = {
         }
         break;
 
-      case 'help_used':
+      case "help_used":
         baseScoreChange = isPositive ? 2 : -3;
         // Different types of help have different impacts
-        if (details.helpType === 'hint') baseScoreChange *= 0.5;
-        else if (details.helpType === 'tutorial') baseScoreChange *= 1.2;
+        if (details.helpType === "hint") baseScoreChange *= 0.5;
+        else if (details.helpType === "tutorial") baseScoreChange *= 1.2;
         break;
 
-      case 'timeout_occurred':
+      case "timeout_occurred":
         baseScoreChange = -10;
         // Scale by how close they were to completion
         if (details.progressPercentage) {
@@ -1960,7 +1965,7 @@ export const lessonTracker = {
         }
         break;
 
-      case 'multiple_attempts_failed':
+      case "multiple_attempts_failed":
         baseScoreChange = -12;
         // Scale by number of attempts
         if (details.attempts) {
@@ -1968,7 +1973,7 @@ export const lessonTracker = {
         }
         break;
 
-      case 'efficiency_bonus':
+      case "efficiency_bonus":
         // New condition for completing tasks quickly and correctly
         baseScoreChange = isPositive ? 8 : 0;
         if (details.timeSeconds && details.timeSeconds < 60) {
@@ -1976,7 +1981,7 @@ export const lessonTracker = {
         }
         break;
 
-      case 'exploration_bonus':
+      case "exploration_bonus":
         // New condition for trying different features
         baseScoreChange = isPositive ? 5 : 0;
         if (details.featuresExplored && details.featuresExplored > 3) {
@@ -1984,7 +1989,7 @@ export const lessonTracker = {
         }
         break;
 
-      case 'creative_solution':
+      case "creative_solution":
         // New condition for innovative approaches
         baseScoreChange = isPositive ? 12 : 0;
         break;
@@ -2002,11 +2007,11 @@ export const lessonTracker = {
     }
 
     // Apply difficulty scaling
-    if (difficulty === 'easy') {
+    if (difficulty === "easy") {
       baseScoreChange = isPositive
         ? baseScoreChange * 1.1
         : baseScoreChange * 0.8;
-    } else if (difficulty === 'hard') {
+    } else if (difficulty === "hard") {
       baseScoreChange = isPositive
         ? baseScoreChange * 0.9
         : baseScoreChange * 1.2;
@@ -2020,13 +2025,15 @@ export const lessonTracker = {
 
     // Log the scoring for debugging
     console.log(
-      `Score change for ${conditionType}: ${baseScoreChange.toFixed(1)} (${isPositive ? 'positive' : 'negative'}). New app score: ${this.appUsageScore}`,
+      `Score change for ${conditionType}: ${baseScoreChange.toFixed(1)} (${
+        isPositive ? "positive" : "negative"
+      }). New app score: ${this.appUsageScore}`
     );
   },
 
   // Check if all required conditions are met for auto-completion
   checkAutoCompletion: function () {
-    if (!this.currentLesson || this.currentLesson.status === 'completed')
+    if (!this.currentLesson || this.currentLesson.status === "completed")
       return;
 
     // If no required conditions specified, use default completion logic
@@ -2037,14 +2044,14 @@ export const lessonTracker = {
 
     // Check if all required conditions are met
     const metConditionTypes = this.positiveConditionsMet.map(
-      record => record.type,
+      (record) => record.type
     );
-    const allRequiredMet = this.requiredConditions.every(required =>
-      metConditionTypes.includes(required),
+    const allRequiredMet = this.requiredConditions.every((required) =>
+      metConditionTypes.includes(required)
     );
 
     if (allRequiredMet) {
-      console.log('All required conditions met! Auto-completing lesson...');
+      console.log("All required conditions met! Auto-completing lesson...");
       this.autoCompleteLesson();
     }
   },
@@ -2052,11 +2059,12 @@ export const lessonTracker = {
   // Default auto-completion logic when no specific conditions are set
   checkDefaultAutoCompletion: function () {
     const metConditionTypes = this.positiveConditionsMet.map(
-      record => record.type,
+      (record) => record.type
     );
 
     // Check if this is a test scenario (lesson ID starts with 'test_')
-    const isTestScenario = this.currentLesson.id.startsWith('test_');
+    const lessonId = String(this.currentLesson.id);
+    const isTestScenario = lessonId.startsWith("test_");
 
     // Auto-complete if student has:
     // 1. Viewed lesson content AND performed at least 2 app actions (3 for test scenarios)
@@ -2064,17 +2072,17 @@ export const lessonTracker = {
     // 2. Performed at least 3 significant app actions (4 for test scenarios)
 
     const hasViewedContent = metConditionTypes.includes(
-      'lesson_content_viewed',
+      "lesson_content_viewed"
     );
-    const appActionTypes = metConditionTypes.filter(type =>
+    const appActionTypes = metConditionTypes.filter((type) =>
       [
-        'deposit_made',
-        'transfer_completed',
-        'bill_paid',
-        'investment_made',
-        'budget_created',
-        'goal_set',
-      ].includes(type),
+        "deposit_made",
+        "transfer_completed",
+        "bill_paid",
+        "investment_made",
+        "budget_created",
+        "goal_set",
+      ].includes(type)
     );
 
     const significantActions = appActionTypes.length;
@@ -2088,7 +2096,7 @@ export const lessonTracker = {
       significantActions >= requiredWithoutContent
     ) {
       console.log(
-        'Default auto-completion conditions met! Completing lesson...',
+        "Default auto-completion conditions met! Completing lesson..."
       );
       this.autoCompleteLesson();
     }
@@ -2096,7 +2104,7 @@ export const lessonTracker = {
 
   // Automatically complete the lesson
   autoCompleteLesson: function () {
-    if (!this.currentLesson || this.currentLesson.status === 'completed')
+    if (!this.currentLesson || this.currentLesson.status === "completed")
       return;
 
     // Calculate combined score
@@ -2105,19 +2113,19 @@ export const lessonTracker = {
     // Special case: If lesson is completed primarily through content viewing
     // and no significant app actions were required, award full points
     const hasSignificantAppActions = this.positiveConditionsMet.some(
-      condition =>
+      (condition) =>
         [
-          'deposit_made',
-          'transfer_completed',
-          'bill_paid',
-          'investment_made',
-          'budget_created',
-          'goal_set',
-        ].includes(condition.type),
+          "deposit_made",
+          "transfer_completed",
+          "bill_paid",
+          "investment_made",
+          "budget_created",
+          "goal_set",
+        ].includes(condition.type)
     );
 
     const hasViewedContent = this.positiveConditionsMet.some(
-      condition => condition.type === 'lesson_content_viewed',
+      (condition) => condition.type === "lesson_content_viewed"
     );
 
     // If this is a content-only lesson (slider-only, no quiz), award 100
@@ -2127,7 +2135,7 @@ export const lessonTracker = {
       this.requiredConditions.length === 0
     ) {
       totalScore = 100;
-      console.log('Content-only lesson detected - awarding full score (100)');
+      console.log("Content-only lesson detected - awarding full score (100)");
     }
 
     // Determine appropriate completion message based on performance
@@ -2145,7 +2153,7 @@ export const lessonTracker = {
     completeLesson({
       message: completionMessage,
       baseScore: totalScore,
-      completionType: 'automatic',
+      completionType: "automatic",
       autoCompleted: true,
     });
   },
@@ -2159,7 +2167,7 @@ export const lessonTracker = {
   },
 
   // Add a quiz score to the lesson
-  addQuizScore: function (score, maxScore = 100, quizName = 'Quiz') {
+  addQuizScore: function (score, maxScore = 100, quizName = "Quiz") {
     if (!this.currentLesson) return;
 
     const quizRecord = {
@@ -2172,7 +2180,9 @@ export const lessonTracker = {
 
     this.quizScores.push(quizRecord);
     console.log(
-      `Quiz score added: ${score}/${maxScore} (${quizRecord.percentage.toFixed(1)}%)`,
+      `Quiz score added: ${score}/${maxScore} (${quizRecord.percentage.toFixed(
+        1
+      )}%)`
     );
 
     // Check for auto-completion after quiz
@@ -2184,21 +2194,22 @@ export const lessonTracker = {
     if (!this.currentLesson) return null;
 
     const metConditionTypes = this.positiveConditionsMet.map(
-      record => record.type,
+      (record) => record.type
     );
     const requiredMet =
       this.requiredConditions.length > 0
-        ? this.requiredConditions.filter(req => metConditionTypes.includes(req))
-            .length
-        : metConditionTypes.filter(type =>
+        ? this.requiredConditions.filter((req) =>
+            metConditionTypes.includes(req)
+          ).length
+        : metConditionTypes.filter((type) =>
             [
-              'deposit_made',
-              'transfer_completed',
-              'bill_paid',
-              'investment_made',
-              'budget_created',
-              'goal_set',
-            ].includes(type),
+              "deposit_made",
+              "transfer_completed",
+              "bill_paid",
+              "investment_made",
+              "budget_created",
+              "goal_set",
+            ].includes(type)
           ).length;
 
     const requiredTotal =
@@ -2213,7 +2224,7 @@ export const lessonTracker = {
       conditionsMet: requiredMet,
       conditionsRequired: requiredTotal,
       metConditions: this.positiveConditionsMet,
-      isComplete: this.currentLesson.status === 'completed',
+      isComplete: this.currentLesson.status === "completed",
     };
   },
 };
@@ -2232,7 +2243,7 @@ export const lessonTracker = {
  */
 export const completeLesson = function (completionConfig = {}) {
   if (!lessonTracker.currentLesson) {
-    console.error('No active lesson to complete');
+    console.error("No active lesson to complete");
     return null;
   }
 
@@ -2240,14 +2251,14 @@ export const completeLesson = function (completionConfig = {}) {
   const config = {
     message:
       completionConfig.message ||
-      'Congratulations! You have completed this lesson.',
+      "Congratulations! You have completed this lesson.",
     baseScore:
       completionConfig.baseScore || lessonTracker.calculateCombinedScore(),
     positiveBonus: completionConfig.positiveBonus || 3,
     negativePenalty: completionConfig.negativePenalty || 2,
     quizWeight: completionConfig.quizWeight || 20,
     autoCompleted: completionConfig.autoCompleted || false,
-    completionType: completionConfig.completionType || 'manual',
+    completionType: completionConfig.completionType || "manual",
   };
 
   // Calculate score components with new system
@@ -2255,7 +2266,7 @@ export const completeLesson = function (completionConfig = {}) {
 
   // Mark lesson as completed
   lessonTracker.endTime = new Date();
-  lessonTracker.currentLesson.status = 'completed';
+  lessonTracker.currentLesson.status = "completed";
 
   const completionResult = {
     lesson: lessonTracker.currentLesson,
@@ -2286,7 +2297,7 @@ export const completeLesson = function (completionConfig = {}) {
   // Reset tracker for next lesson
   resetLessonTracker();
 
-  console.log('Lesson completed:', completionResult);
+  console.log("Lesson completed:", completionResult);
   return completionResult;
 };
 
@@ -2317,7 +2328,7 @@ const calculateLessonScore = function (config) {
   if (lessonTracker.quizScores.length > 0) {
     const totalQuizScore = lessonTracker.quizScores.reduce(
       (sum, quiz) => sum + quiz.percentage,
-      0,
+      0
     );
     averageQuizScore = totalQuizScore / lessonTracker.quizScores.length;
   }
@@ -2363,19 +2374,19 @@ const calculateLessonScore = function (config) {
  * @returns {string} Letter grade
  */
 const getLetterGrade = function (score) {
-  if (score >= 97) return 'A+';
-  if (score >= 93) return 'A';
-  if (score >= 90) return 'A-';
-  if (score >= 87) return 'B+';
-  if (score >= 83) return 'B';
-  if (score >= 80) return 'B-';
-  if (score >= 77) return 'C+';
-  if (score >= 73) return 'C';
-  if (score >= 70) return 'C-';
-  if (score >= 67) return 'D+';
-  if (score >= 63) return 'D';
-  if (score >= 60) return 'D-';
-  return 'F';
+  if (score >= 97) return "A+";
+  if (score >= 93) return "A";
+  if (score >= 90) return "A-";
+  if (score >= 87) return "B+";
+  if (score >= 83) return "B";
+  if (score >= 80) return "B-";
+  if (score >= 77) return "C+";
+  if (score >= 73) return "C";
+  if (score >= 70) return "C-";
+  if (score >= 67) return "D+";
+  if (score >= 63) return "D";
+  if (score >= 60) return "D-";
+  return "F";
 };
 
 /**
@@ -2386,11 +2397,11 @@ const sendLessonCompletionToServer = async function (completionResult) {
   try {
     // Get current student name from localStorage or session
     const studentName =
-      localStorage.getItem('currentProfile') ||
-      sessionStorage.getItem('currentProfile');
+      localStorage.getItem("currentProfile") ||
+      sessionStorage.getItem("currentProfile");
 
     if (!studentName) {
-      console.warn('No student name found for database update');
+      console.warn("No student name found for database update");
       return;
     }
 
@@ -2404,36 +2415,36 @@ const sendLessonCompletionToServer = async function (completionResult) {
       lessonId: completionResult.lesson.id,
       lessonTitle: completionResult.lesson.title,
       score: completionResult.score.finalScore || 0,
-      grade: completionResult.score.grade || 'F',
+      grade: completionResult.score.grade || "F",
       completionDate: completionResult.completionTime,
       duration: completionResult.duration || 0,
       autoCompleted: completionResult.autoCompleted || false,
       difficultyLevel:
-        completionResult.lesson.scenario?.difficulty || 'Standard',
+        completionResult.lesson.scenario?.difficulty || "Standard",
       conditionsBreakdown: breakdown,
       totalConditions: positiveConditions + negativeConditions,
       completedConditions: positiveConditions,
     };
 
-    const response = await fetch('http://localhost:3000/lesson-completion', {
-      method: 'POST',
+    const response = await fetch("http://localhost:3000/lesson-completion", {
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify(lessonCompletionData),
     });
 
     if (response.ok) {
       const result = await response.json();
-      console.log('Lesson completion saved to database:', result);
+      console.log("Lesson completion saved to database:", result);
     } else {
       console.error(
-        'Failed to save lesson completion to database:',
-        response.statusText,
+        "Failed to save lesson completion to database:",
+        response.statusText
       );
     }
   } catch (error) {
-    console.error('Error sending lesson completion to server:', error);
+    console.error("Error sending lesson completion to server:", error);
   }
 };
 
@@ -2445,7 +2456,7 @@ const saveLessonCompletion = function (completionResult) {
   try {
     // Get or create student progress data
     let studentProgress = JSON.parse(
-      localStorage.getItem('studentLessonProgress') || '{}',
+      localStorage.getItem("studentLessonProgress") || "{}"
     );
 
     // Initialize student data if needed
@@ -2475,16 +2486,16 @@ const saveLessonCompletion = function (completionResult) {
 
     // Save to localStorage
     localStorage.setItem(
-      'studentLessonProgress',
-      JSON.stringify(studentProgress),
+      "studentLessonProgress",
+      JSON.stringify(studentProgress)
     );
 
     // Send to server for database update
     sendLessonCompletionToServer(completionResult);
 
-    console.log('Lesson completion saved to student profile');
+    console.log("Lesson completion saved to student profile");
   } catch (error) {
-    console.error('Error saving lesson completion:', error);
+    console.error("Error saving lesson completion:", error);
   }
 };
 
@@ -2493,20 +2504,22 @@ const saveLessonCompletion = function (completionResult) {
  * @param {Object} completionResult - Lesson completion data
  */
 const displayLessonCompletion = function (completionResult) {
-  const modal = document.createElement('div');
-  modal.className = 'lesson-completion-modal';
+  const modal = document.createElement("div");
+  modal.className = "lesson-completion-modal";
 
   // Determine the completion message style based on auto vs manual completion
   const completionIcon = completionResult.autoCompleted
-    ? 'fa-solid fa-star'
-    : 'fa-solid fa-trophy';
+    ? "fa-solid fa-star"
+    : "fa-solid fa-trophy";
   const completionTitle = completionResult.autoCompleted
-    ? 'Lesson Mastered!'
-    : 'Lesson Complete!';
+    ? "Lesson Mastered!"
+    : "Lesson Complete!";
 
   modal.innerHTML = `
     <div class="completion-modal-content">
-      <div class="completion-header ${completionResult.autoCompleted ? 'auto-completion' : ''}">
+      <div class="completion-header ${
+        completionResult.autoCompleted ? "auto-completion" : ""
+      }">
         <i class="${completionIcon} completion-icon"></i>
         <h2>${completionTitle}</h2>
       </div>
@@ -2518,11 +2531,11 @@ const displayLessonCompletion = function (completionResult) {
           completionResult.score.finalScore >= 80
             ? '<p class="auto-completion-note">You mastered this lesson through hands-on practice!</p>'
             : completionResult.autoCompleted &&
-                completionResult.score.finalScore >= 70
-              ? '<p class="auto-completion-note">Good progress! Keep practicing to master the skills.</p>'
-              : completionResult.autoCompleted
-                ? '<p class="auto-completion-note">Completed through app usage. Review the material to strengthen understanding.</p>'
-                : ''
+              completionResult.score.finalScore >= 70
+            ? '<p class="auto-completion-note">Good progress! Keep practicing to master the skills.</p>'
+            : completionResult.autoCompleted
+            ? '<p class="auto-completion-note">Completed through app usage. Review the material to strengthen understanding.</p>'
+            : ""
         }
       </div>
       
@@ -2556,7 +2569,7 @@ const displayLessonCompletion = function (completionResult) {
               <span>${completionResult.score.breakdown.averageQuizScore}/100</span>
             </div>
             `
-                : ''
+                : ""
             }
             ${
               completionResult.score.breakdown.positiveBonus > 0
@@ -2566,7 +2579,7 @@ const displayLessonCompletion = function (completionResult) {
               <span>+${completionResult.score.breakdown.positiveBonus} pts</span>
             </div>
             `
-                : ''
+                : ""
             }
             ${
               completionResult.score.breakdown.negativePenalty > 0
@@ -2576,14 +2589,16 @@ const displayLessonCompletion = function (completionResult) {
               <span>-${completionResult.score.breakdown.negativePenalty} pts</span>
             </div>
             `
-                : ''
+                : ""
             }
           </div>
           
           <div class="completion-stats">
             <div class="stat-item">
               <i class="fa-solid fa-check-circle"></i>
-              <span>${completionResult.conditionsSummary.positive} Actions Completed</span>
+              <span>${
+                completionResult.conditionsSummary.positive
+              } Actions Completed</span>
             </div>
             ${
               completionResult.conditionsSummary.quizzes > 0
@@ -2593,11 +2608,13 @@ const displayLessonCompletion = function (completionResult) {
               <span>${completionResult.conditionsSummary.quizzes} Quizzes Taken</span>
             </div>
             `
-                : ''
+                : ""
             }
             <div class="stat-item">
               <i class="fa-solid fa-clock"></i>
-              <span>Duration: ${Math.round(completionResult.duration / 60000)} minutes</span>
+              <span>Duration: ${Math.round(
+                completionResult.duration / 60000
+              )} minutes</span>
             </div>
           </div>
         </div>
@@ -2626,9 +2643,9 @@ const displayLessonCompletion = function (completionResult) {
   `;
 
   // Add enhanced completion modal styles
-  if (!document.getElementById('enhancedCompletionStyles')) {
-    const style = document.createElement('style');
-    style.id = 'enhancedCompletionStyles';
+  if (!document.getElementById("enhancedCompletionStyles")) {
+    const style = document.createElement("style");
+    style.id = "enhancedCompletionStyles";
     style.textContent = `
       @keyframes fadeIn {
         from { opacity: 0; }
@@ -2822,7 +2839,7 @@ const displayLessonCompletion = function (completionResult) {
 
   // Global functions for modal interaction
   window.closeLessonCompletion = function () {
-    modal.style.animation = 'fadeOut 0.3s ease-in';
+    modal.style.animation = "fadeOut 0.3s ease-in";
     setTimeout(() => {
       if (document.body.contains(modal)) {
         document.body.removeChild(modal);
@@ -2831,10 +2848,10 @@ const displayLessonCompletion = function (completionResult) {
   };
 
   window.viewDetailedResults = function () {
-    console.log('Detailed Results:', completionResult);
+    console.log("Detailed Results:", completionResult);
 
     // Create detailed breakdown display
-    const detailsModal = document.createElement('div');
+    const detailsModal = document.createElement("div");
     detailsModal.innerHTML = `
       <div style="background: white; padding: 20px; border-radius: 8px; max-width: 600px; max-height: 80vh; overflow-y: auto;">
         <h3>Detailed Lesson Results</h3>
@@ -2872,7 +2889,7 @@ const resetLessonTracker = function () {
 export const getStudentProgress = function () {
   try {
     const progress = JSON.parse(
-      localStorage.getItem('studentLessonProgress') || '{}',
+      localStorage.getItem("studentLessonProgress") || "{}"
     );
     return {
       totalCompleted: progress.totalLessonsCompleted || 0,
@@ -2881,7 +2898,7 @@ export const getStudentProgress = function () {
       currentLesson: lessonTracker.currentLesson,
     };
   } catch (error) {
-    console.error('Error retrieving student progress:', error);
+    console.error("Error retrieving student progress:", error);
     return {
       totalCompleted: 0,
       averageScore: 0,
@@ -2899,7 +2916,7 @@ export const getStudentProgress = function () {
  */
 export const checkLessonCompletionCondition = function (conditionType) {
   switch (conditionType) {
-    case 'lesson_completion_trigger':
+    case "lesson_completion_trigger":
       return true; // Always true when this is called - used to trigger completion
     default:
       return false;
@@ -2912,25 +2929,25 @@ export const checkLessonCompletionCondition = function (conditionType) {
  * Run quiz-specific demo scenarios
  */
 window.runQuizDemo = function () {
-  console.log('\n📚 === QUIZ DEMO SCENARIOS ===');
+  console.log("\n📚 === QUIZ DEMO SCENARIOS ===");
 
   // Test different quiz performance levels
   const quizScenarios = [
-    { name: 'Perfect Quiz', score: 100, description: 'All answers correct' },
-    { name: 'Good Quiz', score: 85, description: 'Most answers correct' },
-    { name: 'Average Quiz', score: 70, description: 'Some mistakes made' },
-    { name: 'Poor Quiz', score: 45, description: 'Many wrong answers' },
+    { name: "Perfect Quiz", score: 100, description: "All answers correct" },
+    { name: "Good Quiz", score: 85, description: "Most answers correct" },
+    { name: "Average Quiz", score: 70, description: "Some mistakes made" },
+    { name: "Poor Quiz", score: 45, description: "Many wrong answers" },
   ];
 
-  quizScenarios.forEach(quiz => {
+  quizScenarios.forEach((quiz) => {
     lessonTracker.initializeLesson(
       `quiz_test_${Date.now()}`,
       `Quiz Test: ${quiz.name}`,
-      [],
+      []
     );
 
     // Add some content viewing
-    lessonTracker.recordPositiveCondition('lesson_content_viewed', {
+    lessonTracker.recordPositiveCondition("lesson_content_viewed", {
       slidesViewed: 8,
       totalSlides: 10,
     });
@@ -2940,20 +2957,20 @@ window.runQuizDemo = function () {
 
     // Add some app usage based on quiz performance
     if (quiz.score >= 85) {
-      lessonTracker.recordPositiveCondition('deposit_made', { amount: 500 });
-      lessonTracker.recordPositiveCondition('efficiency_bonus', {
+      lessonTracker.recordPositiveCondition("deposit_made", { amount: 500 });
+      lessonTracker.recordPositiveCondition("efficiency_bonus", {
         timeSeconds: 30,
       });
     } else if (quiz.score >= 70) {
-      lessonTracker.recordPositiveCondition('deposit_made', { amount: 100 });
-      lessonTracker.recordNegativeCondition('incorrect_answer', {
+      lessonTracker.recordPositiveCondition("deposit_made", { amount: 100 });
+      lessonTracker.recordNegativeCondition("incorrect_answer", {
         attemptNumber: 1,
       });
     } else {
-      lessonTracker.recordNegativeCondition('financial_mistake', {
-        severity: 'minor',
+      lessonTracker.recordNegativeCondition("financial_mistake", {
+        severity: "minor",
       });
-      lessonTracker.recordNegativeCondition('multiple_attempts_failed', {
+      lessonTracker.recordNegativeCondition("multiple_attempts_failed", {
         attempts: 3,
       });
     }
@@ -2961,14 +2978,14 @@ window.runQuizDemo = function () {
     // Complete the lesson
     const result = completeLesson({
       message: `${quiz.name} completed - ${quiz.description}`,
-      completionType: 'quiz_demo',
+      completionType: "quiz_demo",
     });
 
     console.log(
-      `${quiz.name}: ${result.score.finalScore}% (${result.score.grade})`,
+      `${quiz.name}: ${result.score.finalScore}% (${result.score.grade})`
     );
     console.log(
-      `  Quiz Impact: ${quiz.score}% quiz, Activity: ${result.score.breakdown.baseScore}%`,
+      `  Quiz Impact: ${quiz.score}% quiz, Activity: ${result.score.breakdown.baseScore}%`
     );
     console.log(`  Description: ${quiz.description}\n`);
   });
@@ -2978,103 +2995,103 @@ window.runQuizDemo = function () {
  * Run individual test scenarios for comparison
  */
 window.runIndividualTest = function () {
-  console.log('\n🔬 === INDIVIDUAL TEST SCENARIOS ===');
+  console.log("\n🔬 === INDIVIDUAL TEST SCENARIOS ===");
 
   const individualTests = [
     {
-      name: 'Speed Runner',
+      name: "Speed Runner",
       actions: [
         {
-          type: 'lesson_content_viewed',
+          type: "lesson_content_viewed",
           details: { slidesViewed: 10, totalSlides: 10 },
         },
         {
-          type: 'efficiency_bonus',
+          type: "efficiency_bonus",
           details: { timeSeconds: 20, featuresUsed: 4 },
         },
-        { type: 'deposit_made', details: { amount: 1000 } },
+        { type: "deposit_made", details: { amount: 1000 } },
         {
-          type: 'efficiency_bonus',
+          type: "efficiency_bonus",
           details: { timeSeconds: 15, featuresUsed: 2 },
         },
       ],
     },
     {
-      name: 'Detail Oriented',
+      name: "Detail Oriented",
       actions: [
         {
-          type: 'lesson_content_viewed',
+          type: "lesson_content_viewed",
           details: { slidesViewed: 10, totalSlides: 10 },
         },
         {
-          type: 'budget_created',
+          type: "budget_created",
           details: {
             categories: [
-              'housing',
-              'food',
-              'transport',
-              'utilities',
-              'savings',
-              'entertainment',
+              "housing",
+              "food",
+              "transport",
+              "utilities",
+              "savings",
+              "entertainment",
             ],
           },
         },
-        { type: 'goal_set', details: { smartScore: 0.95 } },
+        { type: "goal_set", details: { smartScore: 0.95 } },
         {
-          type: 'investment_made',
-          details: { riskLevel: 'balanced', diversified: true },
+          type: "investment_made",
+          details: { riskLevel: "balanced", diversified: true },
         },
       ],
     },
     {
-      name: 'Explorer',
+      name: "Explorer",
       actions: [
         {
-          type: 'lesson_content_viewed',
+          type: "lesson_content_viewed",
           details: { slidesViewed: 6, totalSlides: 10 },
         },
-        { type: 'exploration_bonus', details: { featuresExplored: 8 } },
-        { type: 'account_checked', details: { accountType: 'all_accounts' } },
+        { type: "exploration_bonus", details: { featuresExplored: 8 } },
+        { type: "account_checked", details: { accountType: "all_accounts" } },
         {
-          type: 'creative_solution',
-          details: { approach: 'automated_budgeting' },
+          type: "creative_solution",
+          details: { approach: "automated_budgeting" },
         },
-        { type: 'help_used', details: { helpType: 'tutorial' } },
+        { type: "help_used", details: { helpType: "tutorial" } },
       ],
     },
     {
-      name: 'Struggling Learner',
+      name: "Struggling Learner",
       actions: [
         {
-          type: 'lesson_content_viewed',
+          type: "lesson_content_viewed",
           details: { slidesViewed: 4, totalSlides: 10 },
         },
         {
-          type: 'timeout_occurred',
+          type: "timeout_occurred",
           details: { progressPercentage: 30 },
           negative: true,
         },
-        { type: 'help_used', details: { helpType: 'hint' } },
-        { type: 'deposit_made', details: { amount: 20 } },
+        { type: "help_used", details: { helpType: "hint" } },
+        { type: "deposit_made", details: { amount: 20 } },
         {
-          type: 'incorrect_answer',
+          type: "incorrect_answer",
           details: { attemptNumber: 2 },
           negative: true,
         },
         {
-          type: 'financial_mistake',
-          details: { severity: 'minor' },
+          type: "financial_mistake",
+          details: { severity: "minor" },
           negative: true,
         },
       ],
     },
   ];
 
-  individualTests.forEach(test => {
+  individualTests.forEach((test) => {
     lessonTracker.initializeLesson(
       `individual_${Date.now()}`,
       `Individual Test: ${test.name}`,
-      [],
+      []
     );
 
     console.log(`\n--- ${test.name} Test ---`);
@@ -3082,7 +3099,7 @@ window.runIndividualTest = function () {
     console.log(`Starting score: ${lessonTracker.appUsageScore}`);
 
     // Execute actions
-    test.actions.forEach(action => {
+    test.actions.forEach((action) => {
       if (action.negative) {
         lessonTracker.recordNegativeCondition(action.type, action.details);
       } else {
@@ -3093,14 +3110,14 @@ window.runIndividualTest = function () {
     // Complete the lesson
     const result = completeLesson({
       message: `${test.name} test completed`,
-      completionType: 'individual_test',
+      completionType: "individual_test",
     });
 
     console.log(
-      `Final Score: ${result.score.finalScore}% (${result.score.grade})`,
+      `Final Score: ${result.score.finalScore}% (${result.score.grade})`
     );
     console.log(
-      `Content: ${result.score.breakdown.contentScore}/30, App: ${result.score.breakdown.appUsageScore}/70`,
+      `Content: ${result.score.breakdown.contentScore}/30, App: ${result.score.breakdown.appUsageScore}/70`
     );
   });
 };
@@ -3120,28 +3137,28 @@ window.saveLessonCompletion = saveLessonCompletion;
  * Test database integration - for console testing
  */
 window.testDatabaseIntegration = async function () {
-  console.log('🧪 Testing Database Integration...');
+  console.log("🧪 Testing Database Integration...");
 
   // Set a test student email (this would normally be set during login)
-  localStorage.setItem('currentStudentEmail', 'test-student@example.com');
+  localStorage.setItem("currentStudentEmail", "test-student@example.com");
 
   // Run the excellent student scenario
-  console.log('📊 Running excellent student test scenario...');
-  const result = await runTestScenario('excellent_student');
+  console.log("📊 Running excellent student test scenario...");
+  const result = await runTestScenario("excellent_student");
 
   if (result) {
-    console.log('✅ Database integration test completed successfully!');
+    console.log("✅ Database integration test completed successfully!");
     console.log(
-      `Final result: ${result.score.finalScore}% (${result.score.grade})`,
+      `Final result: ${result.score.finalScore}% (${result.score.grade})`
     );
     console.log(
-      '💡 Check server logs for database updates (if server is running on port 3000).',
+      "💡 Check server logs for database updates (if server is running on port 3000)."
     );
   } else {
-    console.log('❌ Test failed - check the errors above.');
+    console.log("❌ Test failed - check the errors above.");
   }
 
   console.log(
-    '💡 In a real scenario, the student email would be set during login process.',
+    "💡 In a real scenario, the student email would be set during login process."
   );
 };
