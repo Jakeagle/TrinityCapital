@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Trinity Capital - Enhanced Condition Tracking Demo</title>
+    <style>
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        margin: 0;
+        padding: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: #333;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 12px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+
+      h1 {
+        color: #00ffcc;
+        text-align: center;
+        margin-bottom: 30px;
+        text-shadow: 0 2px 4px rgba(0, 255, 204, 0.3);
+      }
+
+      .demo-section {
+        margin-bottom: 30px;
+        padding: 20px;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        background: #f8f9fa;
+      }
+
+      .demo-section h2 {
+        color: #495057;
+        margin-top: 0;
+      }
+
+      .condition-button {
+        background: linear-gradient(135deg, #00ffcc, #00b3a6);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        margin: 5px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.3s ease;
+      }
+
+      .condition-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 255, 204, 0.3);
+      }
+
+      .condition-button.dallas-fed {
+        background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+      }
+
+      .condition-button.basic {
+        background: linear-gradient(135deg, #74b9ff, #0984e3);
+      }
+
+      .progress-display {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        margin-top: 20px;
+        border-left: 4px solid #00ffcc;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 20px;
+        background: #e0e0e0;
+        border-radius: 10px;
+        overflow: hidden;
+        margin: 10px 0;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #00ffcc, #00b3a6);
+        transition: width 0.5s ease;
+        width: 0%;
+      }
+
+      .feedback-log {
+        background: #f1f3f4;
+        border-radius: 6px;
+        padding: 15px;
+        max-height: 300px;
+        overflow-y: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 14px;
+      }
+
+      .feedback-entry {
+        margin-bottom: 10px;
+        padding: 8px;
+        border-radius: 4px;
+      }
+
+      .feedback-entry.success {
+        background: #d4edda;
+        border-left: 4px solid #28a745;
+      }
+
+      .feedback-entry.improvement {
+        background: #d1ecf1;
+        border-left: 4px solid #17a2b8;
+      }
+
+      .lesson-controls {
+        text-align: center;
+        margin: 20px 0;
+      }
+
+      .control-button {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 0 10px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 500;
+      }
+
+      .control-button.primary {
+        background: #007bff;
+      }
+
+      .control-button.success {
+        background: #28a745;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 20px;
+      }
+
+      .stat-card {
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+        text-align: center;
+      }
+
+      .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #00b3a6;
+      }
+
+      .stat-label {
+        color: #6c757d;
+        font-size: 0.9em;
+        margin-top: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🎯 Enhanced Condition Tracking Demo</h1>
+
+      <div class="lesson-controls">
+        <button class="control-button primary" onclick="startNewLesson()">
+          Start New Lesson
+        </button>
+        <button class="control-button" onclick="clearProgress()">
+          Clear Progress
+        </button>
+        <button class="control-button success" onclick="completeLesson()">
+          Complete Lesson
+        </button>
+      </div>
+
+      <div class="progress-display">
+        <h3>Current Lesson Progress</h3>
+        <div id="lessonTitle">No active lesson</div>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div id="progressText">0% Complete</div>
+
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div id="contentScore" class="stat-number">0</div>
+            <div class="stat-label">Content Score</div>
+          </div>
+          <div class="stat-card">
+            <div id="appScore" class="stat-number">0</div>
+            <div class="stat-label">App Usage Score</div>
+          </div>
+          <div class="stat-card">
+            <div id="totalConditions" class="stat-number">0</div>
+            <div class="stat-label">Conditions Met</div>
+          </div>
+          <div class="stat-card">
+            <div id="qualityScore" class="stat-number">Standard</div>
+            <div class="stat-label">Quality Level</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="demo-section">
+        <h2>📚 Dallas Fed Educational Conditions</h2>
+        <p>Test the new Dallas Fed aligned condition tracking system:</p>
+
+        <button
+          class="condition-button dallas-fed"
+          onclick="testCondition('spending_analyzed', {categories_identified: 5, needs_vs_wants_identified: true})"
+        >
+          Spending Analysis ✅
+        </button>
+
+        <button
+          class="condition-button dallas-fed"
+          onclick="testCondition('smart_goal_validated', {all_criteria_met: true, smart_score: 0.9})"
+        >
+          SMART Goal Validation ✅
+        </button>
+
+        <button
+          class="condition-button dallas-fed"
+          onclick="testCondition('balance_sheet_created', {assets_count: 3, net_worth_calculated: true})"
+        >
+          Balance Sheet Creation ✅
+        </button>
+
+        <button
+          class="condition-button dallas-fed"
+          onclick="testCondition('paycheck_analyzed', {gross_pay_identified: true, all_components_identified: true})"
+        >
+          Paycheck Analysis ✅
+        </button>
+
+        <button
+          class="condition-button dallas-fed"
+          onclick="testCondition('budget_balanced', {balanced: true, emergency_fund_included: true})"
+        >
+          Budget Balancing ✅
+        </button>
+
+        <button
+          class="condition-button dallas-fed"
+          onclick="testCondition('savings_found', {amount_saved: 150, strategy_documented: true})"
+        >
+          Savings Identified ✅
+        </button>
+      </div>
+
+      <div class="demo-section">
+        <h2>💼 Standard Trinity Capital Conditions</h2>
+        <p>Test traditional lesson completion conditions:</p>
+
+        <button
+          class="condition-button basic"
+          onclick="testCondition('deposit_made', {amount: 500, successful: true})"
+        >
+          Make Deposit
+        </button>
+
+        <button
+          class="condition-button basic"
+          onclick="testCondition('transfer_completed', {transferType: 'external', successful: true})"
+        >
+          Transfer Funds
+        </button>
+
+        <button
+          class="condition-button basic"
+          onclick="testCondition('goal_set', {smartScore: 0.7, successful: true})"
+        >
+          Set Financial Goal
+        </button>
+
+        <button
+          class="condition-button basic"
+          onclick="testCondition('account_checked', {accountType: 'checking', successful: true})"
+        >
+          Check Account
+        </button>
+      </div>
+
+      <div class="demo-section">
+        <h2>❌ Test Incomplete Conditions</h2>
+        <p>See how the system handles partially completed or failed actions:</p>
+
+        <button
+          class="condition-button"
+          style="background: #dc3545"
+          onclick="testCondition('spending_analyzed', {categories_identified: 1, needs_vs_wants_identified: false})"
+        >
+          Incomplete Spending Analysis
+        </button>
+
+        <button
+          class="condition-button"
+          style="background: #dc3545"
+          onclick="testCondition('smart_goal_validated', {all_criteria_met: false, smart_score: 0.4})"
+        >
+          Poor SMART Goal
+        </button>
+
+        <button
+          class="condition-button"
+          style="background: #dc3545"
+          onclick="testCondition('balance_sheet_created', {assets_count: 0, net_worth_calculated: false})"
+        >
+          Failed Balance Sheet
+        </button>
+      </div>
+
+      <div class="demo-section">
+        <h2>📝 Feedback Log</h2>
+        <div id="feedbackLog" class="feedback-log">
+          Ready to track conditions... Click the buttons above to test the
+          system!
+        </div>
+      </div>
+    </div>
+
+    <!-- Load the lesson engine -->
+    <script src="Javascript/lessonEngine.js"></script>
+
+    <script>
+      // Demo implementation
+      let demoProgress = {
+        contentScore: 0,
+        appScore: 0,
+        conditionsMet: 0,
+        qualityLevels: [],
+      };
+
+      function startNewLesson() {
+        // Initialize a demo lesson
+        if (typeof lessonTracker !== 'undefined') {
+          lessonTracker.initializeLesson(
+            'demo_lesson_' + Date.now(),
+            'Enhanced Condition Tracking Demo',
+            ['spending_analyzed', 'smart_goal_validated', 'budget_balanced'],
+          );
+
+          // Simulate content viewing
+          lessonTracker.recordPositiveCondition('lesson_content_viewed', {
+            slidesViewed: 8,
+            totalSlides: 10,
+            viewingQuality: 0.9,
+          });
+
+          updateProgressDisplay();
+          logFeedback(
+            'Lesson started: Enhanced Condition Tracking Demo',
+            'success',
+          );
+        } else {
+          // Fallback if lessonEngine not loaded
+          document.getElementById('lessonTitle').textContent =
+            'Demo Lesson: Enhanced Condition Tracking';
+          logFeedback(
+            'Demo lesson started (lessonEngine not loaded)',
+            'improvement',
+          );
+        }
+      }
+
+      function testCondition(conditionType, actionDetails) {
+        console.log(`Testing condition: ${conditionType}`, actionDetails);
+
+        // Use the enhanced condition tracker if available
+        if (typeof window.recordConditionMet === 'function') {
+          const result = window.recordConditionMet(
+            conditionType,
+            actionDetails,
+            {
+              source: 'demo_page',
+              timestamp: new Date().toISOString(),
+            },
+          );
+
+          logFeedback(
+            `${conditionType}: ${result.feedback}`,
+            result.met ? 'success' : 'improvement',
+          );
+
+          // Update demo progress
+          if (result.met) {
+            demoProgress.conditionsMet++;
+            demoProgress.qualityLevels.push(result.quality);
+          }
+
+          updateProgressDisplay();
+        } else {
+          // Fallback demo functionality
+          const conditionDefinition = getConditionDefinition(conditionType);
+          const isSuccess = conditionDefinition.validation(actionDetails);
+
+          logFeedback(
+            `${conditionType}: ${isSuccess ? conditionDefinition.feedback.success : conditionDefinition.feedback.improvement}`,
+            isSuccess ? 'success' : 'improvement',
+          );
+
+          if (isSuccess) {
+            demoProgress.conditionsMet++;
+            demoProgress.appScore += conditionDefinition.baseScore;
+          }
+
+          updateProgressDisplay();
+        }
+      }
+
+      function updateProgressDisplay() {
+        if (
+          typeof lessonTracker !== 'undefined' &&
+          lessonTracker.currentLesson
+        ) {
+          // Update from actual lesson tracker
+          const progress = lessonTracker.getLessonProgress();
+          if (progress) {
+            document.getElementById('lessonTitle').textContent =
+              progress.lessonTitle;
+            document.getElementById('progressFill').style.width =
+              progress.progress + '%';
+            document.getElementById('progressText').textContent =
+              Math.round(progress.progress) + '% Complete';
+            document.getElementById('contentScore').textContent =
+              progress.contentScore;
+            document.getElementById('appScore').textContent =
+              progress.appUsageScore;
+            document.getElementById('totalConditions').textContent =
+              progress.conditionsMet;
+          }
+        } else {
+          // Update from demo progress
+          const totalPossible = 10; // Example
+          const progressPercent =
+            (demoProgress.conditionsMet / totalPossible) * 100;
+
+          document.getElementById('progressFill').style.width =
+            progressPercent + '%';
+          document.getElementById('progressText').textContent =
+            Math.round(progressPercent) + '% Complete';
+          document.getElementById('contentScore').textContent =
+            demoProgress.contentScore;
+          document.getElementById('appScore').textContent =
+            demoProgress.appScore;
+          document.getElementById('totalConditions').textContent =
+            demoProgress.conditionsMet;
+
+          // Calculate average quality
+          if (demoProgress.qualityLevels.length > 0) {
+            const qualityMap = {
+              beginning: 1,
+              developing: 2,
+              proficient: 3,
+              exceptional: 4,
+            };
+            const avgQuality =
+              demoProgress.qualityLevels.reduce(
+                (sum, q) => sum + (qualityMap[q] || 2),
+                0,
+              ) / demoProgress.qualityLevels.length;
+            const qualityNames = [
+              'Beginning',
+              'Developing',
+              'Proficient',
+              'Exceptional',
+            ];
+            document.getElementById('qualityScore').textContent =
+              qualityNames[Math.round(avgQuality) - 1] || 'Standard';
+          }
+        }
+      }
+
+      function clearProgress() {
+        demoProgress = {
+          contentScore: 0,
+          appScore: 0,
+          conditionsMet: 0,
+          qualityLevels: [],
+        };
+
+        if (typeof lessonTracker !== 'undefined') {
+          // Reset lesson tracker
+          lessonTracker.currentLesson = null;
+          lessonTracker.positiveConditionsMet = [];
+          lessonTracker.negativeConditionsTriggered = [];
+          lessonTracker.contentScore = 0;
+          lessonTracker.appUsageScore = 0;
+        }
+
+        document.getElementById('lessonTitle').textContent = 'No active lesson';
+        document.getElementById('progressFill').style.width = '0%';
+        document.getElementById('progressText').textContent = '0% Complete';
+        document.getElementById('contentScore').textContent = '0';
+        document.getElementById('appScore').textContent = '0';
+        document.getElementById('totalConditions').textContent = '0';
+        document.getElementById('qualityScore').textContent = 'Standard';
+        document.getElementById('feedbackLog').innerHTML =
+          'Progress cleared. Ready for new lesson!';
+
+        logFeedback('Progress cleared', 'improvement');
+      }
+
+      function completeLesson() {
+        if (typeof window.completeLessonFromCarousel === 'function') {
+          // Use actual lesson completion
+          window.completeLessonFromCarousel();
+        } else {
+          // Demo completion
+          const finalScore = Math.min(
+            100,
+            demoProgress.contentScore + demoProgress.appScore,
+          );
+          logFeedback(
+            `Lesson completed! Final score: ${finalScore}%`,
+            'success',
+          );
+        }
+      }
+
+      function logFeedback(message, type) {
+        const log = document.getElementById('feedbackLog');
+        const entry = document.createElement('div');
+        entry.className = `feedback-entry ${type}`;
+        entry.innerHTML = `
+                <strong>${new Date().toLocaleTimeString()}</strong> - ${message}
+            `;
+        log.appendChild(entry);
+        log.scrollTop = log.scrollHeight;
+      }
+
+      // Fallback condition definitions for demo
+      function getConditionDefinition(conditionType) {
+        const definitions = {
+          spending_analyzed: {
+            baseScore: 12,
+            validation: details =>
+              (details.categories_identified || 0) >= 3 &&
+              details.needs_vs_wants_identified === true,
+            feedback: {
+              success: 'Great job analyzing your spending patterns!',
+              improvement:
+                'Try to identify more spending categories to better understand your habits.',
+            },
+          },
+          smart_goal_validated: {
+            baseScore: 15,
+            validation: details =>
+              details.all_criteria_met === true &&
+              (details.smart_score || 0) >= 0.8,
+            feedback: {
+              success: 'Outstanding! Your goal meets all SMART criteria!',
+              improvement: 'Review the SMART criteria and refine your goal.',
+            },
+          },
+          balance_sheet_created: {
+            baseScore: 18,
+            validation: details =>
+              (details.assets_count || 0) >= 2 &&
+              details.net_worth_calculated === true,
+            feedback: {
+              success: 'Excellent work on your balance sheet!',
+              improvement:
+                'Make sure to identify both assets and liabilities clearly.',
+            },
+          },
+          deposit_made: {
+            baseScore: 10,
+            validation: details =>
+              details.successful === true && (details.amount || 0) > 0,
+            feedback: {
+              success: 'Deposit completed successfully!',
+              improvement: 'Check your deposit details and try again.',
+            },
+          },
+        };
+
+        return (
+          definitions[conditionType] || {
+            baseScore: 5,
+            validation: () => true,
+            feedback: {
+              success: 'Action completed',
+              improvement: 'Keep trying',
+            },
+          }
+        );
+      }
+
+      // Test function for lesson carousel with instructions
+      function testLessonCarouselWithInstructions() {
+        console.log('=== TESTING LESSON CAROUSEL WITH INSTRUCTIONS ===');
+
+        // Create a mock lesson with conditions
+        const mockLessonWithConditions = {
+          _id: 'test-lesson-001',
+          lesson_title: 'Test Lesson with Instructions',
+          lesson_description:
+            'A test lesson to verify instruction slide rendering',
+          content: [
+            { type: 'header', content: 'Welcome to Financial Literacy' },
+            {
+              type: 'text',
+              content:
+                'This lesson teaches you about budgeting and saving money.',
+            },
+            { type: 'header', content: 'Key Concepts' },
+            {
+              type: 'text',
+              content:
+                'You will learn to create budgets, track expenses, and set financial goals.',
+            },
+          ],
+          lesson_conditions: [
+            { condition_type: 'spending_analyzed', value: 1 },
+            { condition_type: 'budget_balanced', value: 1 },
+            { condition_type: 'smart_goal_validated', value: 1 },
+          ],
+        };
+
+        // Set up the current lessons data
+        window.currentLessonsData = [mockLessonWithConditions];
+
+        console.log('Mock lesson data:', mockLessonWithConditions);
+        console.log(
+          'Lesson conditions:',
+          mockLessonWithConditions.lesson_conditions,
+        );
+
+        // Test if lesson engine functions exist
+        if (typeof window.openLessonCarousel === 'function') {
+          console.log('✅ openLessonCarousel function exists');
+          // Open the carousel for the mock lesson
+          window.openLessonCarousel(0);
+        } else {
+          console.log('❌ openLessonCarousel function not found');
+          logFeedback(
+            '❌ Lesson Engine not loaded. Please include lessonEngine.js',
+            'improvement',
+          );
+        }
+      }
+
+      // Add button to test lesson carousel
+      function addTestButton() {
+        const container = document.querySelector('.container');
+        const testSection = document.createElement('div');
+        testSection.className = 'demo-section';
+        testSection.innerHTML = `
+          <h2>🧪 Lesson Carousel Test</h2>
+          <p>Test the lesson carousel with instruction slides:</p>
+          <button onclick="testLessonCarouselWithInstructions()" class="condition-button">
+            📚 Test Lesson with Instructions
+          </button>
+        `;
+        container.appendChild(testSection);
+      }
+
+      // Initialize demo
+      document.addEventListener('DOMContentLoaded', function () {
+        logFeedback('Enhanced Condition Tracking Demo loaded', 'success');
+
+        // Check if lesson engine is available
+        if (typeof window.recordConditionMet === 'function') {
+          logFeedback(
+            '✅ Lesson Engine loaded - Full functionality available',
+            'success',
+          );
+        } else {
+          logFeedback(
+            '⚠️ Lesson Engine not loaded - Using demo fallback',
+            'improvement',
+          );
+        }
+
+        // Add test button for lesson carousel
+        addTestButton();
+      });
+    </script>
+  </body>
+</html>

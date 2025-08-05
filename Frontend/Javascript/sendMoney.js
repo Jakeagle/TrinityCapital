@@ -1,5 +1,11 @@
 import { currentProfile } from './script.js';
 import { getInfoProfiles } from './script.js';
+import {
+  showNotification,
+  validateAmount,
+  validateSelection,
+  setButtonLoading,
+} from './validation.js';
 
 /**********************************************Variables****************************************/
 
@@ -21,10 +27,19 @@ mainApp.style.display = 'none';
 
 /***********************************************Event LIsteners ********************************/
 
-loginBTN.addEventListener('click', function () {
+// Expose function to global scope to be called after login
+window.initializeSendMoney = initializeSendMoney;
+
+function initializeSendMoney() {
+  // Check if user is logged in
+  if (!currentProfile) {
+    console.warn('User not logged in');
+    return;
+  }
+
   console.log(currentProfile, profiles);
   accountSetup();
-});
+}
 
 recipient.addEventListener('change', function (event) {
   // Get the selected option element
@@ -34,18 +49,66 @@ recipient.addEventListener('change', function (event) {
   console.log(theRecipient);
 });
 
-inputBTN.addEventListener('click', function () {
-  let amount = parseInt(inputAmount.value);
-  let sender = currentProfile.memberName;
+inputBTN.addEventListener('click', function (e) {
+  e.preventDefault();
 
-  if (amount <= 0) {
-    alert('You must send a positive amount');
-  } else {
-    sendFunds(theRecipient, sender, amount);
+  const originalText = inputBTN.textContent;
+  setButtonLoading(inputBTN, true, originalText);
+
+  try {
+    validateAndSendMoney();
+  } finally {
+    setTimeout(() => {
+      setButtonLoading(inputBTN, false, originalText);
+    }, 1500);
+  }
+});
+
+/**
+ * Validate and process money transfer
+ */
+function validateAndSendMoney() {
+  const amount = parseFloat(inputAmount.value);
+  const sender = currentProfile.memberName;
+  const recipient = theRecipient;
+
+  // Validate inputs
+  const errors = [];
+
+  // Validate recipient selection
+  const recipientErrors = validateSelection(recipient, {
+    fieldName: 'Recipient',
+  });
+  errors.push(...recipientErrors);
+
+  // Check if sending to self
+  if (recipient === sender) {
+    errors.push('You cannot send money to yourself');
   }
 
-  inputAmount.textContent = '';
-});
+  // Validate amount
+  const amountErrors = validateAmount(amount, {
+    min: 0.01,
+    max: 10000,
+    fieldName: 'Send Amount',
+  });
+  errors.push(...amountErrors);
+
+  // Check if user has sufficient funds (assuming checking account)
+  if (currentProfile && currentProfile.checkingAccount && amount) {
+    if (amount > currentProfile.checkingAccount.balanceTotal) {
+      errors.push('Insufficient funds in your account');
+    }
+  }
+
+  if (errors.length > 0) {
+    showNotification(errors.join(', '), 'error');
+    return;
+  }
+
+  // Process the transfer
+  sendFunds(recipient, sender, amount);
+}
 /**************************************************Functions*****************************************/
 const accountSetup = function () {
   profiles.forEach(profile => {
@@ -58,10 +121,11 @@ const accountSetup = function () {
   });
 };
 const sendFunds = async function (recip, sendr, amnt) {
-  if (recip === sendr) {
-    alert('You cannot send funds to yourself');
-  } else {
-    console.log(recip, amnt);
+  try {
+    showNotification('Processing money transfer...', 'info');
+
+    console.log('Sending funds:', { recip, sendr, amnt });
+
     const res = await fetch(sendMoneyURL, {
       method: 'POST',
       headers: {
@@ -71,5 +135,48 @@ const sendFunds = async function (recip, sendr, amnt) {
         parcel: [recip, sendr, amnt],
       }),
     });
+
+    if (!res.ok) {
+      throw new Error(`Server error: ${res.status}`);
+    }
+
+    const result = await res.json();
+
+    showNotification(
+      `Successfully sent $${amnt.toFixed(2)} to ${recip}!`,
+      'success',
+    );
+
+    // Record lesson progress for sending money
+    if (typeof window.recordLessonAction === 'function') {
+      const sendDetails = {
+        amount: amnt,
+        recipient: recip,
+        sender: sendr,
+        transactionType: 'send_money',
+      };
+
+      // Sending money satisfies multiple lesson conditions
+      window.recordLessonAction('spending_analyzed', sendDetails);
+      window.recordLessonAction('transactions_reconciled', sendDetails);
+      window.recordLessonAction('payment_methods_compared', sendDetails);
+      window.recordLessonAction('cost_comparison_completed', sendDetails);
+
+      console.log(
+        '📚 Recorded money sending for lesson progress:',
+        `$${amnt.toFixed(2)} to ${recip}`,
+      );
+    }
+
+    // Clear form
+    inputAmount.value = '';
+    recipient.selectedIndex = 0;
+    theRecipient = null;
+
+    return result;
+  } catch (error) {
+    console.error('Send money failed:', error);
+    showNotification(`Transfer failed: ${error.message}`, 'error');
+    throw error;
   }
 };

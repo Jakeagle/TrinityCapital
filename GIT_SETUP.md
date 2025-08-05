@@ -5,12 +5,13 @@ This project uses a **two-repository system** to separate server-side and fronte
 ## 📁 Repository Structure
 
 - **🔧 TCStudentServer** (`https://github.com/Jakeagle/TCStudentServer`)
+
   - Server files (`server.js`, `package.json`, etc.)
   - Public folder
   - Database scripts and utilities
   - Configuration files
 
-- **🎨 TrinityCapital** (`https://github.com/Jakeagle/TrinityCapital`) 
+- **🎨 TrinityCapital** (`https://github.com/Jakeagle/TrinityCapital`)
   - Frontend folder (HTML, CSS, JavaScript)
   - Student-facing interface
   - Client-side components
@@ -18,6 +19,7 @@ This project uses a **two-repository system** to separate server-side and fronte
 ## 🚀 Quick Start Commands
 
 ### Windows (Recommended)
+
 ```bash
 # Check current status
 git-manage.bat status
@@ -25,7 +27,7 @@ git-manage.bat status
 # Push server changes only
 git-manage.bat server
 
-# Push frontend changes only  
+# Push frontend changes only
 git-manage.bat frontend
 
 # Push to both repositories
@@ -36,6 +38,7 @@ git-manage.bat pull
 ```
 
 ### Linux/Mac
+
 ```bash
 # Make executable (first time only)
 chmod +x git-manage.sh
@@ -47,7 +50,7 @@ chmod +x git-manage.sh
 ./git-manage.sh server
 
 # Push frontend changes only
-./git-manage.sh frontend  
+./git-manage.sh frontend
 
 # Push to both repositories
 ./git-manage.sh both
@@ -59,18 +62,21 @@ chmod +x git-manage.sh
 ## 📋 Workflow Examples
 
 ### 1. Made server-side changes (database, API, etc.)
+
 ```bash
 git-manage.bat server
 # Enter commit message when prompted
 ```
 
 ### 2. Made frontend changes (UI, styles, client JS)
+
 ```bash
-git-manage.bat frontend  
+git-manage.bat frontend
 # Enter commit message when prompted
 ```
 
 ### 3. Made changes to both server and frontend
+
 ```bash
 git-manage.bat both
 # Enter commit message for server changes
@@ -78,6 +84,7 @@ git-manage.bat both
 ```
 
 ### 4. Want to sync with latest changes
+
 ```bash
 git-manage.bat pull
 ```
@@ -87,6 +94,7 @@ git-manage.bat pull
 If you prefer manual control:
 
 ### Server Repository Commands
+
 ```bash
 # Add server remote (one-time setup)
 git remote add server https://github.com/Jakeagle/TCStudentServer.git
@@ -98,12 +106,13 @@ git commit -m "SERVER: Your commit message"
 git push server master
 ```
 
-### Frontend Repository Commands  
+### Frontend Repository Commands
+
 ```bash
 # Push frontend files
 cp frontend.gitignore .gitignore
 git add Frontend/
-git commit -m "FRONTEND: Your commit message"  
+git commit -m "FRONTEND: Your commit message"
 git push origin master
 ```
 
@@ -126,7 +135,7 @@ git remote -v
 ## 🛠️ Files Created for Git Management
 
 - `git-manage.bat` - Windows script for managing both repos
-- `git-manage.sh` - Linux/Mac script for managing both repos  
+- `git-manage.sh` - Linux/Mac script for managing both repos
 - `server.gitignore` - .gitignore template for server repo
 - `frontend.gitignore` - .gitignore template for frontend repo
 - `GIT_SETUP.md` - This documentation
@@ -141,12 +150,14 @@ git remote -v
 ## 🐛 Troubleshooting
 
 ### "Permission denied" on scripts
+
 ```bash
 # Windows: Run as administrator
 # Linux/Mac: chmod +x git-manage.sh
 ```
 
 ### "Remote already exists" error
+
 ```bash
 # Remove and re-add the remote
 git remote remove server
@@ -154,6 +165,7 @@ git remote add server https://github.com/Jakeagle/TCStudentServer.git
 ```
 
 ### Changes appear in wrong repository
+
 ```bash
 # Check which files were committed
 git log --name-only -1

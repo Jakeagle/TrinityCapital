@@ -1,0 +1,788 @@
+{
+  "curriculum_source": "Dallas Fed Personal Financial Literacy",
+  "curriculum_url": "https://www.dallasfed.org/educate/pfl#tab1",
+  "generation_date": "2025-08-04T18:07:35.051Z",
+  "total_lessons": 9,
+  "lessons": [
+    {
+      "lesson_title": "Money Personality",
+      "lesson_description": "Differentiate between needs and wants; investigate money personality",
+      "unit": "Unit 1: Earning and Spending",
+      "day": 1,
+      "teks_standards": [
+        "1(A)",
+        "1(B)"
+      ],
+      "dallas_fed_aligned": true,
+      "creator_email": "admin@trinity-capital.net",
+      "created_date": "2025-08-04T18:07:35.025Z",
+      "lesson_conditions": [
+        {
+          "condition_type": "lesson_content_viewed",
+          "condition_value": {
+            "slidesViewed": 6,
+            "totalSlides": 8
+          },
+          "action_type": "unlock_spending_analysis",
+          "action_details": {
+            "message": "Great! Now analyze your spending patterns using the app",
+            "highlight_element": ".bankingTools"
+          },
+          "priority": "high",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "account_checked",
+          "condition_value": {
+            "accountType": "checking",
+            "transactions_reviewed": true
+          },
+          "action_type": "personality_insight",
+          "action_details": {
+            "message": "Based on your account activity, identify whether you're a spender or saver",
+            "unlock_next_step": "needs_vs_wants_exercise"
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "spending_analyzed",
+          "condition_value": {
+            "categories_identified": 3
+          },
+          "action_type": "complete_lesson",
+          "action_details": {
+            "score_bonus": 15,
+            "message": "Excellent understanding of spending patterns!"
+          },
+          "priority": "critical",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        }
+      ],
+      "required_actions": [
+        "account_checked",
+        "spending_analyzed",
+        "lesson_content_viewed"
+      ],
+      "learning_objectives": [
+        "Demonstrate understanding of lesson concepts through content review",
+        "Analyze account information to understand financial position"
+      ],
+      "assessment_criteria": {
+        "content_mastery": "Students must view at least 75% of lesson content",
+        "practical_application": "Students must complete hands-on activities using the app",
+        "concept_demonstration": "Students must demonstrate understanding through app usage",
+        "quality_standards": "All actions must meet minimum quality thresholds",
+        "time_management": "Lesson should be completed within allocated time frame"
+      },
+      "success_metrics": {
+        "minimum_content_viewed": 0.75,
+        "minimum_app_usage_score": 60,
+        "required_actions_completed": 3,
+        "time_limit_minutes": 45
+      }
+    },
+    {
+      "lesson_title": "Financial Goal Setting",
+      "lesson_description": "Develop SMART financial goals (specific, measurable, attainable, realistic, time-based)",
+      "unit": "Unit 1: Earning and Spending",
+      "day": 2,
+      "teks_standards": [
+        "1(C)"
+      ],
+      "dallas_fed_aligned": true,
+      "creator_email": "admin@trinity-capital.net",
+      "created_date": "2025-08-04T18:07:35.028Z",
+      "lesson_conditions": [
+        {
+          "condition_type": "lesson_content_viewed",
+          "condition_value": {
+            "slidesViewed": 5,
+            "totalSlides": 6
+          },
+          "action_type": "unlock_goal_setter",
+          "action_details": {
+            "message": "Now practice setting SMART financial goals using the app",
+            "highlight_element": ".goalSection"
+          },
+          "priority": "high",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "goal_set",
+          "condition_value": {
+            "smartScore": 0.7,
+            "category": "financial"
+          },
+          "action_type": "validate_smart_criteria",
+          "action_details": {
+            "message": "Let's check if your goal meets all SMART criteria",
+            "require_validation": true
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "smart_goal_validated",
+          "condition_value": {
+            "all_criteria_met": true
+          },
+          "action_type": "complete_lesson",
+          "action_details": {
+            "score_bonus": 20,
+            "message": "Outstanding! You've mastered SMART goal setting!"
+          },
+          "priority": "critical",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        }
+      ],
+      "required_actions": [
+        "goal_set",
+        "lesson_content_viewed",
+        "smart_goal_validated"
+      ],
+      "learning_objectives": [
+        "Demonstrate understanding of lesson concepts through content review",
+        "Set SMART financial goals with specific criteria"
+      ],
+      "assessment_criteria": {
+        "content_mastery": "Students must view at least 75% of lesson content",
+        "practical_application": "Students must complete hands-on activities using the app",
+        "concept_demonstration": "Students must demonstrate understanding through app usage",
+        "quality_standards": "All actions must meet minimum quality thresholds",
+        "time_management": "Lesson should be completed within allocated time frame"
+      },
+      "success_metrics": {
+        "minimum_content_viewed": 0.75,
+        "minimum_app_usage_score": 60,
+        "required_actions_completed": 3,
+        "time_limit_minutes": 45
+      }
+    },
+    {
+      "lesson_title": "Developing a Balance Sheet",
+      "lesson_description": "Identify assets and liabilities; construct a balance sheet",
+      "unit": "Unit 1: Earning and Spending",
+      "day": 3,
+      "teks_standards": [
+        "2(D)",
+        "2(E)"
+      ],
+      "dallas_fed_aligned": true,
+      "creator_email": "admin@trinity-capital.net",
+      "created_date": "2025-08-04T18:07:35.029Z",
+      "lesson_conditions": [
+        {
+          "condition_type": "lesson_content_viewed",
+          "condition_value": {
+            "slidesViewed": 4,
+            "totalSlides": 5
+          },
+          "action_type": "unlock_account_analysis",
+          "action_details": {
+            "message": "Review your accounts to identify assets and liabilities",
+            "highlight_element": ".accountSummary"
+          },
+          "priority": "high",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "account_checked",
+          "condition_value": {
+            "accountType": "all_accounts",
+            "analysis_complete": true
+          },
+          "action_type": "guide_balance_sheet",
+          "action_details": {
+            "message": "Now create your personal balance sheet using the app tools",
+            "provide_template": true
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "balance_sheet_created",
+          "condition_value": {
+            "assets_count": 2,
+            "liabilities_identified": true
+          },
+          "action_type": "complete_lesson",
+          "action_details": {
+            "score_bonus": 18,
+            "message": "Excellent work on your balance sheet!"
+          },
+          "priority": "critical",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        }
+      ],
+      "required_actions": [
+        "account_checked",
+        "balance_sheet_created",
+        "assets_liabilities_identified"
+      ],
+      "learning_objectives": [
+        "Demonstrate understanding of lesson concepts through content review",
+        "Analyze account information to understand financial position"
+      ],
+      "assessment_criteria": {
+        "content_mastery": "Students must view at least 75% of lesson content",
+        "practical_application": "Students must complete hands-on activities using the app",
+        "concept_demonstration": "Students must demonstrate understanding through app usage",
+        "quality_standards": "All actions must meet minimum quality thresholds",
+        "time_management": "Lesson should be completed within allocated time frame"
+      },
+      "success_metrics": {
+        "minimum_content_viewed": 0.75,
+        "minimum_app_usage_score": 60,
+        "required_actions_completed": 3,
+        "time_limit_minutes": 45
+      }
+    },
+    {
+      "lesson_title": "Banking Records",
+      "lesson_description": "Reconcile bank statement with personal records",
+      "unit": "Unit 1: Earning and Spending",
+      "day": 4,
+      "teks_standards": [
+        "2(A)"
+      ],
+      "dallas_fed_aligned": true,
+      "creator_email": "admin@trinity-capital.net",
+      "created_date": "2025-08-04T18:07:35.031Z",
+      "lesson_conditions": [
+        {
+          "condition_type": "lesson_content_viewed",
+          "condition_value": {
+            "slidesViewed": 3,
+            "totalSlides": 4
+          },
+          "action_type": "unlock_reconciliation",
+          "action_details": {
+            "message": "Practice reconciling your account using the banking tools",
+            "highlight_element": ".transactionHistory"
+          },
+          "priority": "high",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "account_checked",
+          "condition_value": {
+            "transactions_reviewed": 5
+          },
+          "action_type": "guide_reconciliation",
+          "action_details": {
+            "message": "Compare these transactions with your records",
+            "provide_checklist": true
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "transactions_reconciled",
+          "condition_value": {
+            "accuracy_rate": 0.9
+          },
+          "action_type": "complete_lesson",
+          "action_details": {
+            "score_bonus": 16,
+            "message": "Great job reconciling your banking records!"
+          },
+          "priority": "critical",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        }
+      ],
+      "required_actions": [
+        "account_checked",
+        "transactions_reconciled",
+        "deposit_verified"
+      ],
+      "learning_objectives": [
+        "Demonstrate understanding of lesson concepts through content review",
+        "Analyze account information to understand financial position"
+      ],
+      "assessment_criteria": {
+        "content_mastery": "Students must view at least 75% of lesson content",
+        "practical_application": "Students must complete hands-on activities using the app",
+        "concept_demonstration": "Students must demonstrate understanding through app usage",
+        "quality_standards": "All actions must meet minimum quality thresholds",
+        "time_management": "Lesson should be completed within allocated time frame"
+      },
+      "success_metrics": {
+        "minimum_content_viewed": 0.75,
+        "minimum_app_usage_score": 60,
+        "required_actions_completed": 3,
+        "time_limit_minutes": 45
+      }
+    },
+    {
+      "lesson_title": "Understanding Your Paycheck",
+      "lesson_description": "Calculate gross and net pay; identify benefits and deductions",
+      "unit": "Unit 1: Earning and Spending",
+      "day": 5,
+      "teks_standards": [
+        "3(A)",
+        "3(B)",
+        "3(C)"
+      ],
+      "dallas_fed_aligned": true,
+      "creator_email": "admin@trinity-capital.net",
+      "created_date": "2025-08-04T18:07:35.032Z",
+      "lesson_conditions": [
+        {
+          "condition_type": "lesson_content_viewed",
+          "condition_value": {
+            "slidesViewed": 6,
+            "totalSlides": 7
+          },
+          "action_type": "unlock_paycheck_tool",
+          "action_details": {
+            "message": "Use the paycheck calculator to understand deductions",
+            "highlight_element": ".paycheckCalculator"
+          },
+          "priority": "high",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "paycheck_analyzed",
+          "condition_value": {
+            "gross_pay_identified": true,
+            "benefits_reviewed": true
+          },
+          "action_type": "calculate_deductions",
+          "action_details": {
+            "message": "Now calculate FICA, federal taxes, and other deductions",
+            "provide_calculator": true
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "net_pay_computed",
+          "condition_value": {
+            "calculation_accurate": true
+          },
+          "action_type": "complete_lesson",
+          "action_details": {
+            "score_bonus": 17,
+            "message": "Perfect! You understand paycheck components!"
+          },
+          "priority": "critical",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        }
+      ],
+      "required_actions": [
+        "paycheck_analyzed",
+        "deductions_calculated",
+        "net_pay_computed"
+      ],
+      "learning_objectives": [
+        "Demonstrate understanding of lesson concepts through content review"
+      ],
+      "assessment_criteria": {
+        "content_mastery": "Students must view at least 75% of lesson content",
+        "practical_application": "Students must complete hands-on activities using the app",
+        "concept_demonstration": "Students must demonstrate understanding through app usage",
+        "quality_standards": "All actions must meet minimum quality thresholds",
+        "time_management": "Lesson should be completed within allocated time frame"
+      },
+      "success_metrics": {
+        "minimum_content_viewed": 0.75,
+        "minimum_app_usage_score": 60,
+        "required_actions_completed": 3,
+        "time_limit_minutes": 45
+      }
+    },
+    {
+      "lesson_title": "Developing a Budget",
+      "lesson_description": "Track income and expenses; develop budget with financial goals",
+      "unit": "Unit 1: Earning and Spending",
+      "day": 7,
+      "teks_standards": [
+        "2(B)",
+        "2(C)",
+        "2(F)"
+      ],
+      "dallas_fed_aligned": true,
+      "creator_email": "admin@trinity-capital.net",
+      "created_date": "2025-08-04T18:07:35.034Z",
+      "lesson_conditions": [
+        {
+          "condition_type": "lesson_content_viewed",
+          "condition_value": {
+            "slidesViewed": 7,
+            "totalSlides": 8
+          },
+          "action_type": "unlock_budget_tool",
+          "action_details": {
+            "message": "Create your first budget using the 50/30/20 rule",
+            "highlight_element": ".budgetTool"
+          },
+          "priority": "high",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "income_tracked",
+          "condition_value": {
+            "sources_identified": 1
+          },
+          "action_type": "categorize_expenses",
+          "action_details": {
+            "message": "Now categorize your expenses into needs, wants, and savings",
+            "provide_categories": [
+              "housing",
+              "food",
+              "transportation",
+              "entertainment",
+              "savings"
+            ]
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "expenses_categorized",
+          "condition_value": {
+            "categories_count": 5
+          },
+          "action_type": "balance_budget",
+          "action_details": {
+            "message": "Ensure your expenses don't exceed your income",
+            "show_balance_indicator": true
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "budget_balanced",
+          "condition_value": {
+            "balanced": true,
+            "savings_included": true
+          },
+          "action_type": "complete_lesson",
+          "action_details": {
+            "score_bonus": 22,
+            "message": "Outstanding budget creation! You've mastered the 50/30/20 rule!"
+          },
+          "priority": "critical",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        }
+      ],
+      "required_actions": [
+        "budget_created",
+        "income_tracked",
+        "expenses_categorized",
+        "budget_balanced"
+      ],
+      "learning_objectives": [
+        "Demonstrate understanding of lesson concepts through content review",
+        "Create a balanced personal budget using the 50/30/20 rule"
+      ],
+      "assessment_criteria": {
+        "content_mastery": "Students must view at least 75% of lesson content",
+        "practical_application": "Students must complete hands-on activities using the app",
+        "concept_demonstration": "Students must demonstrate understanding through app usage",
+        "quality_standards": "All actions must meet minimum quality thresholds",
+        "time_management": "Lesson should be completed within allocated time frame"
+      },
+      "success_metrics": {
+        "minimum_content_viewed": 0.75,
+        "minimum_app_usage_score": 60,
+        "required_actions_completed": 4,
+        "time_limit_minutes": 45
+      }
+    },
+    {
+      "lesson_title": "Owning vs. Renting Housing",
+      "lesson_description": "Analyze costs and benefits of owning versus renting housing",
+      "unit": "Unit 1: Earning and Spending",
+      "day": 9,
+      "teks_standards": [
+        "4(A)"
+      ],
+      "dallas_fed_aligned": true,
+      "creator_email": "admin@trinity-capital.net",
+      "created_date": "2025-08-04T18:07:35.036Z",
+      "lesson_conditions": [
+        {
+          "condition_type": "lesson_content_viewed",
+          "condition_value": {
+            "slidesViewed": 5,
+            "totalSlides": 6
+          },
+          "action_type": "unlock_housing_calculator",
+          "action_details": {
+            "message": "Compare the total costs of renting vs buying",
+            "highlight_element": ".housingCalculator"
+          },
+          "priority": "high",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "housing_calculator_used",
+          "condition_value": {
+            "rent_calculated": true,
+            "mortgage_calculated": true
+          },
+          "action_type": "analyze_long_term_costs",
+          "action_details": {
+            "message": "Consider long-term financial implications of each choice",
+            "show_comparison_chart": true
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "cost_comparison_completed",
+          "condition_value": {
+            "factors_considered": 4
+          },
+          "action_type": "complete_lesson",
+          "action_details": {
+            "score_bonus": 19,
+            "message": "Excellent analysis of housing costs!"
+          },
+          "priority": "critical",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        }
+      ],
+      "required_actions": [
+        "cost_comparison_completed",
+        "housing_calculator_used",
+        "decision_justified"
+      ],
+      "learning_objectives": [
+        "Demonstrate understanding of lesson concepts through content review"
+      ],
+      "assessment_criteria": {
+        "content_mastery": "Students must view at least 75% of lesson content",
+        "practical_application": "Students must complete hands-on activities using the app",
+        "concept_demonstration": "Students must demonstrate understanding through app usage",
+        "quality_standards": "All actions must meet minimum quality thresholds",
+        "time_management": "Lesson should be completed within allocated time frame"
+      },
+      "success_metrics": {
+        "minimum_content_viewed": 0.75,
+        "minimum_app_usage_score": 60,
+        "required_actions_completed": 3,
+        "time_limit_minutes": 45
+      }
+    },
+    {
+      "lesson_title": "Owning vs. Leasing a Vehicle",
+      "lesson_description": "Analyze costs and benefits of owning versus leasing a vehicle",
+      "unit": "Unit 1: Earning and Spending",
+      "day": 10,
+      "teks_standards": [
+        "4(B)"
+      ],
+      "dallas_fed_aligned": true,
+      "creator_email": "admin@trinity-capital.net",
+      "created_date": "2025-08-04T18:07:35.037Z",
+      "lesson_conditions": [
+        {
+          "condition_type": "lesson_content_viewed",
+          "condition_value": {
+            "slidesViewed": 4,
+            "totalSlides": 5
+          },
+          "action_type": "unlock_vehicle_calculator",
+          "action_details": {
+            "message": "Calculate the true cost of buying vs leasing a car",
+            "highlight_element": ".vehicleCalculator"
+          },
+          "priority": "high",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "vehicle_calculator_used",
+          "condition_value": {
+            "purchase_calculated": true,
+            "lease_calculated": true
+          },
+          "action_type": "review_financing",
+          "action_details": {
+            "message": "Explore different financing options and their impact",
+            "show_loan_terms": true
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "total_cost_compared",
+          "condition_value": {
+            "comprehensive_analysis": true
+          },
+          "action_type": "complete_lesson",
+          "action_details": {
+            "score_bonus": 18,
+            "message": "Great work analyzing vehicle financing options!"
+          },
+          "priority": "critical",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        }
+      ],
+      "required_actions": [
+        "vehicle_calculator_used",
+        "total_cost_compared",
+        "financing_options_reviewed"
+      ],
+      "learning_objectives": [
+        "Demonstrate understanding of lesson concepts through content review"
+      ],
+      "assessment_criteria": {
+        "content_mastery": "Students must view at least 75% of lesson content",
+        "practical_application": "Students must complete hands-on activities using the app",
+        "concept_demonstration": "Students must demonstrate understanding through app usage",
+        "quality_standards": "All actions must meet minimum quality thresholds",
+        "time_management": "Lesson should be completed within allocated time frame"
+      },
+      "success_metrics": {
+        "minimum_content_viewed": 0.75,
+        "minimum_app_usage_score": 60,
+        "required_actions_completed": 3,
+        "time_limit_minutes": 45
+      }
+    },
+    {
+      "lesson_title": "Smart Shopping Strategies",
+      "lesson_description": "Compare payment methods and apply smart shopping strategies",
+      "unit": "Unit 1: Earning and Spending",
+      "day": 11,
+      "teks_standards": [
+        "4(C)",
+        "4(D)"
+      ],
+      "dallas_fed_aligned": true,
+      "creator_email": "admin@trinity-capital.net",
+      "created_date": "2025-08-04T18:07:35.039Z",
+      "lesson_conditions": [
+        {
+          "condition_type": "lesson_content_viewed",
+          "condition_value": {
+            "slidesViewed": 6,
+            "totalSlides": 7
+          },
+          "action_type": "unlock_shopping_tools",
+          "action_details": {
+            "message": "Practice comparing prices and payment methods",
+            "highlight_element": ".shoppingTools"
+          },
+          "priority": "high",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "payment_methods_compared",
+          "condition_value": {
+            "methods_analyzed": 3,
+            "total_cost_calculated": true
+          },
+          "action_type": "find_best_deals",
+          "action_details": {
+            "message": "Use unit pricing and comparison tools to find savings",
+            "provide_comparison_tool": true
+          },
+          "priority": "medium",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        },
+        {
+          "condition_type": "savings_found",
+          "condition_value": {
+            "amount_saved": 50,
+            "strategy_used": "unit_pricing"
+          },
+          "action_type": "complete_lesson",
+          "action_details": {
+            "score_bonus": 20,
+            "message": "Excellent! You're now a savvy shopper!"
+          },
+          "priority": "critical",
+          "auto_trigger": true,
+          "feedback_enabled": true,
+          "difficulty_adjusted": true
+        }
+      ],
+      "required_actions": [
+        "payment_methods_compared",
+        "unit_price_calculated",
+        "savings_found"
+      ],
+      "learning_objectives": [
+        "Demonstrate understanding of lesson concepts through content review"
+      ],
+      "assessment_criteria": {
+        "content_mastery": "Students must view at least 75% of lesson content",
+        "practical_application": "Students must complete hands-on activities using the app",
+        "concept_demonstration": "Students must demonstrate understanding through app usage",
+        "quality_standards": "All actions must meet minimum quality thresholds",
+        "time_management": "Lesson should be completed within allocated time frame"
+      },
+      "success_metrics": {
+        "minimum_content_viewed": 0.75,
+        "minimum_app_usage_score": 60,
+        "required_actions_completed": 3,
+        "time_limit_minutes": 45
+      }
+    }
+  ],
+  "implementation_notes": [
+    "All lessons include progressive condition tracking",
+    "Conditions are designed to guide students through hands-on learning",
+    "Each lesson builds on previous knowledge and skills",
+    "Success metrics align with educational standards",
+    "Feedback is provided at each step to encourage learning"
+  ]
+}

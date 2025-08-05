@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jake Ferguson Lesson Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .test-container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      .lesson-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin: 20px 0;
+      }
+      .lesson-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      .lesson-card:hover {
+        background: #f8f9fa;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .lesson-icon {
+        font-size: 2em;
+        margin-bottom: 10px;
+        color: #007bff;
+      }
+      .lesson-title {
+        font-weight: bold;
+        margin-top: 8px;
+        font-size: 0.9em;
+      }
+      .refresh-btn {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 10px 5px;
+      }
+      .refresh-btn:hover {
+        background: #0056b3;
+      }
+      pre {
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 0.8em;
+      }
+    </style>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div class="test-container">
+      <h1>🎓 Jake Ferguson Lesson Rendering Test</h1>
+
+      <div id="status" class="status info">Initializing lesson test...</div>
+
+      <div style="margin: 20px 0">
+        <button class="refresh-btn" onclick="runFullTest()">
+          🔄 Run Full Test
+        </button>
+        <button class="refresh-btn" onclick="testAPIOnly()">
+          🌐 Test API Only
+        </button>
+        <button class="refresh-btn" onclick="clearCache()">
+          🗑️ Clear Browser Cache
+        </button>
+      </div>
+
+      <div id="lesson-container">
+        <h3>📚 Assigned Lessons</h3>
+        <div id="lessons-grid" class="lesson-grid">
+          <!-- Lessons will be rendered here -->
+        </div>
+      </div>
+
+      <div id="debug-info" style="margin-top: 30px">
+        <h3>🔧 Debug Information</h3>
+        <div id="debug-content"></div>
+      </div>
+    </div>
+
+    <script>
+      let testResults = {
+        apiWorking: false,
+        lessonsFound: false,
+        contentPresent: false,
+        renderingWorking: false,
+      };
+
+      function updateStatus(message, type = 'info') {
+        const statusDiv = document.getElementById('status');
+        statusDiv.className = `status ${type}`;
+        statusDiv.innerHTML = message;
+      }
+
+      function getIconForLesson(title) {
+        const lowerCaseTitle = title.toLowerCase();
+
+        if (
+          lowerCaseTitle.includes('money') &&
+          lowerCaseTitle.includes('personality')
+        )
+          return 'fa-solid fa-user-circle';
+        if (lowerCaseTitle.includes('goal')) return 'fa-solid fa-bullseye';
+        if (lowerCaseTitle.includes('balance'))
+          return 'fa-solid fa-balance-scale';
+        if (lowerCaseTitle.includes('bank'))
+          return 'fa-solid fa-building-columns';
+        if (lowerCaseTitle.includes('paycheck'))
+          return 'fa-solid fa-file-invoice-dollar';
+        if (lowerCaseTitle.includes('budget')) return 'fa-solid fa-calculator';
+        if (
+          lowerCaseTitle.includes('housing') ||
+          lowerCaseTitle.includes('rent')
+        )
+          return 'fa-solid fa-home';
+        if (
+          lowerCaseTitle.includes('vehicle') ||
+          lowerCaseTitle.includes('lease')
+        )
+          return 'fa-solid fa-car';
+
+        return 'fa-solid fa-book';
+      }
+
+      async function testAPIOnly() {
+        updateStatus('🔍 Testing API endpoint...', 'info');
+
+        try {
+          const response = await fetch(
+            'http://localhost:3000/student/Jake Ferguson/assignedUnits',
+          );
+
+          if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+          }
+
+          const data = await response.json();
+
+          testResults.apiWorking = true;
+          testResults.lessonsFound =
+            data.assignedUnits && data.assignedUnits.length > 0;
+
+          if (
+            data.assignedUnits &&
+            data.assignedUnits[0] &&
+            data.assignedUnits[0].lessons
+          ) {
+            const firstLesson = data.assignedUnits[0].lessons[0];
+            testResults.contentPresent =
+              firstLesson.content && firstLesson.content.length > 0;
+          }
+
+          const debugContent = document.getElementById('debug-content');
+          debugContent.innerHTML = `
+                    <h4>✅ API Response:</h4>
+                    <p><strong>Success:</strong> ${data.success}</p>
+                    <p><strong>Units:</strong> ${data.assignedUnits ? data.assignedUnits.length : 0}</p>
+                    <p><strong>Lessons in first unit:</strong> ${data.assignedUnits && data.assignedUnits[0] ? data.assignedUnits[0].lessons.length : 0}</p>
+                    <p><strong>First lesson content blocks:</strong> ${testResults.contentPresent ? data.assignedUnits[0].lessons[0].content.length : 0}</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+
+          updateStatus('✅ API test completed successfully!', 'success');
+        } catch (error) {
+          testResults.apiWorking = false;
+          updateStatus(`❌ API test failed: ${error.message}`, 'error');
+
+          document.getElementById('debug-content').innerHTML = `
+                    <h4>❌ API Error:</h4>
+                    <p>${error.message}</p>
+                `;
+        }
+      }
+
+      async function renderLessons() {
+        updateStatus('🎨 Rendering lessons...', 'info');
+
+        try {
+          const response = await fetch(
+            'http://localhost:3000/student/Jake Ferguson/assignedUnits',
+          );
+          const data = await response.json();
+
+          if (
+            !data.success ||
+            !data.assignedUnits ||
+            data.assignedUnits.length === 0
+          ) {
+            throw new Error('No assigned units found');
+          }
+
+          const unit = data.assignedUnits[0];
+          const lessonsGrid = document.getElementById('lessons-grid');
+
+          if (!unit.lessons || unit.lessons.length === 0) {
+            lessonsGrid.innerHTML = '<p>No lessons found in unit</p>';
+            return;
+          }
+
+          let lessonsHtml = '';
+          unit.lessons.forEach((lesson, index) => {
+            const iconClass = getIconForLesson(lesson.lesson_title);
+            lessonsHtml += `
+                        <div class="lesson-card" onclick="openLesson(${index})">
+                            <div class="lesson-icon">
+                                <i class="${iconClass}"></i>
+                            </div>
+                            <div class="lesson-title">${lesson.lesson_title}</div>
+                            <div style="font-size: 0.8em; color: #666; margin-top: 5px;">
+                                ${lesson.content ? lesson.content.length : 0} slides
+                            </div>
+                        </div>
+                    `;
+          });
+
+          lessonsGrid.innerHTML = lessonsHtml;
+          testResults.renderingWorking = true;
+
+          updateStatus(
+            `✅ Successfully rendered ${unit.lessons.length} lessons!`,
+            'success',
+          );
+        } catch (error) {
+          updateStatus(`❌ Rendering failed: ${error.message}`, 'error');
+          testResults.renderingWorking = false;
+        }
+      }
+
+      function openLesson(index) {
+        alert(
+          `Opening lesson ${index + 1}. In the real app, this would open the lesson carousel with all the slides.`,
+        );
+      }
+
+      async function runFullTest() {
+        updateStatus('🚀 Running full lesson test...', 'info');
+
+        // Reset results
+        testResults = {
+          apiWorking: false,
+          lessonsFound: false,
+          contentPresent: false,
+          renderingWorking: false,
+        };
+
+        // Test API
+        await testAPIOnly();
+
+        // Test rendering if API works
+        if (testResults.apiWorking) {
+          await renderLessons();
+        }
+
+        // Final status
+        if (
+          testResults.apiWorking &&
+          testResults.lessonsFound &&
+          testResults.contentPresent &&
+          testResults.renderingWorking
+        ) {
+          updateStatus(
+            '🎉 All tests passed! Lessons should work in the main app now.',
+            'success',
+          );
+        } else {
+          let issues = [];
+          if (!testResults.apiWorking) issues.push('API not responding');
+          if (!testResults.lessonsFound) issues.push('No lessons found');
+          if (!testResults.contentPresent)
+            issues.push('Lesson content missing');
+          if (!testResults.renderingWorking) issues.push('Rendering failed');
+
+          updateStatus(`⚠️ Issues found: ${issues.join(', ')}`, 'error');
+        }
+      }
+
+      function clearCache() {
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            names.forEach(name => {
+              caches.delete(name);
+            });
+          });
+        }
+        location.reload(true);
+      }
+
+      // Auto-run test on page load
+      window.addEventListener('load', () => {
+        setTimeout(runFullTest, 1000);
+      });
+    </script>
+  </body>
+</html>

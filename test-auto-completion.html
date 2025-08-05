@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Auto-Completion System</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 50px auto;
+        padding: 20px;
+        background: #f0f8ff;
+      }
+      .test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .test-button {
+        background: #007bff;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin: 5px;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+      .test-button:hover {
+        background: #0056b3;
+      }
+      .status {
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 5px;
+      }
+      .status.success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .status.info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      .lesson-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1rem;
+        margin: 20px 0;
+      }
+      .lessonRow {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1rem;
+      }
+      .lessonHeaderText {
+        text-align: center;
+        color: #333;
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="test-container">
+      <h1>🧪 Auto-Completion Test System</h1>
+      <p>
+        This page tests the new auto-completion functionality where lessons
+        complete automatically when all conditions are met.
+      </p>
+
+      <div class="status info">
+        <strong>Changes Made:</strong>
+        <ul>
+          <li>✅ Removed "Complete Lesson" button from carousel</li>
+          <li>
+            ✅ Enhanced auto-completion system to detect when all conditions are
+            met
+          </li>
+          <li>✅ Added automatic carousel closing when lesson completes</li>
+          <li>✅ Updated instruction slides to explain auto-completion</li>
+          <li>
+            ✅ Made recordLessonAction globally available for other scripts
+          </li>
+        </ul>
+      </div>
+
+      <h2>📚 Test Lessons</h2>
+      <h3 class="lessonHeaderText">Test Lessons Will Appear Here</h3>
+      <div class="lessonRow lesson-grid">
+        <!-- Lessons will be populated here by lessonEngine.js -->
+      </div>
+
+      <h2>🎮 Manual Testing Actions</h2>
+      <p>
+        Use these buttons to simulate student actions and test auto-completion:
+      </p>
+
+      <button class="test-button" onclick="testDepositAction()">
+        <i class="fa-solid fa-piggy-bank"></i> Simulate Deposit Made
+      </button>
+
+      <button class="test-button" onclick="testTransferAction()">
+        <i class="fa-solid fa-money-bill-transfer"></i> Simulate Transfer
+        Completed
+      </button>
+
+      <button class="test-button" onclick="testBillPayment()">
+        <i class="fa-solid fa-file-invoice-dollar"></i> Simulate Bill Payment
+      </button>
+
+      <button class="test-button" onclick="testDallasFedAction()">
+        <i class="fa-solid fa-chart-line"></i> Simulate Dallas Fed Action
+      </button>
+
+      <button class="test-button" onclick="testSpendingAnalysis()">
+        <i class="fa-solid fa-calculator"></i> Test Spending Analysis (3 Bills)
+      </button>
+
+      <button class="test-button" onclick="showLessonProgress()">
+        <i class="fa-solid fa-chart-bar"></i> Show Current Progress
+      </button>
+
+      <button class="test-button" onclick="resetLessonSystem()">
+        <i class="fa-solid fa-refresh"></i> Reset Lesson System
+      </button>
+
+      <button class="test-button" onclick="debugLessonStatus()">
+        <i class="fa-solid fa-bug"></i> Debug Lesson Status
+      </button>
+
+      <div id="testResults" style="margin-top: 20px"></div>
+
+      <h2>📋 Expected Behavior</h2>
+      <ol>
+        <li>
+          <strong>Open a lesson:</strong> Carousel should open without "Complete
+          Lesson" button
+        </li>
+        <li>
+          <strong>View instruction slide:</strong> Should show auto-completion
+          information
+        </li>
+        <li>
+          <strong>Perform app actions:</strong> Use test buttons above to
+          simulate student actions
+        </li>
+        <li>
+          <strong>Auto-completion:</strong> Lesson should complete automatically
+          and carousel should close
+        </li>
+        <li>
+          <strong>Visual feedback:</strong> Student should see completion
+          notification
+        </li>
+      </ol>
+    </div>
+
+    <!-- Include the lesson engine -->
+    <script type="module" src="Frontend/Javascript/lessonEngine.js"></script>
+
+    <script>
+      // Test data for demonstration
+      const testLessonsData = [
+        {
+          lesson_title: 'Banking Basics Test',
+          lesson_description: 'Test lesson for auto-completion',
+          lesson_conditions: [
+            { condition_type: 'deposit_made', required: true },
+            { condition_type: 'transfer_completed', required: true },
+          ],
+          content: [
+            { type: 'header', content: 'Welcome to Banking' },
+            {
+              type: 'text',
+              content: 'This lesson will teach you basic banking operations.',
+            },
+            { type: 'header', content: 'Making Deposits' },
+            {
+              type: 'text',
+              content: 'Learn how to deposit money into your account.',
+            },
+          ],
+        },
+        {
+          lesson_title: 'Dallas Fed Spending Analysis',
+          lesson_description: 'Advanced lesson with Dallas Fed conditions',
+          lesson_conditions: [
+            { condition_type: 'spending_analyzed', required: true },
+            { condition_type: 'budget_balanced', required: true },
+          ],
+          content: [
+            { type: 'header', content: 'Spending Analysis' },
+            {
+              type: 'text',
+              content:
+                'Analyze your spending patterns to make better financial decisions.',
+            },
+          ],
+        },
+      ];
+
+      // Store test data globally
+      window.currentLessonsData = testLessonsData;
+
+      // Test functions
+      function testDepositAction() {
+        if (window.recordLessonAction) {
+          const result = window.recordLessonAction('deposit_made', {
+            amount: 500,
+            account: 'checking',
+          });
+          showTestResult('Deposit Action', 'Recorded deposit of $500', result);
+        } else {
+          showTestResult(
+            'Deposit Action',
+            'ERROR: recordLessonAction not available',
+            null,
+          );
+        }
+      }
+
+      function testTransferAction() {
+        if (window.recordLessonAction) {
+          const result = window.recordLessonAction('transfer_completed', {
+            amount: 200,
+            fromAccount: 'checking',
+            toAccount: 'savings',
+          });
+          showTestResult(
+            'Transfer Action',
+            'Recorded transfer of $200',
+            result,
+          );
+        } else {
+          showTestResult(
+            'Transfer Action',
+            'ERROR: recordLessonAction not available',
+            null,
+          );
+        }
+      }
+
+      function testBillPayment() {
+        if (window.recordLessonAction) {
+          const result = window.recordLessonAction('bill_paid', {
+            amount: 150,
+            billType: 'utilities',
+          });
+          showTestResult(
+            'Bill Payment',
+            'Recorded bill payment of $150',
+            result,
+          );
+        } else {
+          showTestResult(
+            'Bill Payment',
+            'ERROR: recordLessonAction not available',
+            null,
+          );
+        }
+      }
+
+      function testDallasFedAction() {
+        if (window.recordLessonAction) {
+          const result = window.recordLessonAction('spending_analyzed', {
+            categories_identified: 5,
+            analysis_quality: 'good',
+          });
+          showTestResult(
+            'Dallas Fed Action',
+            'Recorded spending analysis',
+            result,
+          );
+        } else {
+          showTestResult(
+            'Dallas Fed Action',
+            'ERROR: recordLessonAction not available',
+            null,
+          );
+        }
+      }
+
+      function testSpendingAnalysis() {
+        if (window.recordLessonAction) {
+          // Simulate creating 3 bills for spending analysis (Housing, Food, Custom-Expense)
+          const bills = [
+            { billName: 'Housing', amount: 800, category: 'needs' },
+            { billName: 'Food', amount: 300, category: 'needs' },
+            { billName: 'Custom-Expense', amount: 200, category: 'wants' },
+          ];
+
+          bills.forEach((bill, index) => {
+            setTimeout(() => {
+              const result = window.recordLessonAction('spending_analyzed', {
+                billName: bill.billName,
+                amount: bill.amount,
+                category: bill.category,
+                type: 'bill',
+              });
+
+              showTestResult(
+                `Bill ${index + 1}`,
+                `Created ${bill.billName} bill for $${bill.amount}`,
+                result,
+              );
+
+              // After creating all 3 bills, show debug info
+              if (index === bills.length - 1) {
+                setTimeout(() => {
+                  if (window.debugLessonTracking) {
+                    window.debugLessonTracking();
+                  }
+                }, 500);
+              }
+            }, index * 1000); // Stagger the bill creation by 1 second each
+          });
+
+          showTestResult(
+            'Spending Analysis Test',
+            'Creating 3 bills for spending analysis lesson...',
+            null,
+          );
+        } else {
+          showTestResult(
+            'Spending Analysis Test',
+            'ERROR: recordLessonAction not available',
+            null,
+          );
+        }
+      }
+
+      function showLessonProgress() {
+        // Try to get progress from lesson tracker
+        if (window.lessonTracker && window.lessonTracker.getLessonProgress) {
+          const progress = window.lessonTracker.getLessonProgress();
+          showTestResult(
+            'Lesson Progress',
+            'Current lesson progress retrieved',
+            progress,
+          );
+        } else {
+          showTestResult(
+            'Lesson Progress',
+            'No active lesson or lessonTracker not available',
+            null,
+          );
+        }
+      }
+
+      function resetLessonSystem() {
+        // Reset the lesson system for fresh testing
+        if (window.lessonTracker) {
+          window.lessonTracker.currentLesson = null;
+          window.lessonTracker.positiveConditionsMet = [];
+          window.lessonTracker.negativeConditionsTriggered = [];
+          showTestResult('Reset', 'Lesson system reset successfully', null);
+        }
+      }
+
+      function debugLessonStatus() {
+        if (window.debugLessonTracking) {
+          window.debugLessonTracking();
+          showTestResult('Debug', 'Lesson debug info printed to console', null);
+        } else {
+          showTestResult('Debug', 'Debug function not available', null);
+        }
+      }
+
+      function showTestResult(action, message, data) {
+        const resultsDiv = document.getElementById('testResults');
+        const result = document.createElement('div');
+        result.className = 'status success';
+        result.innerHTML = `
+                <strong>${action}:</strong> ${message}
+                ${data ? `<pre>${JSON.stringify(data, null, 2)}</pre>` : ''}
+                <small>Time: ${new Date().toLocaleTimeString()}</small>
+            `;
+        resultsDiv.insertBefore(result, resultsDiv.firstChild);
+      }
+
+      // Initialize when page loads
+      window.addEventListener('load', function () {
+        console.log('Test page loaded');
+        console.log('Test lessons data:', testLessonsData);
+
+        // Create fake student profile for testing
+        const testProfile = {
+          memberName: 'test-student',
+          username: 'test-student',
+          _id: 'test-123',
+        };
+
+        // Try to render lessons if the function is available
+        setTimeout(() => {
+          if (window.renderLessons) {
+            console.log('Attempting to render test lessons...');
+            // We'll manually create lesson buttons since we don't have the full server setup
+            createTestLessonButtons();
+          } else {
+            console.log(
+              'renderLessons not available yet, creating test buttons...',
+            );
+            createTestLessonButtons();
+          }
+        }, 1000);
+      });
+
+      function createTestLessonButtons() {
+        const lessonContainer = document.querySelector('.lessonRow');
+        lessonContainer.innerHTML = '';
+
+        testLessonsData.forEach((lesson, index) => {
+          const lessonDiv = document.createElement('div');
+          lessonDiv.className = 'test-button';
+          lessonDiv.style.cssText = `
+                    padding: 15px;
+                    margin: 10px;
+                    border-radius: 8px;
+                    cursor: pointer;
+                    background: linear-gradient(135deg, #00ffcc, #00b3a6);
+                    color: white;
+                    text-align: center;
+                `;
+          lessonDiv.innerHTML = `
+                    <h4>${lesson.lesson_title}</h4>
+                    <p>${lesson.lesson_description}</p>
+                    <small>${lesson.lesson_conditions.length} conditions required</small>
+                `;
+          lessonDiv.onclick = () => {
+            console.log('Opening test lesson:', index);
+            if (window.openLessonCarousel) {
+              window.openLessonCarousel(index);
+            } else {
+              alert(
+                'openLessonCarousel function not available. Check console for errors.',
+              );
+            }
+          };
+          lessonContainer.appendChild(lessonDiv);
+        });
+      }
+    </script>
+  </body>
+</html>

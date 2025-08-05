@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson Content Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+      }
+      .success {
+        color: green;
+      }
+      .error {
+        color: red;
+      }
+      .info {
+        color: blue;
+      }
+      pre {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 3px;
+        overflow-x: auto;
+      }
+      .slide {
+        border: 1px solid #ddd;
+        margin: 10px 0;
+        padding: 10px;
+        border-radius: 5px;
+      }
+      .slide-header {
+        background: #e7f3ff;
+      }
+      .slide-text {
+        background: #f9f9f9;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Lesson Content Parser Test</h1>
+
+    <div class="test-section">
+      <h3>1. Test Lesson Content Parsing</h3>
+      <button onclick="testLessonParsing()">
+        Test Dallas Fed Lesson Parsing
+      </button>
+      <div id="parsingResult"></div>
+    </div>
+
+    <div class="test-section">
+      <h3>2. Lesson Slides Preview</h3>
+      <div id="slidesPreview"></div>
+    </div>
+
+    <script>
+      // Mock the parseLessonContent function (simplified version)
+      function parseLessonContent(lesson) {
+        console.log('parseLessonContent called with lesson:', lesson);
+        const slides = [];
+
+        // Check for Dallas Fed lesson structure first (content array)
+        if (lesson.content && Array.isArray(lesson.content)) {
+          console.log(
+            'Found Dallas Fed content array with',
+            lesson.content.length,
+            'blocks',
+          );
+
+          for (let i = 0; i < lesson.content.length; i++) {
+            const current = lesson.content[i];
+            const next = lesson.content[i + 1];
+
+            if (current.type === 'header') {
+              if (next && next.type === 'text') {
+                // Header followed by text - combine them
+                slides.push({
+                  type: 'header-with-text',
+                  header: current.content,
+                  text: next.content,
+                });
+                i++; // Skip the next item
+              } else {
+                // Header standalone
+                slides.push({
+                  type: 'header-only',
+                  content: current.content,
+                  isHeader: true,
+                });
+              }
+            } else if (current.type === 'text') {
+              // Check if previous block was not a header
+              const previous = lesson.content[i - 1];
+              if (!previous || previous.type !== 'header') {
+                slides.push({
+                  type: 'text-only',
+                  content: current.content,
+                  isHeader: false,
+                });
+              }
+            }
+          }
+          return slides;
+        }
+
+        return slides;
+      }
+
+      async function testLessonParsing() {
+        const resultDiv = document.getElementById('parsingResult');
+        const slidesDiv = document.getElementById('slidesPreview');
+
+        resultDiv.innerHTML = '<p class="info">Testing lesson parsing...</p>';
+
+        try {
+          // Fetch a lesson from the API
+          const response = await fetch(
+            'http://localhost:3000/student/Jake Ferguson/assignedUnits',
+          );
+          const data = await response.json();
+
+          if (
+            !data.success ||
+            !data.assignedUnits ||
+            !data.assignedUnits[0] ||
+            !data.assignedUnits[0].lessons
+          ) {
+            throw new Error('No lessons found in API response');
+          }
+
+          const firstLesson = data.assignedUnits[0].lessons[0];
+          console.log('Testing with lesson:', firstLesson);
+
+          // Test the parsing
+          const slides = parseLessonContent(firstLesson);
+
+          resultDiv.innerHTML = `
+                    <p class="success">✅ Parsing successful!</p>
+                    <p class="info">Lesson: ${firstLesson.lesson_title}</p>
+                    <p class="info">Original content blocks: ${firstLesson.content ? firstLesson.content.length : 0}</p>
+                    <p class="info">Generated slides: ${slides.length}</p>
+                `;
+
+          // Display slides preview
+          let slidesHtml = '<h4>Generated Slides:</h4>';
+          slides.forEach((slide, index) => {
+            if (slide.type === 'header-with-text') {
+              slidesHtml += `
+                            <div class="slide slide-header">
+                                <strong>Slide ${index + 1} (Header + Text):</strong><br>
+                                <h4>${slide.header}</h4>
+                                <p>${slide.text}</p>
+                            </div>
+                        `;
+            } else if (slide.type === 'header-only') {
+              slidesHtml += `
+                            <div class="slide slide-header">
+                                <strong>Slide ${index + 1} (Header Only):</strong><br>
+                                <h4>${slide.content}</h4>
+                            </div>
+                        `;
+            } else if (slide.type === 'text-only') {
+              slidesHtml += `
+                            <div class="slide slide-text">
+                                <strong>Slide ${index + 1} (Text Only):</strong><br>
+                                <p>${slide.content}</p>
+                            </div>
+                        `;
+            }
+          });
+
+          slidesDiv.innerHTML = slidesHtml;
+        } catch (error) {
+          console.error('Test failed:', error);
+          resultDiv.innerHTML = `<p class="error">❌ Test Error: ${error.message}</p>`;
+        }
+      }
+
+      // Auto-run test on page load
+      window.addEventListener('load', () => {
+        console.log('🚀 Lesson Content Test loaded');
+        testLessonParsing();
+      });
+    </script>
+  </body>
+</html>

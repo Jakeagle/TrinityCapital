@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Database Integration</title>
+  </head>
+  <body>
+    <h1>Trinity Capital - Database Integration Test</h1>
+    <button onclick="testDatabaseIntegration()">
+      Test Database Integration
+    </button>
+    <div id="results"></div>
+
+    <script src="Frontend/Javascript/lessonEngine.js"></script>
+    <script>
+      // Override console.log to show results on page
+      const originalLog = console.log;
+      console.log = function (...args) {
+        originalLog.apply(console, args);
+        const resultsDiv = document.getElementById('results');
+        resultsDiv.innerHTML += '<div>' + args.join(' ') + '</div>';
+      };
+
+      // Test function
+      async function testDatabaseIntegration() {
+        document.getElementById('results').innerHTML = '<h2>Test Results:</h2>';
+
+        // Set a student name that exists in the database
+        localStorage.setItem('currentProfile', 'Jake Ferguson');
+
+        console.log('🧪 Testing Database Integration...');
+        console.log('📊 Running excellent student test scenario...');
+
+        try {
+          const result = await runTestScenario('excellent_student');
+
+          if (result) {
+            console.log('✅ Test completed successfully!');
+            console.log(
+              `Final result: ${result.score.finalScore}% (${result.score.grade})`,
+            );
+          } else {
+            console.log('❌ Test failed - no result returned');
+          }
+        } catch (error) {
+          console.log('❌ Test failed with error:', error.message);
+        }
+      }
+    </script>
+  </body>
+</html>

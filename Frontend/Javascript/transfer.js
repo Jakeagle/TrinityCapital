@@ -3,6 +3,12 @@
 //import profiles object from App.js
 import { currentProfile } from './script.js';
 import { initialBalance } from './script.js';
+import {
+  showNotification,
+  validateAmount,
+  validateSelection,
+  setButtonLoading,
+} from './validation.js';
 
 /************************************************Variables*************************************************/
 
@@ -36,11 +42,64 @@ const transferLink = `http://localhost:3000/transfer`;
 
 console.log(currentProfile);
 
-loginButton.addEventListener('click', function () {
-  accountSetup();
-});
+/**
+ * Validate transfer form inputs
+ */
+function validateTransferForm(fromAccount, toAccount, amount) {
+  const errors = [];
 
-const accountSetup = function () {
+  // Validate account selection
+  const fromErrors = validateSelection(fromAccount, {
+    fieldName: 'From Account',
+  });
+  const toErrors = validateSelection(toAccount, { fieldName: 'To Account' });
+  errors.push(...fromErrors, ...toErrors);
+
+  // Check if accounts are different
+  if (fromAccount && toAccount && fromAccount === toAccount) {
+    errors.push('You cannot transfer to the same account');
+  }
+
+  // Validate amount
+  const amountErrors = validateAmount(amount, {
+    min: 0.01,
+    max: 50000,
+    fieldName: 'Transfer Amount',
+  });
+  errors.push(...amountErrors);
+
+  // Check if user has sufficient funds
+  if (fromAccount && amount && !isNaN(amount)) {
+    const accounts = [
+      currentProfile.checkingAccount,
+      currentProfile.savingsAccount,
+    ];
+    const fromAccountObj = accounts.find(
+      acc => acc.accountNumber === fromAccount,
+    );
+
+    if (fromAccountObj && parseFloat(amount) > fromAccountObj.balanceTotal) {
+      errors.push('Insufficient funds in selected account');
+    }
+  }
+
+  return errors;
+}
+
+// Expose function to global scope to be called after login
+window.accountSetup = accountSetup;
+
+function accountSetup() {
+  // Check if user is logged in
+  if (
+    !currentProfile ||
+    !currentProfile.checkingAccount ||
+    !currentProfile.savingsAccount
+  ) {
+    console.warn('User not logged in or accounts not found');
+    return;
+  }
+
   let accounts = [
     currentProfile.checkingAccount,
     currentProfile.savingsAccount,
@@ -67,16 +126,22 @@ const accountSetup = function () {
     }----------${account.accountNumber.slice(-4)}`;
     accountListToo.appendChild(option);
   });
-};
+}
 //Handles math for transfer
-
 const transPush = function (from, to) {
-  if (from === to) {
-    alert('You cannot use the same account in both fields');
-  } else {
+  try {
+    const amount = parseFloat(amountInput.value);
+
+    // Validate the transfer
+    const errors = validateTransferForm(from, to, amount);
+
+    if (errors.length > 0) {
+      showNotification(errors.join(', '), 'error');
+      return;
+    }
+
     let accountFrom;
     let accountTo;
-    let amount;
 
     let accounts = [
       currentProfile.checkingAccount,
@@ -97,15 +162,16 @@ const transPush = function (from, to) {
     const memberName = currentProfile.memberName;
     console.log(memberName);
 
-    amount = parseInt(amountInput.value);
-    console.log(amount);
     sendTransferData(
       currentProfile,
       accountFrom,
       accountTo,
       amount,
-      memberName
+      memberName,
     );
+  } catch (error) {
+    console.error('Transfer error:', error);
+    showNotification('An error occurred during the transfer', 'error');
   }
 };
 
@@ -114,18 +180,72 @@ const sendTransferData = async function (
   from,
   to,
   amount,
-  memberName
+  memberName,
 ) {
-  const res = await fetch(transferLink, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      parcel: [profile, from, to, amount, memberName],
-    }),
-  });
-  initialBalance();
+  try {
+    showNotification('Processing transfer...', 'info');
+
+    const res = await fetch(transferLink, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        parcel: [profile, from, to, amount, memberName],
+      }),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Server error: ${res.status}`);
+    }
+
+    const result = await res.json();
+
+    showNotification(
+      `Transfer of $${amount.toFixed(2)} completed successfully!`,
+      'success',
+    );
+
+    // Record lesson progress for money transfer
+    if (typeof window.recordLessonAction === 'function') {
+      const transferDetails = {
+        amount: amount,
+        fromAccount: from.accountType,
+        toAccount: to.accountType,
+        fromBalance: from.balanceTotal,
+        toBalance: to.balanceTotal,
+      };
+
+      // Transfers satisfy multiple lesson conditions
+      window.recordLessonAction('smart_goal_validated', transferDetails);
+      window.recordLessonAction('balance_sheet_created', transferDetails);
+      window.recordLessonAction(
+        'assets_liabilities_identified',
+        transferDetails,
+      );
+      window.recordLessonAction('transactions_reconciled', transferDetails);
+      window.recordLessonAction('budget_balanced', transferDetails);
+      window.recordLessonAction('expenses_categorized', transferDetails);
+
+      console.log(
+        '📚 Recorded money transfer for lesson progress:',
+        `$${amount.toFixed(2)} from ${from.accountType} to ${to.accountType}`,
+      );
+    }
+
+    // Clear form
+    amountInput.value = '';
+    accountListFrom.selectedIndex = 0;
+    accountListToo.selectedIndex = 0;
+    accountSend = null;
+    accountRecieve = null;
+
+    // Update balance
+    initialBalance();
+  } catch (error) {
+    console.error('Transfer failed:', error);
+    showNotification(`Transfer failed: ${error.message}`, 'error');
+  }
 };
 
 /************************************************Event Listeners*************************************************/
@@ -149,8 +269,18 @@ accountListToo.addEventListener('change', function (event) {
 });
 
 //handles getting amount
-btnAmount.addEventListener('click', function () {
-  transPush(accountSend, accountRecieve);
+btnAmount.addEventListener('click', function (e) {
+  e.preventDefault();
 
-  amountInput.textContent = '';
+  const originalText = btnAmount.textContent;
+  setButtonLoading(btnAmount, true, originalText);
+
+  try {
+    transPush(accountSend, accountRecieve);
+  } finally {
+    // Reset button state after a short delay
+    setTimeout(() => {
+      setButtonLoading(btnAmount, false, originalText);
+    }, 1000);
+  }
 });
