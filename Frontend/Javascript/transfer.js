@@ -206,30 +206,25 @@ const sendTransferData = async function (
       'success',
     );
 
-    // Record lesson progress for money transfer
-    if (typeof window.recordLessonAction === 'function') {
-      const transferDetails = {
+    // Record transfer action using lesson engine
+    if (window.lessonEngine && window.lessonEngine.initialized) {
+      await window.lessonEngine.onAppAction('transfer', {
         amount: amount,
         fromAccount: from.accountType,
         toAccount: to.accountType,
         fromBalance: from.balanceTotal,
         toBalance: to.balanceTotal,
-      };
-
-      // Transfers satisfy multiple lesson conditions
-      window.recordLessonAction('smart_goal_validated', transferDetails);
-      window.recordLessonAction('balance_sheet_created', transferDetails);
-      window.recordLessonAction(
-        'assets_liabilities_identified',
-        transferDetails,
-      );
-      window.recordLessonAction('transactions_reconciled', transferDetails);
-      window.recordLessonAction('budget_balanced', transferDetails);
-      window.recordLessonAction('expenses_categorized', transferDetails);
+        member: memberName,
+        timestamp: new Date().toISOString(),
+      });
 
       console.log(
-        '📚 Recorded money transfer for lesson progress:',
+        '✅ Transfer action recorded for lesson tracking:',
         `$${amount.toFixed(2)} from ${from.accountType} to ${to.accountType}`,
+      );
+    } else {
+      console.warn(
+        '⚠️ Lesson engine not available - transfer tracking disabled',
       );
     }
 

@@ -165,8 +165,10 @@ class CheckPayeeManager {
         return;
       }
 
+      // Encode the member name to handle spaces and special characters
+      const encodedMemberName = encodeURIComponent(currentProfile.memberName);
       const response = await fetch(
-        `http://localhost:3000/getBillInfo/${currentProfile.memberName}`,
+        `http://localhost:3000/getBillInfo/${encodedMemberName}`,
       );
 
       if (!response.ok) {
@@ -214,8 +216,10 @@ class CheckPayeeManager {
         return;
       }
 
+      // Encode the member name to handle spaces and special characters
+      const encodedMemberName = encodeURIComponent(currentProfile.memberName);
       const response = await fetch(
-        `http://localhost:3000/classmates/${currentProfile.memberName}`,
+        `http://localhost:3000/classmates/${encodedMemberName}`,
       );
 
       if (!response.ok) {

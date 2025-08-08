@@ -147,24 +147,23 @@ const sendFunds = async function (recip, sendr, amnt) {
       'success',
     );
 
-    // Record lesson progress for sending money
-    if (typeof window.recordLessonAction === 'function') {
-      const sendDetails = {
+    // Record send money action using lesson engine
+    if (window.lessonEngine && window.lessonEngine.initialized) {
+      await window.lessonEngine.onAppAction('money_sent', {
         amount: amnt,
         recipient: recip,
         sender: sendr,
-        transactionType: 'send_money',
-      };
-
-      // Sending money satisfies multiple lesson conditions
-      window.recordLessonAction('spending_analyzed', sendDetails);
-      window.recordLessonAction('transactions_reconciled', sendDetails);
-      window.recordLessonAction('payment_methods_compared', sendDetails);
-      window.recordLessonAction('cost_comparison_completed', sendDetails);
+        transactionType: 'peer_transfer',
+        timestamp: new Date().toISOString(),
+      });
 
       console.log(
-        '📚 Recorded money sending for lesson progress:',
+        '✅ Send money action recorded for lesson tracking:',
         `$${amnt.toFixed(2)} to ${recip}`,
+      );
+    } else {
+      console.warn(
+        '⚠️ Lesson engine not available - send money tracking disabled',
       );
     }
 

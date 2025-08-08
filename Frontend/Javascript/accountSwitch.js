@@ -75,6 +75,19 @@ function initializeAccountSwitch() {
     // Use the proper formatting function for account number display
     updateAccountNumberDisplay(newProfile.checkingAccount);
 
+    // Record account switch action using lesson engine
+    if (window.lessonEngine && window.lessonEngine.initialized) {
+      await window.lessonEngine.onAppAction('account_switch', {
+        fromAccount: currentAccount?.accountType || 'unknown',
+        toAccount: 'Checking',
+        accountNumber: newProfile.checkingAccount.accountNumber,
+        balance: newProfile.checkingAccount.balanceTotal,
+        timestamp: new Date().toISOString(),
+      });
+
+      console.log('✅ Account switch to Checking recorded for lesson tracking');
+    }
+
     console.log(Profiles);
   });
 
@@ -94,6 +107,19 @@ function initializeAccountSwitch() {
 
     // Use the proper formatting function for account number display
     updateAccountNumberDisplay(newProfile.savingsAccount);
+
+    // Record account switch action using lesson engine
+    if (window.lessonEngine && window.lessonEngine.initialized) {
+      await window.lessonEngine.onAppAction('account_switch', {
+        fromAccount: currentAccount?.accountType || 'unknown',
+        toAccount: 'Savings',
+        accountNumber: newProfile.savingsAccount.accountNumber,
+        balance: newProfile.savingsAccount.balanceTotal,
+        timestamp: new Date().toISOString(),
+      });
+
+      console.log('✅ Account switch to Savings recorded for lesson tracking');
+    }
 
     console.log(Profiles);
   });

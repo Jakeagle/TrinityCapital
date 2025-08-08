@@ -1,11 +1,19 @@
 'use strict';
 
-import { renderLessons } from './lessonEngine.js';
+import { renderLessons } from './lessonRenderer.js';
 import {
   showNotification,
   validateText,
   setButtonLoading,
 } from './validation.js';
+
+// Import lesson engine functions globally
+try {
+  await import('./lessonEngine.js');
+  console.log('✅ Lesson engine loaded successfully');
+} catch (error) {
+  console.warn('⚠️ Lesson engine not available:', error.message);
+}
 import {
   initializeUIEnhancements,
   showNotification as showModernNotification,
@@ -51,7 +59,9 @@ if (
     navigator.userAgent,
   )
 ) {
-  window.location.replace('https://trinitycapitalmobile.netlify.app');
+  // Mobile device detected - redirect disabled
+  // window.location.replace('https://trinitycapitalmobile.netlify.app');
+  console.log('Mobile device detected - staying on current app');
 } else {
   console.log('Were on MOBILE!');
 }
@@ -91,6 +101,9 @@ logOutBTN.addEventListener('click', function () {
 
 billsModalBTN.addEventListener('click', function () {
   billsModal.showModal();
+
+  // Note: We don't record lesson tracking here anymore - only when bills are actually created
+  // This prevents premature completion of the account_checked condition
 });
 
 closeBillModal.addEventListener('click', function () {
@@ -224,19 +237,23 @@ async function openMessageCenter() {
         }
         const classmates = await response.json();
 
-        if (!classmates || classmates.length === 0) {
-          alert(
-            'You are the only student in your class or no classmates found.',
-          );
-          return;
+        // Add teacher as an option (admin@trinity-capital.net)
+        const availableContacts = ['admin@trinity-capital.net'];
+        if (classmates && classmates.length > 0) {
+          availableContacts.push(...classmates);
         }
 
-        // Display classmates for selection using a simple prompt
-        const classmateList = classmates
-          .map((classmate, index) => `${index + 1}. ${classmate}`)
+        // Display contacts for selection using a simple prompt
+        const contactList = availableContacts
+          .map((contact, index) => {
+            if (contact === 'admin@trinity-capital.net') {
+              return `${index + 1}. ${contact} (Teacher)`;
+            }
+            return `${index + 1}. ${contact}`;
+          })
           .join('\n');
         const selectionInput = prompt(
-          `Select a classmate to start a new conversation (enter number or name):\n${classmateList}`,
+          `Select a contact to start a new conversation:\n${contactList}`,
         );
 
         if (selectionInput === null) {
@@ -244,24 +261,24 @@ async function openMessageCenter() {
           return;
         }
 
-        let selectedClassmate = null;
+        let selectedContact = null;
         const selectionIndex = parseInt(selectionInput) - 1;
 
         if (
           !isNaN(selectionIndex) &&
           selectionIndex >= 0 &&
-          selectionIndex < classmates.length
+          selectionIndex < availableContacts.length
         ) {
-          selectedClassmate = classmates[selectionIndex];
-        } else if (classmates.includes(selectionInput)) {
-          selectedClassmate = selectionInput;
+          selectedContact = availableContacts[selectionIndex];
+        } else if (availableContacts.includes(selectionInput)) {
+          selectedContact = selectionInput;
         } else {
           alert('Invalid selection. Please enter a valid number or name.');
           return;
         }
 
-        // Create a new thread with the selected classmate
-        await createNewThread(selectedClassmate);
+        // Create a new thread with the selected contact
+        await createNewThread(selectedContact);
 
         // Update the UI with the new thread by re-opening the message center
         await openMessageCenter();
@@ -401,7 +418,16 @@ function createThreadElement(threadData) {
     const otherParticipant = threadData.participants?.find(
       p => p !== currentProfile.memberName,
     );
-    displayName = otherParticipant || threadData.threadId; // Fallback to threadId
+
+    // Special handling for teacher display name
+    if (
+      otherParticipant === 'admin@trinity-capital.net' ||
+      otherParticipant === 'adminTC'
+    ) {
+      displayName = 'admin@trinity-capital.net';
+    } else {
+      displayName = otherParticipant || threadData.threadId; // Fallback to threadId
+    }
   }
 
   // Get last message content for preview
@@ -579,79 +605,7 @@ async function createNewThread(recipientId) {
  * @param {string} messageText - The content of the message.
  */
 function sendMessage(recipientIdForServer, messageContent) {
-  // Record lesson progress for sending a message
-  if (typeof window.recordLessonAction === 'function') {
-    const messageDetails = {
-      messageLength: messageContent.length,
-      recipient: recipientIdForServer,
-      isClassMessage: recipientIdForServer.startsWith('class-message-'),
-      isTeacherMessage:
-        recipientIdForServer.startsWith('class-message-') ||
-        recipientIdForServer === currentProfile.teacher,
-      timestamp: new Date().toISOString(),
-    };
-
-    // Check if message contains lesson-related keywords AND is sent to teacher
-    const lessonKeywords = [
-      'spending',
-      'budget',
-      'savings',
-      'goal',
-      'assets',
-      'liabilities',
-      'balance',
-      'income',
-      'expenses',
-      'transfer',
-      'deposit',
-      'bill',
-      'payment',
-      'categories',
-      'categorized',
-      'analysis',
-      'comparison',
-      'reconcile',
-      'paycheck',
-      'deductions',
-    ];
-    const containsLessonContent = lessonKeywords.some(keyword =>
-      messageContent.toLowerCase().includes(keyword),
-    );
-
-    // Only track lesson progress if message is sent to teacher AND contains lesson content
-    if (messageDetails.isTeacherMessage && containsLessonContent) {
-      // Messages with lesson content sent to teacher satisfy multiple conditions
-      window.recordLessonAction('spending_analyzed', messageDetails);
-      window.recordLessonAction('smart_goal_validated', messageDetails);
-      window.recordLessonAction('balance_sheet_created', messageDetails);
-      window.recordLessonAction(
-        'assets_liabilities_identified',
-        messageDetails,
-      );
-      window.recordLessonAction('transactions_reconciled', messageDetails);
-      window.recordLessonAction('paycheck_analyzed', messageDetails);
-      window.recordLessonAction('budget_balanced', messageDetails);
-      window.recordLessonAction('income_tracked', messageDetails);
-      window.recordLessonAction('expenses_categorized', messageDetails);
-      window.recordLessonAction('cost_comparison_completed', messageDetails);
-      window.recordLessonAction('payment_methods_compared', messageDetails);
-
-      console.log(
-        '📚 Recorded lesson-related message to teacher for progress:',
-        messageContent.substring(0, 50) + '...',
-      );
-    } else if (messageDetails.isTeacherMessage) {
-      console.log(
-        '📧 Message sent to teacher but no lesson keywords detected:',
-        messageContent.substring(0, 50) + '...',
-      );
-    } else if (containsLessonContent) {
-      console.log(
-        '📝 Lesson content detected but not sent to teacher:',
-        messageContent.substring(0, 50) + '...',
-      );
-    }
-  }
+  // Note: Lesson tracking removed - simplified messaging system
 
   // Determine if it's a class message based on the recipient ID
   const isClassMessage = recipientIdForServer.startsWith('class-message-');
@@ -815,6 +769,8 @@ const updateTime = function () {
 const displayAccounts = function (currentAccount) {
   const accountContainer = document.querySelector('.accountContainer');
   accountContainer.innerHTML = '';
+
+  // Note: Lesson tracking removed - simplified account display
 
   //Shows no accounts if there are no accounts int the current profile
 
@@ -1014,25 +970,29 @@ socket.on('unitAssignedToStudent', data => {
         unitAssignment,
       );
 
-      // Re-render lessons to show the new unit - use dynamic import to access the lesson engine
+      // Re-render lessons to show the new unit - use dynamic import to access the lesson renderer
       if (typeof renderLessons === 'function') {
         console.log('🔄 Refreshing lessons display...');
+        console.log(
+          '🔍 DEBUG: currentProfile when calling renderLessons:',
+          currentProfile,
+        );
         renderLessons(currentProfile);
       } else {
         // If renderLessons is not available as a global function, try to import it
         console.log('🔄 Attempting to refresh lessons via module import...');
-        import('./lessonEngine.js')
+        import('./lessonRenderer.js')
           .then(module => {
             if (module.renderLessons) {
               module.renderLessons(currentProfile);
             } else {
               console.warn(
-                'renderLessons function not found in lesson engine module',
+                'renderLessons function not found in lesson renderer module',
               );
             }
           })
           .catch(error => {
-            console.error('Failed to import lesson engine:', error);
+            console.error('Failed to import lesson renderer:', error);
           });
       }
 
@@ -1320,8 +1280,8 @@ if (loginButton) {
     const loginPIN = document.querySelector('.login__input--pin');
     const loginText = document.querySelector('.login__input--user');
 
-    setTimeout(() => {
-      loginFunc(loginPIN, loginText, loginBox);
+    setTimeout(async () => {
+      await loginFunc(loginPIN, loginText, loginBox);
       setButtonLoading(loginButton, false, originalText);
     }, 500);
   });
@@ -1339,8 +1299,8 @@ if (mobileLoginButton) {
       '.mobile_login__input--user',
     );
 
-    setTimeout(() => {
-      loginFunc(mobileLoginPIN, mobileLoginText, mobileLoginBox);
+    setTimeout(async () => {
+      await loginFunc(mobileLoginPIN, mobileLoginText, mobileLoginBox);
       setButtonLoading(mobileLoginButton, false, originalText);
     }, 500);
 
@@ -1348,7 +1308,7 @@ if (mobileLoginButton) {
   });
 }
 
-const loginFunc = function (PIN, user, screen) {
+const loginFunc = async function (PIN, user, screen) {
   try {
     // Validate inputs
     const usernameErrors = validateText(user.value, {
@@ -1447,6 +1407,17 @@ const loginFunc = function (PIN, user, screen) {
         // Initialize all module functions after successful login
         // These functions will now have access to currentProfile
         try {
+          // Initialize lesson engine for the logged-in student
+          if (window.lessonEngine) {
+            await window.lessonEngine.initialize(
+              currentProfile.memberName || currentProfile.userName,
+            );
+            console.log(
+              '✅ Lesson engine initialized for student:',
+              currentProfile.memberName,
+            );
+          }
+
           // Call setup functions from other modules
           if (window.incomeSpendingCalc) window.incomeSpendingCalc();
           if (window.accountSetup) window.accountSetup();
@@ -1459,6 +1430,10 @@ const loginFunc = function (PIN, user, screen) {
 
         // Fetch and render lessons based on the student's teacher
         if (currentProfile) {
+          console.log(
+            '🔍 DEBUG: Calling renderLessons with currentProfile:',
+            currentProfile,
+          );
           renderLessons(currentProfile);
         } else {
           console.error('Student profile does not have a teacher assigned.');
@@ -1748,6 +1723,15 @@ export const displayBillList = function (currentAccount) {
   const billListContainer = document.querySelector('.bills');
   billListContainer.innerHTML = '';
 
+  // Record that user has viewed their bills for lesson tracking
+  if (typeof recordLessonAction === 'function') {
+    recordLessonAction('account_checked', {
+      accountType: currentAccount.accountType,
+      action: 'viewed_bills',
+      timestamp: new Date().toISOString(),
+    });
+  }
+
   //Variable set for the transactions themselves
 
   bills = currentAccount.bills;
@@ -1940,4 +1924,14 @@ export const updateUI = function (acc) {
   displayBalance(acc);
   //Displays the users bill list
   displayBillList(acc);
+
+  // Record that user has checked their account for lesson tracking
+  if (typeof recordLessonAction === 'function') {
+    recordLessonAction('account_checked', {
+      accountType: acc.accountType,
+      balance: acc.balance,
+      timestamp: new Date().toISOString(),
+      action: 'viewed_account_details',
+    });
+  }
 };

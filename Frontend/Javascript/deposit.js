@@ -239,25 +239,23 @@ export async function sendDeposit(loan, destination, member) {
       'success',
     );
 
-    // Record lesson progress for deposit
-    if (typeof window.recordLessonAction === 'function') {
-      const depositDetails = {
+    // Record deposit action using lesson engine
+    if (window.lessonEngine && window.lessonEngine.initialized) {
+      await window.lessonEngine.onAppAction('deposit', {
         amount: loan,
         destination: destination,
         member: member,
         transactionType: 'deposit',
-      };
-
-      // Deposits satisfy multiple lesson conditions
-      window.recordLessonAction('income_tracked', depositDetails);
-      window.recordLessonAction('transactions_reconciled', depositDetails);
-      window.recordLessonAction('paycheck_analyzed', depositDetails);
-      window.recordLessonAction('budget_balanced', depositDetails);
-      window.recordLessonAction('balance_sheet_created', depositDetails);
+        timestamp: new Date().toISOString(),
+      });
 
       console.log(
-        '📚 Recorded deposit for lesson progress:',
+        '✅ Deposit action recorded for lesson tracking:',
         `$${loan.toFixed(2)} to ${destination}`,
+      );
+    } else {
+      console.warn(
+        '⚠️ Lesson engine not available - deposit tracking disabled',
       );
     }
 
