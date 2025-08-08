@@ -1,0 +1,451 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson Tracking Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .test-container {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px 0;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      .test-button {
+        background: #00b3a6;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 4px;
+        cursor: pointer;
+        margin: 5px;
+        font-size: 14px;
+      }
+      .test-button:hover {
+        background: #00998a;
+      }
+      .status {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-family: monospace;
+      }
+      .success {
+        background: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+      }
+      .error {
+        background: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+      }
+      .info {
+        background: #d1ecf1;
+        color: #0c5460;
+        border: 1px solid #bee5eb;
+      }
+      .progress-display {
+        background: #e9ecef;
+        padding: 15px;
+        border-radius: 4px;
+        margin: 10px 0;
+      }
+      h1 {
+        color: #00b3a6;
+        text-align: center;
+      }
+      h2 {
+        color: #333;
+        border-bottom: 2px solid #00b3a6;
+        padding-bottom: 5px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Trinity Capital Lesson Tracking Test</h1>
+
+    <div class="test-container">
+      <h2>Test Scenario: Bills → Slides → Message → Instructions Navigation</h2>
+      <p>
+        This test simulates the exact scenario where lesson tracking was
+        resetting:
+      </p>
+      <ol>
+        <li>Student submits bills (should show 1/3 activities)</li>
+        <li>Student views slides (should show 2/3 activities)</li>
+        <li>Student sends message (should show 3/3 activities)</li>
+        <li>
+          Student navigates to instructions (should STILL show 3/3 activities)
+        </li>
+      </ol>
+    </div>
+
+    <div class="test-container">
+      <h2>🎮 Interactive Test Controls</h2>
+      <button class="test-button" onclick="initializeTestLesson()">
+        1. Initialize Test Lesson
+      </button>
+      <button class="test-button" onclick="simulateBillSubmission()">
+        2. Submit Bills
+      </button>
+      <button class="test-button" onclick="simulateSlideViewing()">
+        3. View Slides
+      </button>
+      <button class="test-button" onclick="simulateMessageSending()">
+        4. Send Message
+      </button>
+      <button class="test-button" onclick="simulateInstructionNavigation()">
+        5. Navigate to Instructions
+      </button>
+      <button class="test-button" onclick="resetTest()">🔄 Reset Test</button>
+    </div>
+
+    <div class="test-container">
+      <h2>📊 Current Lesson Status</h2>
+      <div id="statusDisplay" class="progress-display">
+        <em>No active lesson. Click "Initialize Test Lesson" to start.</em>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2>📋 Test Log</h2>
+      <div id="testLog"></div>
+    </div>
+
+    <script type="module">
+      // Import the lesson tracking functions
+      import {
+        recordLessonAction,
+        initializeLessonWithRequirements,
+      } from '../Frontend/Javascript/lessonEngine.js';
+
+      // Make functions globally accessible for onclick handlers
+      window.recordLessonAction = recordLessonAction;
+      window.initializeLessonWithRequirements =
+        initializeLessonWithRequirements;
+
+      // Test variables
+      let testStep = 0;
+      const testLog = document.getElementById('testLog');
+      const statusDisplay = document.getElementById('statusDisplay');
+
+      function logMessage(message, type = 'info') {
+        const logEntry = document.createElement('div');
+        logEntry.className = `status ${type}`;
+        logEntry.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+        testLog.appendChild(logEntry);
+        testLog.scrollTop = testLog.scrollHeight;
+      }
+
+      function updateStatus() {
+        // Access the global lessonTracker from lessonEngine.js
+        if (window.lessonTracker && window.lessonTracker.currentLesson) {
+          const progress = window.lessonTracker.getLessonProgress();
+          const activitiesCompleted =
+            window.lessonTracker.positiveConditionsMet.length;
+
+          statusDisplay.innerHTML = `
+                    <strong>Active Lesson:</strong> ${window.lessonTracker.currentLesson.title}<br>
+                    <strong>Lesson ID:</strong> ${window.lessonTracker.currentLesson.id}<br>
+                    <strong>Status:</strong> ${window.lessonTracker.currentLesson.status}<br>
+                    <strong>Activities Completed:</strong> ${activitiesCompleted}<br>
+                    <strong>Start Time:</strong> ${window.lessonTracker.startTime ? window.lessonTracker.startTime.toLocaleTimeString() : 'Unknown'}<br>
+                    <strong>Progress:</strong> ${progress ? progress.progress + '%' : 'Unknown'}<br>
+                    <strong>Is Complete:</strong> ${progress ? progress.isComplete : 'Unknown'}
+                `;
+
+          return { activitiesCompleted, progress };
+        } else {
+          statusDisplay.innerHTML =
+            '<em>No active lesson. Click "Initialize Test Lesson" to start.</em>';
+          return { activitiesCompleted: 0, progress: null };
+        }
+      }
+
+      // Test functions - make them globally accessible
+      window.initializeTestLesson = function () {
+        logMessage('🚀 Initializing test lesson...', 'info');
+
+        // Create a test lesson with required conditions
+        const testConditions = [
+          { condition_type: 'bills_created' },
+          { condition_type: 'slides_viewed' },
+          { condition_type: 'message_sent' },
+        ];
+
+        try {
+          initializeLessonWithRequirements(
+            'test_lesson_tracking',
+            'Lesson Tracking Test',
+            testConditions,
+          );
+          logMessage('✅ Test lesson initialized successfully', 'success');
+          testStep = 1;
+          updateStatus();
+        } catch (error) {
+          logMessage(
+            '❌ Failed to initialize test lesson: ' + error.message,
+            'error',
+          );
+        }
+      };
+
+      window.simulateBillSubmission = function () {
+        if (testStep < 1) {
+          logMessage('⚠️ Please initialize the test lesson first', 'error');
+          return;
+        }
+
+        logMessage('💰 Simulating bill submission...', 'info');
+
+        try {
+          recordLessonAction('bills_created', {
+            bills: ['Rent: $800', 'Groceries: $300', 'Entertainment: $200'],
+            totalAmount: 1300,
+          });
+
+          const status = updateStatus();
+          logMessage(
+            `✅ Bills submitted! Activities completed: ${status.activitiesCompleted}/3`,
+            'success',
+          );
+          testStep = 2;
+
+          // Test the tracking preservation
+          if (status.activitiesCompleted >= 1) {
+            logMessage('🎯 PASS: Activity was properly recorded', 'success');
+          } else {
+            logMessage('❌ FAIL: Activity was not recorded', 'error');
+          }
+        } catch (error) {
+          logMessage('❌ Error in bill submission: ' + error.message, 'error');
+        }
+      };
+
+      window.simulateSlideViewing = function () {
+        if (testStep < 2) {
+          logMessage('⚠️ Please complete the previous steps first', 'error');
+          return;
+        }
+
+        logMessage('📖 Simulating slide viewing...', 'info');
+
+        // Get current activity count before slide viewing
+        const beforeStatus = updateStatus();
+        const beforeCount = beforeStatus.activitiesCompleted;
+
+        try {
+          recordLessonAction('slides_viewed', {
+            slideNumber: 3,
+            totalSlides: 5,
+            timeSpent: 45,
+          });
+
+          const afterStatus = updateStatus();
+          logMessage(
+            `✅ Slides viewed! Activities completed: ${afterStatus.activitiesCompleted}/3`,
+            'success',
+          );
+          testStep = 3;
+
+          // Test the tracking preservation
+          if (afterStatus.activitiesCompleted > beforeCount) {
+            logMessage(
+              '🎯 PASS: Slide viewing was properly recorded',
+              'success',
+            );
+          } else {
+            logMessage(
+              '❌ FAIL: Slide viewing was not recorded properly',
+              'error',
+            );
+          }
+
+          // Verify previous activities are still recorded
+          if (afterStatus.activitiesCompleted >= beforeCount) {
+            logMessage(
+              '🎯 PASS: Previous activities were preserved',
+              'success',
+            );
+          } else {
+            logMessage('❌ FAIL: Previous activities were lost!', 'error');
+          }
+        } catch (error) {
+          logMessage('❌ Error in slide viewing: ' + error.message, 'error');
+        }
+      };
+
+      window.simulateMessageSending = function () {
+        if (testStep < 3) {
+          logMessage('⚠️ Please complete the previous steps first', 'error');
+          return;
+        }
+
+        logMessage('📧 Simulating message sending...', 'info');
+
+        // Get current activity count before message sending
+        const beforeStatus = updateStatus();
+        const beforeCount = beforeStatus.activitiesCompleted;
+
+        try {
+          recordLessonAction('message_sent', {
+            recipient: 'teacher',
+            messageContent: 'I completed all the required activities!',
+            timestamp: new Date().toISOString(),
+          });
+
+          const afterStatus = updateStatus();
+          logMessage(
+            `✅ Message sent! Activities completed: ${afterStatus.activitiesCompleted}/3`,
+            'success',
+          );
+          testStep = 4;
+
+          // Test the tracking preservation
+          if (afterStatus.activitiesCompleted > beforeCount) {
+            logMessage(
+              '🎯 PASS: Message sending was properly recorded',
+              'success',
+            );
+          } else {
+            logMessage(
+              '❌ FAIL: Message sending was not recorded properly',
+              'error',
+            );
+          }
+
+          // Verify all activities are completed
+          if (afterStatus.activitiesCompleted >= 3) {
+            logMessage(
+              '🎯 PASS: All required activities completed!',
+              'success',
+            );
+          } else {
+            logMessage('⚠️ WARNING: Not all activities completed yet', 'error');
+          }
+        } catch (error) {
+          logMessage('❌ Error in message sending: ' + error.message, 'error');
+        }
+      };
+
+      window.simulateInstructionNavigation = function () {
+        if (testStep < 4) {
+          logMessage('⚠️ Please complete the previous steps first', 'error');
+          return;
+        }
+
+        logMessage(
+          '🧭 Simulating navigation to instructions (THE CRITICAL TEST)...',
+          'info',
+        );
+
+        // Get current activity count before navigation
+        const beforeStatus = updateStatus();
+        const beforeCount = beforeStatus.activitiesCompleted;
+
+        logMessage(
+          `📊 Before navigation: ${beforeCount} activities completed`,
+          'info',
+        );
+
+        try {
+          // Simulate what happens when trackSlideViewed() is called during instruction navigation
+          // This would typically call lessonTracker.initializeLesson() but should now be protected
+
+          // Access the lessonTracker directly to test the protection
+          if (window.lessonTracker) {
+            // Try to initialize the same lesson again (this should be prevented)
+            const currentLessonId = window.lessonTracker.currentLesson.id;
+            const currentLessonTitle = window.lessonTracker.currentLesson.title;
+
+            logMessage(
+              `🔍 Attempting to re-initialize lesson "${currentLessonId}"...`,
+              'info',
+            );
+
+            // This should NOT reset the tracking due to our fix
+            window.lessonTracker.initializeLesson(
+              currentLessonId,
+              currentLessonTitle,
+              [],
+            );
+
+            const afterStatus = updateStatus();
+            logMessage(
+              `📊 After navigation: ${afterStatus.activitiesCompleted} activities completed`,
+              'info',
+            );
+
+            // THE CRITICAL TEST: Activities should be preserved
+            if (afterStatus.activitiesCompleted === beforeCount) {
+              logMessage(
+                '🎉 SUCCESS: Lesson tracking was preserved during navigation!',
+                'success',
+              );
+              logMessage(
+                '🎯 BUG FIX CONFIRMED: Activities no longer reset when navigating to instructions',
+                'success',
+              );
+            } else {
+              logMessage(
+                '❌ CRITICAL FAILURE: Lesson tracking was reset during navigation!',
+                'error',
+              );
+              logMessage(
+                '❌ The bug is still present - activities were lost',
+                'error',
+              );
+            }
+
+            testStep = 5;
+          } else {
+            logMessage('❌ lessonTracker not available for testing', 'error');
+          }
+        } catch (error) {
+          logMessage(
+            '❌ Error during instruction navigation: ' + error.message,
+            'error',
+          );
+        }
+      };
+
+      window.resetTest = function () {
+        logMessage('🔄 Resetting test...', 'info');
+
+        // Reset the lesson tracker
+        if (window.lessonTracker) {
+          window.lessonTracker.currentLesson = null;
+          window.lessonTracker.positiveConditionsMet = [];
+          window.lessonTracker.negativeConditionsTriggered = [];
+          window.lessonTracker.startTime = null;
+          window.lessonTracker.endTime = null;
+        }
+
+        testStep = 0;
+        updateStatus();
+
+        // Clear the log
+        testLog.innerHTML = '';
+
+        logMessage('✅ Test reset complete. Ready for new test.', 'success');
+      };
+
+      // Initialize the display
+      updateStatus();
+      logMessage('🔧 Lesson Tracking Test Interface Loaded', 'success');
+      logMessage(
+        '📝 This test verifies that lesson activities persist when navigating between slides and instructions',
+        'info',
+      );
+    </script>
+  </body>
+</html>

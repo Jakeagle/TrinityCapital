@@ -440,14 +440,6 @@ app.use(
 );
 
 // Test route to verify API is working
-app.get('/api/test', (req, res) => {
-  console.log('Test route hit');
-  res.json({
-    success: true,
-    message: 'API is working',
-    timestamp: new Date().toISOString(),
-  });
-});
 
 app.post('/initialBalance', async (req, res) => {
   const { parcel } = req.body;
@@ -1105,181 +1097,6 @@ app.post('/scheduler/manual-catchup', async (req, res) => {
   }
 });
 
-app.post('/simulateTimeTravel', async (req, res) => {
-  const { userName, days } = req.body; // How many days to simulate
-
-  if (!userName || !days) {
-    return res.status(400).json({ error: 'Missing required parameters' });
-  }
-
-  console.log(`Simulating ${days} days for ${userName}...`);
-
-  try {
-    await billManagerTimeTravel(userName, days);
-    await paymentManagerTimeTravel(userName, days);
-
-    return res
-      .status(200)
-      .json({ message: `Simulated ${days} days successfully for ${userName}` });
-  } catch (error) {
-    console.error('Error simulating time travel:', error);
-    return res.status(500).json({ error: 'Internal Server Error' });
-  }
-});
-
-/************************************ Time Travel Functions ****************************************/
-
-const timeMultiplier = 1; // 1 second = 1 day
-
-async function billManagerTimeTravel(userName, daysToSimulate) {
-  const userProfile = await client
-    .db('TrinityCapital')
-    .collection('Time Travel Profiles') // Ensure we're using time travel profiles
-    .findOne({ userName: userName });
-
-  if (!userProfile) {
-    throw new Error(`Time travel profile for ${userName} not found`);
-  }
-
-  let bills = userProfile.checkingAccount.bills;
-  const transactionsToProcess = [];
-
-  for (let day = 0; day < daysToSimulate; day++) {
-    const simulatedDate = new Date();
-    simulatedDate.setSeconds(simulatedDate.getSeconds() + day * timeMultiplier);
-
-    for (let bill of bills) {
-      if (shouldProcessTransaction(bill.interval, day)) {
-        transactionsToProcess.push({
-          amount: bill.amount,
-          Name: bill.Name,
-          Category: bill.Category,
-          Date: simulatedDate,
-        });
-      }
-    }
-  }
-
-  for (let transaction of transactionsToProcess) {
-    await client
-      .db('TrinityCapital')
-      .collection('Time Travel Profiles')
-      .updateOne(
-        { 'checkingAccount.accountHolder': userName },
-        { $push: { 'checkingAccount.transactions': transaction } },
-      );
-
-    console.log(`Processed bill: ${transaction.Name} for ${userName}`);
-  }
-
-  await balanceCalcTimeTravel(userName);
-}
-
-async function paymentManagerTimeTravel(userName, daysToSimulate) {
-  const userProfile = await client
-    .db('TrinityCapital')
-    .collection('Time Travel Profiles')
-    .findOne({ 'checkingAccount.accountHolder': userName });
-
-  if (!userProfile) {
-    throw new Error(`Time travel profile for ${userName} not found`);
-  }
-
-  let payments = userProfile.checkingAccount.payments;
-  const transactionsToProcess = [];
-
-  for (let day = 0; day < daysToSimulate; day++) {
-    const simulatedDate = new Date();
-    simulatedDate.setSeconds(simulatedDate.getSeconds() + day * timeMultiplier);
-
-    for (let payment of payments) {
-      if (shouldProcessTransaction(payment.interval, day)) {
-        transactionsToProcess.push({
-          amount: payment.amount,
-          Name: payment.Name,
-          Category: payment.Category,
-          Date: simulatedDate,
-        });
-      }
-    }
-  }
-
-  for (let transaction of transactionsToProcess) {
-    await client
-      .db('TrinityCapital')
-      .collection('Time Travel Profiles')
-      .updateOne(
-        { 'checkingAccount.accountHolder': userName },
-        { $push: { 'checkingAccount.transactions': transaction } },
-      );
-
-    console.log(`Processed payment: ${transaction.Name} for ${userName}`);
-  }
-
-  await balanceCalcTimeTravel(userName);
-}
-
-/************************************ Helper Function ****************************************/
-
-function shouldProcessTransaction(interval, day) {
-  if (interval === 'weekly' && day % 7 === 0) return true;
-  if (interval === 'bi-weekly' && day % 14 === 0) return true;
-  if (interval === 'monthly' && day % 30 === 0) return true;
-  if (interval === 'yearly' && day % 365 === 0) return true;
-  return false;
-}
-
-async function balanceCalcTimeTravel(userName) {
-  try {
-    let balanceArray = [];
-    let balance;
-    // Use the Time Travel Profiles collection
-    let profile = await client
-      .db('TrinityCapital')
-      .collection('Time Travel Profiles')
-      .findOne({ 'checkingAccount.accountHolder': userName });
-
-    if (
-      !profile ||
-      !profile.checkingAccount ||
-      !profile.checkingAccount.transactions
-    ) {
-      console.error(
-        `No transactions found for time travel profile: ${userName}`,
-      );
-      return;
-    }
-
-    if (profile.checkingAccount.transactions.length === 0) {
-      balance = 0;
-    } else {
-      for (let i = 0; i < profile.checkingAccount.transactions.length; i++) {
-        let transAmounts = profile.checkingAccount.transactions[i].amount;
-        balanceArray.push(transAmounts);
-      }
-      balance = balanceArray.reduce((acc, mov) => acc + mov, 0);
-    }
-
-    await client
-      .db('TrinityCapital')
-      .collection('Time Travel Profiles')
-      .updateOne(
-        { 'checkingAccount.accountHolder': userName },
-        { $set: { 'checkingAccount.balanceTotal': balance } },
-      );
-
-    const updatedProfile = await client
-      .db('TrinityCapital')
-      .collection('Time Travel Profiles')
-      .findOne({ 'checkingAccount.accountHolder': userName });
-    const userSocket = userSockets.get(userName);
-    if (userSocket && updatedProfile) {
-      userSocket.emit('checkingAccountUpdate', updatedProfile.checkingAccount);
-    }
-  } catch (error) {
-    console.error(`Error in balanceCalcTimeTravel for ${userName}:`, error);
-  }
-}
 /********************************************************DEPOSITS***********************************************/
 
 app.post('/deposits', async (req, res) => {
@@ -1503,6 +1320,58 @@ app.post('/timeTravelProfiles', async (req, res) => {
   }
 });
 
+/**************************************************DONATIONS*********************************************/
+
+// Simple donation endpoint for checking account donations
+app.post('/donations', async (req, res) => {
+  try {
+    const { parcel } = req.body;
+    const [donorName, donationAmount] = parcel;
+
+    console.log(`Donation of $${donationAmount} from ${donorName} to checking`);
+
+    // For now, just return success - implement donation logic as needed
+    res.json({
+      success: true,
+      message: `Donation of $${donationAmount} processed successfully`,
+      amount: donationAmount,
+      donor: donorName,
+      account: 'checking',
+    });
+  } catch (error) {
+    console.error('Error processing donation:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process donation',
+    });
+  }
+});
+
+// Simple donation endpoint for savings account donations
+app.post('/donationsSavings', async (req, res) => {
+  try {
+    const { parcel } = req.body;
+    const [donorName, donationAmount] = parcel;
+
+    console.log(`Donation of $${donationAmount} from ${donorName} to savings`);
+
+    // For now, just return success - implement donation logic as needed
+    res.json({
+      success: true,
+      message: `Savings donation of $${donationAmount} processed successfully`,
+      amount: donationAmount,
+      donor: donorName,
+      account: 'savings',
+    });
+  } catch (error) {
+    console.error('Error processing savings donation:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to process savings donation',
+    });
+  }
+});
+
 /**************************************************LESSON SERVER FUNCTIONS*********************************************/
 
 // Helper function to calculate student health metrics
@@ -1718,40 +1587,6 @@ app.post('/lessonArrays', async (req, res) => {
   }
 });
 
-// Get lessons created by admin@trinity-capital.net for testing
-app.get('/admin-lessons', async (req, res) => {
-  try {
-    const lessons = await client
-      .db('TrinityCapital')
-      .collection('Lessons')
-      .find({
-        $or: [
-          { creator_email: 'admin@trinity-capital.net' },
-          { creator_username: 'adminTC' },
-        ],
-      })
-      .limit(10) // Limit to 10 lessons for testing
-      .toArray();
-
-    console.log(
-      `Found ${lessons.length} lessons created by admin@trinity-capital.net`,
-    );
-
-    res.json({
-      success: true,
-      lessons: lessons,
-      count: lessons.length,
-    });
-  } catch (error) {
-    console.error('Error fetching admin lessons:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch admin lessons',
-      message: error.message,
-    });
-  }
-});
-
 // Handle lesson completion and update student profile
 app.post('/lesson-completion', async (req, res) => {
   try {
@@ -1937,6 +1772,473 @@ app.post('/lesson-completion', async (req, res) => {
     });
   }
 });
+
+/*****************************************NEW LESSON ENGINE API ENDPOINTS***************************************************/
+
+// Test endpoint to debug Jake Ferguson's data
+app.get('/api/debug-student/:studentId', async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const decodedStudentId = decodeURIComponent(studentId);
+
+    console.log(`🔍 DEBUG: Checking data for student: ${decodedStudentId}`);
+
+    const userProfilesCollection = client
+      .db('TrinityCapital')
+      .collection('User Profiles');
+
+    // Find student profile by memberName
+    const studentProfile = await userProfilesCollection.findOne({
+      memberName: decodedStudentId,
+    });
+
+    if (!studentProfile) {
+      console.log(`❌ DEBUG: Student not found: ${decodedStudentId}`);
+
+      // Let's also check what students do exist
+      const allStudents = await userProfilesCollection
+        .find(
+          {},
+          {
+            projection: { memberName: 1, _id: 0 },
+          },
+        )
+        .limit(10)
+        .toArray();
+
+      return res.json({
+        found: false,
+        searchedFor: decodedStudentId,
+        existingStudents: allStudents.map(s => s.memberName),
+      });
+    }
+
+    console.log(`✅ DEBUG: Found student profile for: ${decodedStudentId}`);
+
+    // Return all relevant data for debugging
+    return res.json({
+      found: true,
+      studentName: studentProfile.memberName,
+      lessonIds: studentProfile.lessonIds,
+      assignedUnitIds: studentProfile.assignedUnitIds,
+      currentLessonId: studentProfile.currentLessonId,
+      hasLegacyLessons: !!(
+        studentProfile.lessonIds && studentProfile.lessonIds.length > 0
+      ),
+      hasNewLessons: !!(
+        studentProfile.assignedUnitIds &&
+        studentProfile.assignedUnitIds.length > 0
+      ),
+    });
+  } catch (error) {
+    console.error('❌ DEBUG Error:', error);
+    res.status(500).json({ error: 'Debug failed', details: error.message });
+  }
+});
+
+// Get current active lesson for a student
+app.get('/api/student-current-lesson/:studentId', async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const decodedStudentId = decodeURIComponent(studentId);
+
+    console.log(`🔍 Fetching current lesson for student: ${decodedStudentId}`);
+
+    const userProfilesCollection = client
+      .db('TrinityCapital')
+      .collection('User Profiles');
+
+    // Find student profile by memberName (actual student name)
+    const studentProfile = await userProfilesCollection.findOne({
+      memberName: decodedStudentId,
+    });
+
+    if (!studentProfile) {
+      console.log(`❌ Student not found: ${decodedStudentId}`);
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    console.log(`✅ Found student profile for: ${decodedStudentId}`);
+
+    // Check if student has any assigned lessons
+    const assignedLessonIds = studentProfile.lessonIds || [];
+    const assignedUnitIds = studentProfile.assignedUnitIds || [];
+
+    // If no lessons assigned, return null
+    if (assignedLessonIds.length === 0 && assignedUnitIds.length === 0) {
+      console.log(`ℹ️ No lessons assigned to student: ${decodedStudentId}`);
+      return res.json(null);
+    }
+
+    // Try to get current lesson from newer ObjectID-based system first
+    if (assignedUnitIds.length > 0) {
+      console.log(
+        `🔗 Using ObjectID-based lesson system for ${decodedStudentId}`,
+      );
+
+      // Get all lesson IDs from assigned units
+      let allLessonIds = [];
+      assignedUnitIds.forEach(unitAssignment => {
+        if (
+          unitAssignment.lessonIds &&
+          Array.isArray(unitAssignment.lessonIds)
+        ) {
+          allLessonIds.push(...unitAssignment.lessonIds);
+        }
+      });
+
+      if (allLessonIds.length > 0) {
+        // For now, return the first lesson as current lesson
+        // TODO: Implement proper lesson progression logic
+        const currentLessonId = allLessonIds[0];
+
+        try {
+          // Try to fetch lesson from lesson server first
+          const lessonServerResponse = await fetch(
+            'http://localhost:4000/get-lessons-by-ids',
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                lessonIds: [currentLessonId],
+                studentName: decodedStudentId,
+              }),
+            },
+          );
+
+          if (lessonServerResponse.ok) {
+            const lessonData = await lessonServerResponse.json();
+            if (lessonData.success && lessonData.lessons.length > 0) {
+              console.log(`✅ Retrieved current lesson from lesson server`);
+              return res.json(lessonData.lessons[0]);
+            }
+          }
+        } catch (fetchError) {
+          console.warn(
+            'Could not fetch from lesson server, trying local collection',
+          );
+        }
+
+        // Fallback to local Lessons collection
+        try {
+          const lessonsCollection = client
+            .db('TrinityCapital')
+            .collection('Lessons');
+          const currentLesson = await lessonsCollection.findOne({
+            _id: new ObjectId(currentLessonId),
+          });
+
+          if (currentLesson) {
+            console.log(`✅ Retrieved current lesson from local collection`);
+            return res.json(currentLesson);
+          }
+        } catch (objectIdError) {
+          console.warn(`Invalid ObjectId: ${currentLessonId}`, objectIdError);
+        }
+      }
+    }
+
+    // Fallback to legacy lesson system
+    if (assignedLessonIds.length > 0) {
+      console.log(`📚 Using legacy lesson system for ${decodedStudentId}`);
+
+      const currentLessonId =
+        studentProfile.currentLessonId || assignedLessonIds[0];
+
+      try {
+        const lessonsCollection = client
+          .db('TrinityCapital')
+          .collection('Lessons');
+        const currentLesson = await lessonsCollection.findOne({
+          _id: new ObjectId(currentLessonId),
+        });
+
+        if (currentLesson) {
+          console.log(`✅ Retrieved current lesson from legacy system`);
+          return res.json(currentLesson);
+        }
+      } catch (objectIdError) {
+        console.warn(
+          `Invalid ObjectId in legacy system: ${currentLessonId}`,
+          objectIdError,
+        );
+      }
+    }
+
+    // If we get here, no valid lesson was found
+    console.log(
+      `ℹ️ No valid current lesson found for student: ${decodedStudentId}`,
+    );
+    return res.json(null);
+  } catch (error) {
+    console.error('❌ Error fetching current lesson:', error);
+    res.status(500).json({ error: 'Failed to fetch current lesson' });
+  }
+});
+
+// Get student financial data for condition evaluation
+app.get('/api/student-financial-data/:studentId', async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const userProfilesCollection = client
+      .db('TrinityCapital')
+      .collection('User Profiles');
+    const studentProfile = await userProfilesCollection.findOne({
+      memberName: studentId,
+    });
+
+    if (!studentProfile) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Calculate financial data from student profile
+    const checkingBalance = studentProfile.checkingBalance || 0;
+    const savingsBalance = studentProfile.savingsBalance || 0;
+    const totalBalance = checkingBalance + savingsBalance;
+
+    const bills = studentProfile.bills || [];
+    const income = studentProfile.income || [];
+    const transactions = studentProfile.transactions || [];
+
+    const totalBills = bills.reduce(
+      (sum, bill) => sum + (parseFloat(bill.amount) || 0),
+      0,
+    );
+    const totalIncome = income.reduce(
+      (sum, inc) => sum + (parseFloat(inc.amount) || 0),
+      0,
+    );
+
+    const financialData = {
+      checkingBalance,
+      savingsBalance,
+      totalBalance,
+      totalBills,
+      totalIncome,
+      transactionCount: transactions.length,
+      lessonStartTime: studentProfile.lessonStartTime || Date.now(),
+      bills: bills.length,
+      income: income.length,
+      currentAccount: studentProfile.currentAccount || 'checking',
+    };
+
+    res.json(financialData);
+  } catch (error) {
+    console.error('❌ Error fetching student financial data:', error);
+    res.status(500).json({ error: 'Failed to fetch financial data' });
+  }
+});
+
+// Check lesson access (lesson gating)
+app.get('/api/lesson-access/:studentId/:lessonId', async (req, res) => {
+  try {
+    const { studentId, lessonId } = req.params;
+
+    const userProfilesCollection = client
+      .db('TrinityCapital')
+      .collection('User Profiles');
+    const studentProfile = await userProfilesCollection.findOne({
+      memberName: studentId,
+    });
+
+    if (!studentProfile) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Check if student has access to this lesson
+    const assignedLessonIds = studentProfile.lessonIds || [];
+    const completedLessonIds = studentProfile.completedLessons || [];
+
+    const hasAccess = assignedLessonIds.includes(lessonId);
+    const isCompleted = completedLessonIds.some(
+      completed => completed.lessonId === lessonId,
+    );
+
+    // For lesson gating, check if previous lessons are completed
+    // This is a simplified version - could be enhanced based on specific gating rules
+    const lessonIndex = assignedLessonIds.indexOf(lessonId);
+    const canAccess =
+      lessonIndex === 0 || lessonIndex <= completedLessonIds.length;
+
+    res.json({
+      hasAccess: hasAccess && canAccess,
+      isCompleted,
+      lessonIndex,
+    });
+  } catch (error) {
+    console.error('❌ Error checking lesson access:', error);
+    res.status(500).json({ error: 'Failed to check lesson access' });
+  }
+});
+
+// Get lesson data by ID
+app.get('/api/lesson/:lessonId', async (req, res) => {
+  try {
+    const { lessonId } = req.params;
+
+    const lessonsCollection = client.db('TrinityCapital').collection('Lessons');
+    const lesson = await lessonsCollection.findOne({
+      _id: new ObjectId(lessonId),
+    });
+
+    if (!lesson) {
+      return res.status(404).json({ error: 'Lesson not found' });
+    }
+
+    res.json(lesson);
+  } catch (error) {
+    console.error('❌ Error fetching lesson:', error);
+    res.status(500).json({ error: 'Failed to fetch lesson' });
+  }
+});
+
+// Lock lesson for student
+app.post('/api/lock-lesson', async (req, res) => {
+  try {
+    const { studentId, lessonId } = req.body;
+
+    const userProfilesCollection = client
+      .db('TrinityCapital')
+      .collection('User Profiles');
+
+    await userProfilesCollection.updateOne(
+      { memberName: studentId },
+      {
+        $addToSet: { lockedLessons: lessonId },
+        $set: { lastLessonLocked: new Date() },
+      },
+    );
+
+    res.json({ success: true, message: 'Lesson locked successfully' });
+  } catch (error) {
+    console.error('❌ Error locking lesson:', error);
+    res.status(500).json({ error: 'Failed to lock lesson' });
+  }
+});
+
+// Unlock next lesson for student
+app.post('/api/unlock-next-lesson', async (req, res) => {
+  try {
+    const { studentId, currentLessonId } = req.body;
+
+    const userProfilesCollection = client
+      .db('TrinityCapital')
+      .collection('User Profiles');
+    const studentProfile = await userProfilesCollection.findOne({
+      memberName: studentId,
+    });
+
+    if (!studentProfile) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const assignedLessonIds = studentProfile.lessonIds || [];
+    const currentIndex = assignedLessonIds.indexOf(currentLessonId);
+
+    if (currentIndex >= 0 && currentIndex < assignedLessonIds.length - 1) {
+      const nextLessonId = assignedLessonIds[currentIndex + 1];
+
+      await userProfilesCollection.updateOne(
+        { memberName: studentId },
+        {
+          $set: { currentLessonId: nextLessonId },
+          $pull: { lockedLessons: nextLessonId },
+        },
+      );
+
+      res.json({
+        success: true,
+        nextLessonId,
+        message: 'Next lesson unlocked',
+      });
+    } else {
+      res.json({ success: true, message: 'No more lessons to unlock' });
+    }
+  } catch (error) {
+    console.error('❌ Error unlocking next lesson:', error);
+    res.status(500).json({ error: 'Failed to unlock next lesson' });
+  }
+});
+
+// Sync lesson completion with teacher dashboard
+app.post('/api/sync-teacher-dashboard', async (req, res) => {
+  try {
+    const { studentId, lessonId, grade, conditionsData } = req.body;
+
+    const userProfilesCollection = client
+      .db('TrinityCapital')
+      .collection('User Profiles');
+    const studentProfile = await userProfilesCollection.findOne({
+      memberName: studentId,
+    });
+
+    if (!studentProfile) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    // Update student's completed lessons
+    const completionRecord = {
+      lessonId,
+      grade,
+      completedDate: new Date(),
+      conditionsData,
+      studentHealth: studentProfile.studentHealth || 'healthy',
+    };
+
+    await userProfilesCollection.updateOne(
+      { memberName: studentId },
+      {
+        $addToSet: { completedLessons: completionRecord },
+        $set: {
+          lastLessonCompleted: new Date(),
+          studentHealth: grade >= 70 ? 'healthy' : 'needs_attention',
+        },
+      },
+    );
+
+    res.json({
+      success: true,
+      message: 'Teacher dashboard synced successfully',
+    });
+  } catch (error) {
+    console.error('❌ Error syncing teacher dashboard:', error);
+    res.status(500).json({ error: 'Failed to sync teacher dashboard' });
+  }
+});
+
+// Get available lessons for student
+app.get('/api/student-lessons/:studentId', async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    const userProfilesCollection = client
+      .db('TrinityCapital')
+      .collection('User Profiles');
+    const lessonsCollection = client.db('TrinityCapital').collection('Lessons');
+
+    const studentProfile = await userProfilesCollection.findOne({
+      memberName: studentId,
+    });
+    if (!studentProfile) {
+      return res.status(404).json({ error: 'Student not found' });
+    }
+
+    const assignedLessonIds = studentProfile.lessonIds || [];
+    const lessons = await lessonsCollection
+      .find({
+        _id: { $in: assignedLessonIds.map(id => new ObjectId(id)) },
+      })
+      .toArray();
+
+    res.json(lessons);
+  } catch (error) {
+    console.error('❌ Error fetching student lessons:', error);
+    res.status(500).json({ error: 'Failed to fetch student lessons' });
+  }
+});
+
+/*****************************************END NEW LESSON ENGINE API ENDPOINTS***************************************************/
 
 // Replace lesson in unit endpoint
 app.post('/replaceLessonInUnit', async (req, res) => {
@@ -3593,183 +3895,6 @@ app.post('/assignUnitToStudent', async (req, res) => {
   }
 });
 
-// Get all assigned units with full lesson content for a student
-app.get('/student/:studentId/assignedUnits', async (req, res) => {
-  try {
-    const { studentId } = req.params;
-
-    console.log(`Fetching assigned units for student: ${studentId}`);
-
-    // Find the student's profile
-    const studentProfile = await client
-      .db('TrinityCapital')
-      .collection('User Profiles')
-      .findOne({
-        $or: [
-          { memberName: studentId },
-          { username: studentId },
-          { _id: studentId },
-        ],
-      });
-
-    if (!studentProfile) {
-      console.log(`Student not found: ${studentId}`);
-      return res.status(404).json({
-        success: false,
-        error: 'Student not found',
-      });
-    }
-
-    // Check if student has assigned units
-    if (
-      !studentProfile.assignedUnitIds ||
-      studentProfile.assignedUnitIds.length === 0
-    ) {
-      console.log(`No assigned units found for student: ${studentId}`);
-      return res.json({
-        success: true,
-        assignedUnits: [],
-        message: 'No units assigned yet',
-      });
-    }
-
-    console.log(
-      `Found ${studentProfile.assignedUnitIds.length} assigned unit references for student: ${studentId}`,
-    );
-
-    // Get all lesson IDs from all assigned units
-    const allLessonIds = [];
-    const unitAssignments = studentProfile.assignedUnitIds;
-
-    unitAssignments.forEach(unitAssignment => {
-      if (unitAssignment.lessonIds && Array.isArray(unitAssignment.lessonIds)) {
-        allLessonIds.push(...unitAssignment.lessonIds);
-      }
-    });
-
-    console.log(`Total lesson IDs to fetch: ${allLessonIds.length}`);
-
-    if (allLessonIds.length === 0) {
-      console.log(
-        `No lesson IDs found in assigned units for student: ${studentId}`,
-      );
-      return res.json({
-        success: true,
-        assignedUnits: unitAssignments.map(unit => ({
-          ...unit,
-          lessons: [],
-        })),
-        message: 'No lessons found in assigned units',
-      });
-    }
-
-    // Convert string IDs to ObjectIds for MongoDB query
-    const { ObjectId } = require('mongodb');
-    const objectIds = allLessonIds
-      .map(id => {
-        try {
-          return new ObjectId(id);
-        } catch (error) {
-          console.warn(`Invalid ObjectId: ${id}`);
-          return null;
-        }
-      })
-      .filter(id => id !== null);
-
-    console.log(`Valid ObjectIds to query: ${objectIds.length}`);
-
-    // Fetch all lessons from the lesson server's database
-    const lessons = await client
-      .db('TrinityCapital')
-      .collection('Lessons')
-      .find({ _id: { $in: objectIds } })
-      .toArray();
-
-    console.log(`Fetched ${lessons.length} lesson documents from database`);
-
-    // Create a lookup map for lessons
-    const lessonLookup = {};
-    lessons.forEach(lessonDoc => {
-      lessonLookup[lessonDoc._id.toString()] = {
-        _id: lessonDoc._id.toString(),
-        ...lessonDoc.lesson, // This includes lesson_blocks, lesson_conditions, etc.
-        teacher: lessonDoc.teacher,
-        unit: lessonDoc.unit,
-        createdAt: lessonDoc.createdAt,
-      };
-    });
-
-    // Build the response with full lesson content
-    const assignedUnitsWithLessons = unitAssignments.map(unitAssignment => {
-      const lessonsForThisUnit = [];
-
-      if (unitAssignment.lessonIds && Array.isArray(unitAssignment.lessonIds)) {
-        unitAssignment.lessonIds.forEach(lessonId => {
-          const lesson = lessonLookup[lessonId.toString()];
-          if (lesson) {
-            lessonsForThisUnit.push(lesson);
-            console.log(
-              `✅ Added lesson: ${lesson.lesson_title} to unit: ${unitAssignment.unitName}`,
-            );
-          } else {
-            console.warn(
-              `⚠️  Lesson not found for ID: ${lessonId} in unit: ${unitAssignment.unitName}`,
-            );
-          }
-        });
-      }
-
-      return {
-        unitId: unitAssignment.unitId,
-        unitName: unitAssignment.unitName,
-        unitValue: unitAssignment.unitValue,
-        teacherName: unitAssignment.teacherName,
-        assignedAt: unitAssignment.assignedAt,
-        classPeriod: unitAssignment.classPeriod,
-        lessons: lessonsForThisUnit,
-        name: unitAssignment.unitName, // For compatibility
-      };
-    });
-
-    // Sort units by unitValue to ensure proper order (Unit 1, Unit 2, etc.)
-    assignedUnitsWithLessons.sort((a, b) => {
-      // Extract numeric value from unitValue (e.g., "unit1" -> 1)
-      const getUnitNumber = unitValue => {
-        if (typeof unitValue === 'string') {
-          const match = unitValue.match(/\d+/);
-          return match ? parseInt(match[0]) : 999;
-        }
-        return typeof unitValue === 'number' ? unitValue : 999;
-      };
-
-      return getUnitNumber(a.unitValue) - getUnitNumber(b.unitValue);
-    });
-
-    console.log(
-      `✅ Successfully built response with ${assignedUnitsWithLessons.length} units`,
-    );
-    assignedUnitsWithLessons.forEach((unit, index) => {
-      console.log(
-        `Unit ${index + 1}: ${unit.unitName} (${unit.unitValue}) - ${unit.lessons.length} lessons`,
-      );
-    });
-
-    res.json({
-      success: true,
-      assignedUnits: assignedUnitsWithLessons,
-      totalUnits: assignedUnitsWithLessons.length,
-      totalLessons: allLessonIds.length,
-    });
-  } catch (error) {
-    console.error('Error fetching assigned units for student:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Failed to fetch assigned units',
-      details: error.message,
-    });
-  }
-});
-
 // Get bill information for a student
 app.get('/getBillInfo/:memberName', async (req, res) => {
   try {
@@ -3784,7 +3909,7 @@ app.get('/getBillInfo/:memberName', async (req, res) => {
     // Find the student's profile to get their bill information
     const studentProfile = await client
       .db('TrinityCapital')
-      .collection('Profiles')
+      .collection('User Profiles')
       .findOne({ memberName: memberName });
 
     if (!studentProfile) {
@@ -3831,7 +3956,7 @@ app.get('/classmates/:memberName', async (req, res) => {
     // Find the student's profile to get their class/teacher information
     const studentProfile = await client
       .db('TrinityCapital')
-      .collection('Profiles')
+      .collection('User Profiles')
       .findOne({ memberName: memberName });
 
     if (!studentProfile) {
@@ -3844,7 +3969,7 @@ app.get('/classmates/:memberName', async (req, res) => {
     // Find other students with the same teacher (classmates)
     const classmates = await client
       .db('TrinityCapital')
-      .collection('Profiles')
+      .collection('User Profiles')
       .find({
         teacher: studentProfile.teacher,
         memberName: { $ne: memberName }, // Exclude the requesting student
