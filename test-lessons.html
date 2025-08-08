@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lesson System Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .lessonsBlock {
+        border: 2px solid #3498db;
+        padding: 20px;
+        margin: 20px 0;
+        min-height: 200px;
+      }
+      .test-section {
+        margin: 20px 0;
+        padding: 15px;
+        border: 1px solid #ddd;
+      }
+      .lessons-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 15px;
+      }
+      .lesson-card {
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+      .lesson-card:hover {
+        background-color: #f0f8ff;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Trinity Capital Lesson System Test</h1>
+
+    <div class="test-section">
+      <h2>Test Results:</h2>
+      <div id="test-results"></div>
+    </div>
+
+    <div class="test-section">
+      <h2>Lessons Block (should show lesson cards):</h2>
+      <div class="lessonsBlock" id="lessonsBlock">
+        <p>Loading lessons...</p>
+      </div>
+    </div>
+
+    <script type="module">
+      console.log('🧪 Starting lesson system test...');
+
+      // Import lesson modules
+      import('./Frontend/Javascript/lessonRenderer.js')
+        .then(async module => {
+          console.log('✅ Lesson renderer module loaded');
+
+          const testResults = document.getElementById('test-results');
+
+          try {
+            // Test 1: API connectivity
+            testResults.innerHTML += '<p>🔍 Testing API connectivity...</p>';
+            const response = await fetch(
+              'http://localhost:3000/api/student-lessons/Jake%20Ferguson',
+            );
+            const lessons = await response.json();
+            testResults.innerHTML += `<p>✅ API returned ${lessons.length} lessons</p>`;
+
+            // Test 2: Lesson renderer initialization
+            testResults.innerHTML += '<p>🔍 Testing lesson renderer...</p>';
+            if (window.lessonRenderer) {
+              const initialized = window.lessonRenderer.initialize(
+                'Jake Ferguson',
+                'lessonsBlock',
+              );
+              testResults.innerHTML += `<p>✅ Lesson renderer initialized: ${initialized}</p>`;
+
+              // Test 3: Display lessons
+              testResults.innerHTML += '<p>🔍 Displaying lessons...</p>';
+              window.lessonRenderer.displayLessonsList(lessons);
+              testResults.innerHTML +=
+                '<p>✅ Lessons should now be displayed above</p>';
+            } else {
+              testResults.innerHTML +=
+                '<p>❌ Lesson renderer not available</p>';
+            }
+          } catch (error) {
+            testResults.innerHTML += `<p>❌ Test failed: ${error.message}</p>`;
+            console.error('Test error:', error);
+          }
+        })
+        .catch(error => {
+          console.error('Failed to load lesson renderer:', error);
+          document.getElementById('test-results').innerHTML +=
+            `<p>❌ Failed to load lesson modules: ${error.message}</p>`;
+        });
+    </script>
+  </body>
+</html>

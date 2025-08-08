@@ -1892,8 +1892,95 @@ app.get('/api/student-current-lesson/:studentId', async (req, res) => {
         // TODO: Implement proper lesson progression logic
         const currentLessonId = allLessonIds[0];
 
+        console.log(`📝 Trying to fetch lesson with ID: ${currentLessonId}`);
+
+        // Load Dallas Fed lesson data
+        const fs = require('fs');
+        const path = require('path');
+        let dallasFedLessons = [];
         try {
-          // Try to fetch lesson from lesson server first
+          const lessonDataPath = path.join(
+            __dirname,
+            'dallas_fed_aligned_lessons.json',
+          );
+          const lessonData = JSON.parse(
+            fs.readFileSync(lessonDataPath, 'utf8'),
+          );
+          dallasFedLessons = lessonData.lessons || [];
+        } catch (error) {
+          console.log(
+            '⚠️ Could not load Dallas Fed lesson data, using fallback titles',
+          );
+        }
+
+        // Get the lesson index and corresponding Dallas Fed data
+        const lessonIndex = allLessonIds.indexOf(currentLessonId);
+        const dallasFedLesson = dallasFedLessons[lessonIndex];
+        const lessonTitle =
+          dallasFedLesson?.lesson_title || `Unit 1 Lesson ${lessonIndex + 1}`;
+        const lessonDescription =
+          dallasFedLesson?.lesson_description ||
+          `Dallas Fed Curriculum Lesson ${currentLessonId}`;
+
+        // Return a lesson with actual titles from Dallas Fed data
+        const mockLesson = {
+          _id: currentLessonId,
+          lesson_title: lessonTitle,
+          lesson_description: lessonDescription,
+          lesson_type: 'interactive',
+          lesson_blocks: [
+            {
+              type: 'instruction',
+              content:
+                dallasFedLesson?.lesson_description ||
+                `This is lesson ${lessonIndex + 1} from the Dallas Fed curriculum.`,
+            },
+            {
+              type: 'action',
+              content: 'Complete the financial tasks as instructed.',
+            },
+            {
+              type: 'condition_check',
+              content:
+                'Your progress will be tracked automatically as you complete banking activities.',
+            },
+          ],
+          lesson_conditions: dallasFedLesson?.lesson_conditions || [
+            {
+              type: 'balance_check',
+              target: 100,
+              description: 'Maintain account balance above $100',
+            },
+            {
+              type: 'transaction_count',
+              target: 3,
+              description: 'Complete at least 3 transactions',
+            },
+          ],
+          intro_text_blocks: [
+            {
+              type: 'intro',
+              content: `Welcome to ${lessonTitle}! In this lesson, you'll learn about managing your finances effectively.`,
+            },
+          ],
+          teacher: 'admin@trinity-capital.net',
+          unit: dallasFedLesson?.unit || 'unit1',
+          unitName: dallasFedLesson?.unit || 'Unit 1: Earning and Spending',
+          lessonNumber: lessonIndex + 1,
+          isAvailable: true,
+          isCompleted: false,
+        };
+
+        console.log(`✅ Returning mock lesson for testing: ${currentLessonId}`);
+        return res.json(mockLesson);
+
+        // Commented out the lesson server and database lookup for now
+        /*
+        try {
+          // First try to fetch from lesson server with numeric IDs
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+          
           const lessonServerResponse = await fetch(
             'http://localhost:4000/get-lessons-by-ids',
             {
@@ -1903,38 +1990,66 @@ app.get('/api/student-current-lesson/:studentId', async (req, res) => {
                 lessonIds: [currentLessonId],
                 studentName: decodedStudentId,
               }),
+              signal: controller.signal,
             },
           );
+          
+          clearTimeout(timeoutId);
 
           if (lessonServerResponse.ok) {
             const lessonData = await lessonServerResponse.json();
             if (lessonData.success && lessonData.lessons.length > 0) {
               console.log(`✅ Retrieved current lesson from lesson server`);
               return res.json(lessonData.lessons[0]);
+            } else {
+              console.log(`⚠️ Lesson server responded but no lessons found for ID: ${currentLessonId}`);
             }
+          } else {
+            console.log(`⚠️ Lesson server request failed with status: ${lessonServerResponse.status}`);
           }
         } catch (fetchError) {
-          console.warn(
-            'Could not fetch from lesson server, trying local collection',
-          );
+          if (fetchError.name === 'AbortError') {
+            console.warn('Lesson server request timed out');
+          } else {
+            console.warn('Could not fetch from lesson server:', fetchError.message);
+          }
         }
 
-        // Fallback to local Lessons collection
+        // Try to find lesson by numeric ID in the local collection
         try {
           const lessonsCollection = client
             .db('TrinityCapital')
             .collection('Lessons');
-          const currentLesson = await lessonsCollection.findOne({
-            _id: new ObjectId(currentLessonId),
+
+          // Try searching by the numeric ID as a string field
+          let currentLesson = await lessonsCollection.findOne({
+            lessonId: currentLessonId,
           });
 
-          if (currentLesson) {
-            console.log(`✅ Retrieved current lesson from local collection`);
-            return res.json(currentLesson);
+          // If not found, try searching by _id as string
+          if (!currentLesson) {
+            currentLesson = await lessonsCollection.findOne({
+              _id: currentLessonId,
+            });
           }
-        } catch (objectIdError) {
-          console.warn(`Invalid ObjectId: ${currentLessonId}`, objectIdError);
+
+          // If still not found, try searching in lesson.lesson_id field
+          if (!currentLesson) {
+            currentLesson = await lessonsCollection.findOne({
+              'lesson.lesson_id': currentLessonId,
+            });
+          }
+
+          if (currentLesson) {
+            console.log(`✅ Retrieved current lesson from local collection using numeric ID`);
+            return res.json(currentLesson);
+          } else {
+            console.log(`⚠️ Lesson not found in local collection with ID: ${currentLessonId}`);
+          }
+        } catch (localError) {
+          console.warn(`Error searching local collection:`, localError.message);
         }
+        */
       }
     }
 
@@ -1980,33 +2095,40 @@ app.get('/api/student-current-lesson/:studentId', async (req, res) => {
 app.get('/api/student-financial-data/:studentId', async (req, res) => {
   try {
     const { studentId } = req.params;
+    const decodedStudentId = decodeURIComponent(studentId);
+
+    console.log(`💰 Getting financial data for student: ${decodedStudentId}`);
 
     const userProfilesCollection = client
       .db('TrinityCapital')
       .collection('User Profiles');
     const studentProfile = await userProfilesCollection.findOne({
-      memberName: studentId,
+      memberName: decodedStudentId,
     });
 
     if (!studentProfile) {
+      console.log(`❌ Student not found: ${decodedStudentId}`);
       return res.status(404).json({ error: 'Student not found' });
     }
 
     // Calculate financial data from student profile
-    const checkingBalance = studentProfile.checkingBalance || 0;
-    const savingsBalance = studentProfile.savingsBalance || 0;
+    const checkingBalance = studentProfile.checkingAccount?.balanceTotal || 0;
+    const savingsBalance = studentProfile.savingsAccount?.balanceTotal || 0;
     const totalBalance = checkingBalance + savingsBalance;
 
-    const bills = studentProfile.bills || [];
-    const income = studentProfile.income || [];
-    const transactions = studentProfile.transactions || [];
+    const bills = studentProfile.checkingAccount?.bills || [];
+    const payments = studentProfile.checkingAccount?.payments || [];
+    const checkingTransactions =
+      studentProfile.checkingAccount?.transactions || [];
+    const savingsTransactions =
+      studentProfile.savingsAccount?.transactions || [];
 
     const totalBills = bills.reduce(
       (sum, bill) => sum + (parseFloat(bill.amount) || 0),
       0,
     );
-    const totalIncome = income.reduce(
-      (sum, inc) => sum + (parseFloat(inc.amount) || 0),
+    const totalPayments = payments.reduce(
+      (sum, payment) => sum + (parseFloat(payment.amount) || 0),
       0,
     );
 
@@ -2015,13 +2137,22 @@ app.get('/api/student-financial-data/:studentId', async (req, res) => {
       savingsBalance,
       totalBalance,
       totalBills,
-      totalIncome,
-      transactionCount: transactions.length,
+      totalIncome: totalPayments, // payments are typically income
+      transactionCount:
+        checkingTransactions.length + savingsTransactions.length,
       lessonStartTime: studentProfile.lessonStartTime || Date.now(),
       bills: bills.length,
-      income: income.length,
+      income: payments.length,
       currentAccount: studentProfile.currentAccount || 'checking',
     };
+
+    console.log(`💰 Financial data for ${decodedStudentId}:`, {
+      checkingBalance,
+      savingsBalance,
+      totalBalance,
+      billCount: bills.length,
+      paymentCount: payments.length,
+    });
 
     res.json(financialData);
   } catch (error) {
@@ -2211,27 +2342,137 @@ app.post('/api/sync-teacher-dashboard', async (req, res) => {
 app.get('/api/student-lessons/:studentId', async (req, res) => {
   try {
     const { studentId } = req.params;
+    const decodedStudentId = decodeURIComponent(studentId);
+
+    console.log(`📚 Fetching lessons for student: ${decodedStudentId}`);
 
     const userProfilesCollection = client
       .db('TrinityCapital')
       .collection('User Profiles');
-    const lessonsCollection = client.db('TrinityCapital').collection('Lessons');
 
     const studentProfile = await userProfilesCollection.findOne({
-      memberName: studentId,
+      memberName: decodedStudentId,
     });
+
     if (!studentProfile) {
+      console.log(`❌ Student not found: ${decodedStudentId}`);
       return res.status(404).json({ error: 'Student not found' });
     }
 
-    const assignedLessonIds = studentProfile.lessonIds || [];
-    const lessons = await lessonsCollection
-      .find({
-        _id: { $in: assignedLessonIds.map(id => new ObjectId(id)) },
-      })
-      .toArray();
+    let allLessons = [];
 
-    res.json(lessons);
+    // Check for lessons in the new unit-based system
+    const assignedUnitIds = studentProfile.assignedUnitIds || [];
+    if (assignedUnitIds.length > 0) {
+      console.log(`🔗 Found ${assignedUnitIds.length} assigned units`);
+
+      // Get all lesson IDs from assigned units
+      let allLessonIds = [];
+      assignedUnitIds.forEach(unitAssignment => {
+        if (
+          unitAssignment.lessonIds &&
+          Array.isArray(unitAssignment.lessonIds)
+        ) {
+          allLessonIds.push(...unitAssignment.lessonIds);
+        }
+      });
+
+      console.log(
+        `📝 Found ${allLessonIds.length} lesson IDs: ${allLessonIds.slice(0, 3)}...`,
+      );
+
+      // Load Dallas Fed lesson data
+      const fs = require('fs');
+      const path = require('path');
+      let dallasFedLessons = [];
+      try {
+        const lessonDataPath = path.join(
+          __dirname,
+          'dallas_fed_aligned_lessons.json',
+        );
+        const lessonData = JSON.parse(fs.readFileSync(lessonDataPath, 'utf8'));
+        dallasFedLessons = lessonData.lessons || [];
+      } catch (error) {
+        console.log(
+          '⚠️ Could not load Dallas Fed lesson data, using fallback titles',
+        );
+      }
+
+      // Create lessons with actual titles from Dallas Fed data
+      allLessons = allLessonIds.map((lessonId, index) => {
+        const dallasFedLesson = dallasFedLessons[index];
+        const lessonTitle =
+          dallasFedLesson?.lesson_title || `Unit 1 Lesson ${index + 1}`;
+        const lessonDescription =
+          dallasFedLesson?.lesson_description ||
+          `Dallas Fed Curriculum Lesson ${lessonId}`;
+
+        return {
+          _id: lessonId,
+          lesson_title: lessonTitle,
+          lesson_description: lessonDescription,
+          lesson_type: 'interactive',
+          lesson_blocks: [
+            {
+              type: 'instruction',
+              content:
+                dallasFedLesson?.lesson_description ||
+                `This is lesson ${index + 1} from the Dallas Fed curriculum.`,
+            },
+            {
+              type: 'action',
+              content: 'Complete the financial tasks as instructed.',
+            },
+          ],
+          lesson_conditions: dallasFedLesson?.lesson_conditions || [
+            {
+              type: 'balance_check',
+              target: 100,
+              description: 'Maintain account balance',
+            },
+          ],
+          intro_text_blocks: [
+            {
+              type: 'intro',
+              content: `Welcome to ${lessonTitle}!`,
+            },
+          ],
+          teacher: 'admin@trinity-capital.net',
+          unit: dallasFedLesson?.unit || 'unit1',
+          unitName: dallasFedLesson?.unit || 'Unit 1: Earning and Spending',
+          lessonNumber: index + 1,
+          isAvailable: true,
+          isCompleted: false,
+        };
+      });
+    }
+
+    // Fallback to legacy lesson system
+    const assignedLessonIds = studentProfile.lessonIds || [];
+    if (assignedLessonIds.length > 0 && allLessons.length === 0) {
+      console.log(
+        `📚 Using legacy lesson system with ${assignedLessonIds.length} lessons`,
+      );
+
+      try {
+        const lessonsCollection = client
+          .db('TrinityCapital')
+          .collection('Lessons');
+        const lessons = await lessonsCollection
+          .find({
+            _id: { $in: assignedLessonIds.map(id => new ObjectId(id)) },
+          })
+          .toArray();
+        allLessons = lessons;
+      } catch (error) {
+        console.warn('Could not fetch legacy lessons:', error.message);
+      }
+    }
+
+    console.log(
+      `✅ Returning ${allLessons.length} lessons for ${decodedStudentId}`,
+    );
+    res.json(allLessons);
   } catch (error) {
     console.error('❌ Error fetching student lessons:', error);
     res.status(500).json({ error: 'Failed to fetch student lessons' });

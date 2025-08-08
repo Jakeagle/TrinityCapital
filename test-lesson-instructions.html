@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test Lesson Instructions</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #f5f5f5;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      .instruction-card {
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        color: white;
+        padding: 20px;
+        margin: 15px 0;
+        border-radius: 10px;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      }
+      .instruction-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .instruction-icon {
+        font-size: 24px;
+        margin-right: 10px;
+      }
+      .instruction-title {
+        font-size: 18px;
+        font-weight: bold;
+      }
+      .instruction-description {
+        margin: 10px 0;
+        line-height: 1.5;
+      }
+      .instruction-location {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 12px;
+        border-radius: 5px;
+        font-size: 14px;
+        margin-top: 10px;
+      }
+      .test-results {
+        margin: 20px 0;
+        padding: 15px;
+        background: #e8f5e8;
+        border-radius: 5px;
+        border-left: 4px solid #27ae60;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🧪 Lesson Instruction Template Test</h1>
+
+      <div class="test-results">
+        <h3>Test Results:</h3>
+        <div id="test-output"></div>
+      </div>
+
+      <h2>Generated Instructions:</h2>
+      <div id="instructions-container"></div>
+    </div>
+
+    <script type="module">
+      console.log('🧪 Starting lesson instruction test...');
+
+      // Import the lesson renderer
+      import('./Frontend/Javascript/lessonRenderer.js')
+        .then(async () => {
+          const testOutput = document.getElementById('test-output');
+          const instructionsContainer = document.getElementById(
+            'instructions-container',
+          );
+
+          try {
+            // Create a test lesson renderer instance
+            const { LessonRenderer } = await import(
+              './Frontend/Javascript/lessonRenderer.js'
+            );
+            const renderer = new LessonRenderer();
+
+            // Test conditions from the actual lesson data
+            const testConditions = [
+              {
+                condition_type: 'lesson_content_viewed',
+                condition_value: { slidesViewed: 6, totalSlides: 8 },
+                action_details: {
+                  message:
+                    'Great! Now analyze your spending patterns using the app',
+                },
+              },
+              {
+                condition_type: 'account_checked',
+                condition_value: {
+                  accountType: 'checking',
+                  transactions_reviewed: true,
+                },
+                action_details: {
+                  message:
+                    "Based on your account activity, identify whether you're a spender or saver",
+                },
+              },
+              {
+                condition_type: 'spending_analyzed',
+                condition_value: { categories_identified: 3 },
+                action_details: {
+                  message: 'Excellent understanding of spending patterns!',
+                },
+              },
+              {
+                condition_type: 'transfer_completed',
+                condition_value: { amount: 100 },
+                action_details: {
+                  message: 'Practice moving money between accounts',
+                },
+              },
+              {
+                condition_type: 'personality_insight',
+                condition_value: {},
+                action_details: {
+                  message: 'Determine your financial personality type',
+                },
+              },
+            ];
+
+            testOutput.innerHTML = `<p>✅ Successfully loaded lesson renderer</p>`;
+            testOutput.innerHTML += `<p>🔍 Testing ${testConditions.length} condition types</p>`;
+
+            // Test each condition
+            testConditions.forEach((condition, index) => {
+              try {
+                const instruction = renderer.interpretConditionToInstruction(
+                  condition,
+                  { lesson_title: 'Test Lesson' },
+                );
+
+                // Create instruction card
+                const card = document.createElement('div');
+                card.className = 'instruction-card';
+                card.innerHTML = `
+                                <div class="instruction-header">
+                                    <span class="instruction-icon">${instruction.icon}</span>
+                                    <span class="instruction-title">${instruction.title}</span>
+                                </div>
+                                <div class="instruction-description">${instruction.description}</div>
+                                <div class="instruction-location">📍 ${instruction.location}</div>
+                            `;
+                instructionsContainer.appendChild(card);
+
+                testOutput.innerHTML += `<p>✅ Generated instruction for: ${condition.condition_type}</p>`;
+              } catch (error) {
+                testOutput.innerHTML += `<p>❌ Failed for ${condition.condition_type}: ${error.message}</p>`;
+              }
+            });
+
+            testOutput.innerHTML += `<p>🎉 Test completed successfully!</p>`;
+          } catch (error) {
+            testOutput.innerHTML += `<p>❌ Test failed: ${error.message}</p>`;
+            console.error('Test error:', error);
+          }
+        })
+        .catch(error => {
+          console.error('Failed to load lesson renderer:', error);
+          document.getElementById('test-output').innerHTML =
+            `<p>❌ Failed to load lesson modules: ${error.message}</p>`;
+        });
+    </script>
+  </body>
+</html>
