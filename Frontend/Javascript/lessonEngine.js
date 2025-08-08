@@ -79,6 +79,17 @@ class LessonEngine {
         return;
       }
 
+      // Safety check for lesson conditions
+      if (
+        !this.currentLesson.lesson_conditions ||
+        !Array.isArray(this.currentLesson.lesson_conditions)
+      ) {
+        console.log(
+          '📝 Current lesson has no valid conditions, skipping evaluation',
+        );
+        return;
+      }
+
       // 3. Condition Evaluation
       const matchedConditions = await this.evaluateConditions(
         normalizedActionType,
@@ -103,7 +114,7 @@ class LessonEngine {
       // Encode the student ID to handle spaces and special characters
       const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `/api/student-current-lesson/${encodedStudentId}`,
+        `http://localhost:3000/api/student-current-lesson/${encodedStudentId}`,
       );
 
       if (response.ok) {
@@ -134,6 +145,53 @@ class LessonEngine {
    */
   async refreshCurrentLesson() {
     await this.loadCurrentLesson();
+  }
+
+  /**
+   * Activate lesson tracking for a specific lesson
+   * This method is called when a student starts a lesson from the lesson modal
+   * @param {Object} lesson - The lesson object to activate
+   */
+  async activateLesson(lesson) {
+    try {
+      console.log(`🎯 Activating lesson: ${lesson.lesson_title}`);
+
+      // Set the current lesson
+      this.currentLesson = lesson;
+
+      // Reset lesson tracker for the new lesson
+      this.lessonTracker = new LessonTracker();
+
+      // Show activation notification
+      this.showLessonNotification(
+        `📚 ${lesson.lesson_title} is now active! Complete the activities to progress.`,
+        'info',
+      );
+
+      // Start periodic checks for passive conditions
+      this.setupPeriodicChecks();
+
+      // Record lesson start event
+      this.lessonTracker.recordConditionMet({
+        type: 'lesson_started',
+        timestamp: new Date().toISOString(),
+        lesson_id: lesson._id || lesson.id,
+        lesson_title: lesson.lesson_title,
+      });
+
+      console.log(`✅ Lesson activated successfully: ${lesson.lesson_title}`);
+
+      return true;
+    } catch (error) {
+      console.error('❌ Error activating lesson:', error);
+
+      this.showLessonNotification(
+        `❌ Error activating lesson: ${error.message}`,
+        'error',
+      );
+
+      return false;
+    }
   }
 
   /**
@@ -185,8 +243,25 @@ class LessonEngine {
    * Check if a specific condition matches - Enhanced for new schema
    */
   conditionMatches(condition, actionType, payload, studentData) {
-    const conditionType = condition.condition_type;
+    // Add safety checks for condition object
+    if (!condition || typeof condition !== 'object') {
+      console.warn('⚠️ Invalid condition object:', condition);
+      return false;
+    }
+
+    const conditionType = condition.condition_type || condition.type;
     const conditionValue = condition.condition_value || condition.value; // Support both schemas
+
+    // Add safety check for conditionType
+    if (!conditionType || typeof conditionType !== 'string') {
+      console.warn(
+        '⚠️ Invalid condition type:',
+        conditionType,
+        'in condition:',
+        condition,
+      );
+      return false;
+    }
 
     // New schema condition types
     switch (conditionType) {
@@ -416,7 +491,11 @@ class LessonEngine {
       switch (actionType) {
         case 'send_message':
         case 'show_instruction':
-          await this.sendMessage(action.message || action.value, actionDetails);
+          // CRITICAL FIX: Only send congratulatory/follow-up messages AFTER action is confirmed complete
+          await this.sendDelayedMessage(
+            action.message || action.value,
+            actionDetails,
+          );
           break;
         case 'challenge_save_amount':
           await this.createSavingsChallenge(
@@ -528,7 +607,7 @@ class LessonEngine {
       // Handle completion data if provided
       if (actionDetails.completion_data) {
         try {
-          await fetch('/api/student-lesson/complete', {
+          await fetch('http://localhost:3000/api/student-lesson/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -581,8 +660,9 @@ class LessonEngine {
    */
   async getStudentFinancialData() {
     try {
+      const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `/api/student-financial-data/${this.currentStudent}`,
+        `http://localhost:3000/api/student-financial-data/${encodedStudentId}`,
       );
       if (response.ok) {
         return await response.json();
@@ -670,6 +750,54 @@ class LessonEngine {
     }
   }
 
+  /**
+   * CRITICAL FIX: Send delayed messages only after confirming action completion
+   * This prevents showing "Great! You've added income..." before the action is actually done
+   */
+  async sendDelayedMessage(message, actionDetails = {}) {
+    const delay = actionDetails.delay || 1000; // 1 second delay to ensure action processes
+    const messageType = actionDetails.message_type || 'follow_up';
+
+    // Only send follow-up/congratulatory messages after a delay
+    if (messageType === 'follow_up' || messageType === 'congratulations') {
+      setTimeout(async () => {
+        // Double-check that the condition is still valid before sending message
+        await this.refreshCurrentLesson();
+        const isStillValid = await this.validateConditionStillMet(
+          actionDetails.condition_id,
+        );
+
+        if (isStillValid) {
+          await this.sendMessage(message, actionDetails);
+        }
+      }, delay);
+    } else {
+      // Send immediate messages (like warnings or tips) right away
+      await this.sendMessage(message, actionDetails);
+    }
+  }
+
+  /**
+   * Validate that a condition is still met after an action completes
+   */
+  async validateConditionStillMet(conditionId) {
+    if (!conditionId || !this.currentLesson) return true; // Default to true if no validation needed
+
+    // Check if the specific condition is still satisfied
+    const condition = this.currentLesson.lesson_conditions.find(
+      c => c.id === conditionId,
+    );
+    if (!condition) return true;
+
+    const studentData = await this.getStudentFinancialData();
+    return this.conditionMatches(
+      condition,
+      condition.condition_type,
+      {},
+      studentData,
+    );
+  }
+
   async createSavingsChallenge(amount, description, actionDetails = {}) {
     const baseMessage = `💰 Challenge: Save $${amount} into your savings account. ${description || ''}`;
     const message = actionDetails.difficulty_adjusted
@@ -681,7 +809,7 @@ class LessonEngine {
     // Create challenge in backend if enabled
     if (actionDetails.create_backend_challenge) {
       try {
-        await fetch('/api/student-challenge/create', {
+        await fetch('http://localhost:3000/api/student-challenge/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -763,7 +891,7 @@ class LessonEngine {
   async lockLesson() {
     // API call to lock current lesson
     try {
-      await fetch('/api/lock-lesson', {
+      await fetch('http://localhost:3000/api/lock-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -779,7 +907,7 @@ class LessonEngine {
   async unlockNextLesson() {
     // API call to unlock next lesson
     try {
-      await fetch('/api/unlock-next-lesson', {
+      await fetch('http://localhost:3000/api/unlock-next-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -795,7 +923,7 @@ class LessonEngine {
   async syncWithTeacherDashboard(grade) {
     // API call to sync with teacher dashboard
     try {
-      await fetch('/api/sync-teacher-dashboard', {
+      await fetch('http://localhost:3000/api/sync-teacher-dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -812,9 +940,11 @@ class LessonEngine {
 
   async showCompletionMessage(grade, actionDetails = {}) {
     const letterGrade = this.convertToLetterGrade(grade);
+    const lessonTitle = this.currentLesson?.lesson_title || 'Unknown Lesson';
+
     let message =
       actionDetails.completion_message ||
-      `🎓 Lesson Complete! You earned ${grade}% (${letterGrade})`;
+      `🎓 Lesson Complete!\n\n📚 ${lessonTitle}\n🎯 Grade: ${grade}% (${letterGrade})\n\nGreat work! Keep learning! 💪`;
 
     // Apply difficulty adjustment if enabled
     if (actionDetails.difficulty_adjusted && this.currentStudentData) {

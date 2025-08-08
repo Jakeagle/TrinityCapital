@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -11,7 +11,7 @@
       crossorigin="anonymous"
     />
     <link rel="stylesheet" href="Styles/style.css" />
-    <link rel="stylesheet" href="Styles/check.css">
+    <link rel="stylesheet" href="Styles/check.css" />
     <script
       src="https://kit.fontawesome.com/60a3862749.js"
       crossorigin="anonymous"
@@ -29,9 +29,10 @@
     ></script>
 
     <script
-  src="https://code.jquery.com/jquery-3.7.1.slim.js"
-  integrity="sha256-UgvvN8vBkgO0luPSUl2s8TIlOSYRoGFAX4jlCIm9Adc="
-  crossorigin="anonymous"></script>
+      src="https://code.jquery.com/jquery-3.7.1.slim.js"
+      integrity="sha256-UgvvN8vBkgO0luPSUl2s8TIlOSYRoGFAX4jlCIm9Adc="
+      crossorigin="anonymous"
+    ></script>
   </head>
   <body>
     <!-- Loading Modal -->
@@ -56,7 +57,11 @@
           <div class="col">
             <div class="col-1 pfp">
               <p class="lessonImg"></p>
-              <img class ="logoImg" src="img/Untitled_design__2_-removebg-preview.png" alt="">
+              <img
+                class="logoImg"
+                src="img/Untitled_design__2_-removebg-preview.png"
+                alt=""
+              />
             </div>
           </div>
         </div>
@@ -156,7 +161,9 @@
           <div class="row">
             <div class="col transferBox">
               <p class="col">
-                <a href="https://fergusonsoftwaresolutions.net"> <i class="fa-solid fa-copyright bankingImg CopyRight"></i></a>
+                <a href="https://fergusonsoftwaresolutions.net">
+                  <i class="fa-solid fa-copyright bankingImg CopyRight"></i
+                ></a>
               </p>
             </div>
             <div class="col">
@@ -178,9 +185,9 @@
                 <h1 class="votd">Verse of the Day</h1>
                 <h2 class="verseTitle">Isaiah 41:10 (kjv)</h2>
                 <h4 class="verse">
-                  Fear thou not; for I am with thee: be not dismayed; for I am thy
-                  God: I will strengthen thee; yea, I will help thee; yea, I will
-                  uphold thee with the right hand of my righteousness.
+                  Fear thou not; for I am with thee: be not dismayed; for I am
+                  thy God: I will strengthen thee; yea, I will help thee; yea, I
+                  will uphold thee with the right hand of my righteousness.
                 </h4>
               </div>
             </div>
@@ -367,7 +374,7 @@
     </div>
 
     <script src="Javascript/script.js" type="module"></script>
-    <!-- <script src="Javascript/lessonEngine.js" type="module"></script> -->
+    <script src="Javascript/lessonEngine.js" type="module"></script>
     <!-- <script src="Javascript/lessonEngineTest.js" type="module"></script> -->
     <script src="Javascript/billsAndPayments.js" type="module"></script>
     <script src="Javascript/numberCrunch.js" type="module"></script>
@@ -614,7 +621,9 @@
           Sign in to continue, or sign up below
         </h3>
 
-        <a href="https://trinitycapitalsignup.netlify.app"><div class="signUpBtn"><h1 class="SignUpText">Sign Up</h1></div></a>
+        <a href="https://trinitycapitalsignup.netlify.app"
+          ><div class="signUpBtn"><h1 class="SignUpText">Sign Up</h1></div></a
+        >
       </div>
       <div class="col-9 sec2">
         <h1 class="welcomeBackSignOn signInToApp">
@@ -859,7 +868,7 @@
     </div>
   </dialog>
 
-  <dialog  class="baseModal depositModal">
+  <dialog class="baseModal depositModal">
     <div class="accountRow row">
       <div class="col-10">
         <h1 class="transferText">Deposit Checks</h1>
@@ -873,8 +882,18 @@
     <div class="check-container">
       <header class="check-container__header-banner">
         <div class="check-container__name-address">
-          <input id="name-input" class="checkInput nameInput" type="text" placeholder="Name" />
-          <input id="address-input" class="checkInput" type="text" placeholder="Address" />
+          <input
+            id="name-input"
+            class="checkInput nameInput"
+            type="text"
+            placeholder="Name"
+          />
+          <input
+            id="address-input"
+            class="checkInput"
+            type="text"
+            placeholder="Address"
+          />
         </div>
         <div class="check-container__date">
           <span
@@ -886,10 +905,16 @@
       <main class="check-container__main-section">
         <div class="check-container__payto">
           <span class="check-container__order">
-            <label for="name-payto" class="check-container__payto-desc checkInput">
+            <label
+              for="name-payto"
+              class="check-container__payto-desc checkInput"
+            >
               Pay to the order of
             </label>
-            <select id="name-payto" class="check-container__payto-name checkInput1 destInput">
+            <select
+              id="name-payto"
+              class="check-container__payto-name checkInput1 destInput"
+            >
               <option value="default">Select recipient...</option>
               <optgroup label="Bill Vendors" id="bill-vendors-group">
                 <!-- Bill vendors will be populated here -->
@@ -934,11 +959,12 @@
           />
         </div>
       </footer>
-
     </div>
     <div class="transferBtn">
       <h4 class="submitTransfer">Submit</h4>
-      <button class="form__btn form__btn--transfer form__btn--payments submitBtn">
+      <button
+        class="form__btn form__btn--transfer form__btn--payments submitBtn"
+      >
         <i class="fa-solid fa-arrow-right"></i>
       </button>
     </div>
@@ -957,19 +983,22 @@
     </div>
 
     <div class="row inputRowSend">
-      <div class="title col-6"><h2 class="sendText">Select Recipient</h2>
+      <div class="title col-6">
+        <h2 class="sendText">Select Recipient</h2>
         <select
-        name="recipient"
-        class="recipients paymentFrequency col-lg-6 col-md-6 col-sm-12"
-      >
-        <option value="frequency">Recipient</option>
-      </select>
+          name="recipient"
+          class="recipients paymentFrequency col-lg-6 col-md-6 col-sm-12"
+        >
+          <option value="frequency">Recipient</option>
+        </select>
       </div>
-      <div class="amount col-6"><h2 class="sendText">Amount</h2>
+      <div class="amount col-6">
+        <h2 class="sendText">Amount</h2>
         <input
-        type="number"
-        class="accountsListFrom form__input--amount--sendMoney col-lg-6 col-md-6 col-sm-12"
-      /></div>
+          type="number"
+          class="accountsListFrom form__input--amount--sendMoney col-lg-6 col-md-6 col-sm-12"
+        />
+      </div>
     </div>
 
     <div class="submitSendMoney">
@@ -981,59 +1010,172 @@
   </dialog>
   <dialog class="baseModal timerModal">
     <h1 class="bottomText">Time for a break</h1>
-
   </dialog>
-  
+
   <dialog class="baseModal messagesModal">
     <div class="messages-container">
-        <div class="message-threads">
-            <h2 class="threads-header">Conversations</h2>
-            <ul class="thread-list">
-                <!-- Thread list will be populated by script.js -->
-            </ul>
-            <div class="new-thread-button">
-                New Conversation
-            </div>
+      <div class="message-threads">
+        <h2 class="threads-header">Conversations</h2>
+        <ul class="thread-list">
+          <!-- Thread list will be populated by script.js -->
+        </ul>
+        <div class="new-thread-button">New Conversation</div>
+      </div>
+      <div class="message-content">
+        <!-- This is the new wrapper that was missing -->
+        <div class="conversation-view">
+          <div class="conversation-header">
+            <h2 class="conversation-with">Select a conversation</h2>
+            <button class="close-messages-modal">&times;</button>
+          </div>
+          <div class="conversation-body">
+            <!-- Messages will be populated by script.js -->
+          </div>
         </div>
-        <div class="message-content">
-            <!-- This is the new wrapper that was missing -->
-            <div class="conversation-view">
-            <div class="conversation-header">
-                <h2 class="conversation-with">Select a conversation</h2>
-                <button class="close-messages-modal">&times;</button>
-            </div>
-            <div class="conversation-body">
-                <!-- Messages will be populated by script.js -->
-            </div>
-            </div>
-        </div>
+      </div>
     </div>
   </dialog>
 
   <!-- LESSON TEST -->
 
   <dialog class="baseModal lessonModal">
-  
+    <div class="lesson-modal-header">
+      <h2 id="lesson-modal-title">Lesson Title</h2>
+      <button class="close-btn" onclick="this.closest('dialog').close()">
+        <svg
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
 
+    <div
+      id="lessonCarousel"
+      class="carousel slide"
+      data-bs-ride="false"
+      data-bs-wrap="false"
+    >
+      <div class="carousel-inner">
+        <!-- Intro Slide -->
+        <div class="carousel-item active">
+          <div class="lesson-slide intro-slide">
+            <div class="slide-content">
+              <div class="lesson-intro-content">
+                <h3>📚 Lesson Overview</h3>
+                <p id="lesson-description">
+                  Lesson description will appear here.
+                </p>
+                <div class="lesson-objectives" id="lesson-objectives">
+                  <h4>🎯 Learning Objectives:</h4>
+                  <ul id="lesson-objectives-list">
+                    <!-- Objectives will be populated dynamically -->
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="slide-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                onclick="this.closest('dialog').close()"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary"
+                data-bs-target="#lessonCarousel"
+                data-bs-slide="next"
+              >
+                Continue
+              </button>
+            </div>
           </div>
         </div>
 
-        
+        <!-- Instructions Slide -->
+        <div class="carousel-item">
+          <div class="lesson-slide instructions-slide">
+            <div class="slide-content">
+              <div class="lesson-instructions">
+                <h3>📝 Instructions</h3>
+                <div id="lesson-blocks">
+                  <!-- Lesson blocks will be dynamically inserted here -->
+                </div>
+                <div class="lesson-conditions" id="lesson-conditions">
+                  <h4>📋 What you'll need to do:</h4>
+                  <ul id="lesson-conditions-list">
+                    <!-- Lesson conditions will be dynamically inserted here -->
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="slide-footer">
+              <button
+                type="button"
+                class="btn btn-secondary"
+                data-bs-target="#lessonCarousel"
+                data-bs-slide="prev"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                class="btn btn-success"
+                id="begin-activities-btn"
+              >
+                Begin Activities
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Carousel Controls -->
+      <button
+        class="carousel-control-prev"
+        type="button"
+        data-bs-target="#lessonCarousel"
+        data-bs-slide="prev"
+      >
+        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Previous</span>
+      </button>
+      <button
+        class="carousel-control-next"
+        type="button"
+        data-bs-target="#lessonCarousel"
+        data-bs-slide="next"
+      >
+        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+        <span class="visually-hidden">Next</span>
+      </button>
     </div>
   </dialog>
 
-
   <dialog class="baseModal activityModal">
-  
-    <div id="carouselExampleControls" class="carousel slide" data-ride="false" data-bs-wrap="false">
+    <div
+      id="carouselExampleControls"
+      class="carousel slide"
+      data-ride="false"
+      data-bs-wrap="false"
+    >
       <div class="carousel-inner">
         <div class="carousel-item modal-item active container-fluid">
           <video class="L1Vid" width="960" height="540" controls>
             <source src="Activites/N&W Q1.mp4" type="video/mp4" />
           </video>
         </div>
-       
+
         <div class="carousel-item modal-item container-fluid">
           <video class="L1Vid" width="960" height="540" controls>
             <source src="Activites/N&W Q2.mp4" type="video/mp4" />
@@ -1064,12 +1206,8 @@
         <span class="visually-hidden">Next</span>
       </button>
     </div>
-
-    
-   
   </dialog>
-  
+
   <!-- Modern UI Enhancement Scripts -->
   <script type="module" src="Javascript/uiEnhancements.js"></script>
-  
 </html>

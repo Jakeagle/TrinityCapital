@@ -1284,8 +1284,8 @@ class LessonRenderer {
       beginButton.style.boxShadow = '0 5px 15px rgba(39, 174, 96, 0.4)';
     });
 
-    beginButton.addEventListener('click', async () => {
-      await this.activateLessonTracking(lesson);
+    beginButton.addEventListener('click', () => {
+      this.activateLessonTracking(lesson);
       // Close the modal instead of returning to lessons list
       const modalOverlay = container.closest('.lesson-modal-overlay');
       if (modalOverlay) {
@@ -1379,20 +1379,20 @@ class LessonRenderer {
    * Activate lesson tracking and initialize lesson engine
    * @param {Object} lesson - The lesson object
    */
-  async activateLessonTracking(lesson) {
+  activateLessonTracking(lesson) {
     console.log('🚀 Activating lesson tracking for:', lesson.lesson_title);
 
     // Initialize lesson engine if available
     if (window.lessonEngine) {
-      // Set the current lesson for tracking
-      window.lessonEngine.currentLesson = lesson;
-      console.log('✅ Lesson set for tracking:', lesson.lesson_id);
+      window.lessonEngine.initializeForStudent(
+        this.currentStudent,
+        lesson.lesson_id,
+      );
+      console.log('✅ Lesson tracking activated');
 
-      // Initialize the engine for this student if not already done
-      if (!window.lessonEngine.initialized) {
-        await window.lessonEngine.initialize(this.currentStudent);
-        console.log('🔍 Lesson engine initialized for student');
-      }
+      // Start monitoring student activities
+      window.lessonEngine.startTracking();
+      console.log('🔍 Activity monitoring started');
     } else {
       console.warn('⚠️ Lesson engine not available for tracking');
     }
