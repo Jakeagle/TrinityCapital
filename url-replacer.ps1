@@ -18,6 +18,8 @@ $filesToProcess = @(
     "Frontend\Javascript\sendMoney.js",
     "Frontend\Javascript\accountSwitch.js",
     "Frontend\Javascript\checkPayeeManager.js",
+    "Frontend\Javascript\lessonEngine.js",
+    "Frontend\Javascript\lessonRenderer.js",
     "server.js"
 )
 
