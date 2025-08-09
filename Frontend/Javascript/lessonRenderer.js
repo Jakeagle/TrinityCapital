@@ -83,7 +83,7 @@ class LessonRenderer {
     );
     try {
       const encodedStudentId = encodeURIComponent(this.currentStudent);
-      const url = `http://localhost:3000/api/student-lessons/${encodedStudentId}`;
+      const url = `https://tcstudentserver-production.up.railway.app/api/student-lessons/${encodedStudentId}`;
       console.log('🔥 Fetching lessons from URL:', url);
 
       const response = await fetch(url);
