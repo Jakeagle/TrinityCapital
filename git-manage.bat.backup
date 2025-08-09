@@ -18,8 +18,6 @@ if "%1"=="both" goto :push_both
 if "%1"=="all" goto :push_both
 if "%1"=="pull" goto :pull_both
 if "%1"=="setup" goto :setup
-if "%1"=="deploy" goto :deploy_production
-if "%1"=="local" goto :revert_to_local
 goto :usage
 
 :show_status
@@ -118,7 +116,7 @@ call :show_status
 goto :end
 
 :usage
-echo Usage: %0 {status^|server^|frontend^|both^|pull^|setup^|deploy^|local}
+echo Usage: %0 {status^|server^|frontend^|both^|pull^|setup}
 echo.
 echo Commands:
 echo   status    - Show current git status
@@ -127,44 +125,11 @@ echo   frontend  - Commit and push frontend files to TrinityCapital
 echo   both      - Push to both repositories
 echo   pull      - Pull from both repositories
 echo   setup     - Setup git remotes
-echo   deploy    - Replace localhost URLs with production URLs and deploy
-echo   local     - Revert production URLs back to localhost for development
 echo.
 echo Examples:
 echo   %0 status
 echo   %0 server
-echo   %0 deploy
-echo   %0 local
-goto :end
-
-:deploy_production
-echo 🚀 Deploying to Production...
-echo 📝 Replacing localhost URLs with production URLs...
-
-REM Create backup before changes
-if not exist "temp_backup" mkdir temp_backup
-copy "Frontend\Javascript\*.js" "temp_backup\" >nul 2>&1
-copy "server.js" "temp_backup\" >nul 2>&1
-
-REM Replace URLs using PowerShell script
-powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "production"
-
-echo 📤 Committing and pushing to both repositories...
-call :push_both
-
-echo 🔄 Restoring local development URLs...
-powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "local"
-
-REM Clean up backup
-rmdir /s /q "temp_backup" 2>nul
-
-echo 🎉 Production deployment complete!
-goto :end
-
-:revert_to_local
-echo 🔄 Reverting to localhost URLs for local development...
-powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "local"
-echo ✅ Localhost URLs restored for local development
+echo   %0 both
 goto :end
 
 :end
