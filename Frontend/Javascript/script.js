@@ -52,7 +52,15 @@ function hideLoadingAndShowLogin() {
   }
 }
 
-const socket = io('https://tcstudentserver-production.up.railway.app');
+// Configure socket with reconnection options to handle server disconnects
+const socket = io('http://localhost:3000', {
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
+  transports: ['websocket', 'polling'],
+});
 
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
@@ -159,10 +167,10 @@ async function initializeStudentMessaging(studentName) {
   try {
     console.log(
       'Attempting to fetch messages from:',
-      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
+      `http://localhost:3000/messages/${studentName}`,
     );
     const response = await fetch(
-      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
+      `http://localhost:3000/messages/${studentName}`,
     );
 
     if (!response.ok) {
@@ -230,7 +238,7 @@ async function openMessageCenter() {
       try {
         // Fetch classmates from the server
         const response = await fetch(
-          `https://tcstudentserver-production.up.railway.app/classmates/${currentProfile.memberName}`,
+          `http://localhost:3000/classmates/${currentProfile.memberName}`,
         );
         if (!response.ok) {
           throw new Error('Failed to fetch classmates');
@@ -300,7 +308,7 @@ async function openMessageCenter() {
   }
   try {
     const response = await fetch(
-      `https://tcstudentserver-production.up.railway.app/messages/${currentProfile.memberName}`,
+      `http://localhost:3000/messages/${currentProfile.memberName}`,
     );
     if (!response.ok) throw new Error('Failed to fetch threads');
     const { threads } = await response.json(); // Expect { threads: [...] }
@@ -577,7 +585,7 @@ function displayConversation(threadId, messages) {
  */
 async function createNewThread(recipientId) {
   try {
-    const response = await fetch('https://tcstudentserver-production.up.railway.app/newThread', {
+    const response = await fetch('http://localhost:3000/newThread', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1077,15 +1085,15 @@ socket.on('unitAssignedToStudent', data => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://tcstudentserver-production.up.railway.app/profiles';
+const testServerProfiles = 'http://localhost:3000/profiles';
 
-const loanURL = 'https://tcstudentserver-production.up.railway.app/loans';
+const loanURL = 'http://localhost:3000/loans';
 
-const donationURL = 'https://tcstudentserver-production.up.railway.app/donations';
+const donationURL = 'http://localhost:3000/donations';
 
-const donationSavingsURL = 'https://tcstudentserver-production.up.railway.app/donationsSavings';
+const donationSavingsURL = 'http://localhost:3000/donationsSavings';
 
-const balanceURL = 'https://tcstudentserver-production.up.railway.app/initialBalance';
+const balanceURL = 'http://localhost:3000/initialBalance';
 
 const productivityURL = 'http://localhost:5040/timers';
 
@@ -1472,68 +1480,60 @@ const loginFunc = async function (PIN, user, screen) {
 
 //Switch accounts
 if (accBtnSwitch) {
-  accBtnSwitch.addEventListener('click', function (e) {
+  accBtnSwitch.addEventListener('click', async function (e) {
     e.preventDefault();
-
     try {
-      console.log(currentAccount);
-
-      // Get form values
+      // ...existing code...
       let targetAccount = accNumSwitch.value;
       let pinInput = accPinSwitch.value;
-
-      // Validate inputs
       if (!targetAccount || targetAccount === 'default') {
         showNotification('Please select an account to switch to', 'error');
         return;
       }
-
       if (!pinInput || pinInput.trim() === '') {
         showNotification('PIN is required', 'error');
         return;
       }
-
       let accPIN = parseInt(pinInput);
-
       if (isNaN(accPIN) || accPIN < 1000 || accPIN > 9999) {
         showNotification('PIN must be a 4-digit number', 'error');
         return;
       }
-
       if (accPIN !== currentProfile.pin) {
         showNotification('Incorrect PIN', 'error');
         return;
       }
-
-      // Switch accounts
+      let switchedType = null;
       if (
         targetAccount === currentProfile.checkingAccount.accountNumber.slice(-4)
       ) {
         currentAccount = currentProfile.checkingAccount;
         balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(-4)}`;
         updateUI(currentAccount);
-
-        // Update account number display when switching to checking
         updateAccountNumberDisplay(currentAccount);
-
         showNotification('Switched to Checking Account', 'success');
+        switchedType = 'checking';
       } else if (
         targetAccount === currentProfile.savingsAccount.accountNumber.slice(-4)
       ) {
         currentAccount = currentProfile.savingsAccount;
         balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(-4)}`;
         updateUI(currentAccount);
-
-        // Update account number display when switching to savings
         updateAccountNumberDisplay(currentAccount);
-
         showNotification('Switched to Savings Account', 'success');
+        switchedType = 'savings';
       } else {
         showNotification('Invalid account selection', 'error');
         return;
       }
-
-      // Handle loan section visibility
+      // Direct lesson engine call
+      if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+        await lessonEngine.onAppAction('account_checked', {
+          accountType: switchedType,
+          user: currentProfile?.memberName || currentProfile?.userName || '',
+        });
+      }
+      // ...existing code...
       const loanBox = document.querySelector('.operation--loan');
       if (loanBox) {
         if (currentAccount.accountType === 'Savings') {
@@ -1542,8 +1542,6 @@ if (accBtnSwitch) {
           loanBox.style.display = 'inline';
         }
       }
-
-      // Clear form
       accNumSwitch.value = '';
       accPinSwitch.value = '';
     } catch (error) {
@@ -1557,30 +1555,38 @@ if (accBtnSwitch) {
 
 //checks if button exists
 if (requestLoanbtn) {
-  requestLoanbtn.addEventListener('click', function (e) {
-    //prevents default action
+  requestLoanbtn.addEventListener('click', async function (e) {
     e.preventDefault();
-
-    loanPush();
-
+    await loanPush();
+    if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+      await lessonEngine.onAppAction('loan_taken', {
+        amount: parseInt(loanAmount.value),
+        user: currentProfile?.memberName || currentProfile?.userName || '',
+      });
+    }
     loanAmount.value = '';
-
-    //Declares the amount as the user entered amount.
   });
 }
 
 //Donating money
 if (donateBtn) {
-  donateBtn.addEventListener('click', function (e) {
+  donateBtn.addEventListener('click', async function (e) {
     e.preventDefault();
-    //How much a user donates
-
+    let donationType = null;
     if (currentAccount.accountType === 'Checking') {
-      donationPush();
+      await donationPush();
+      donationType = 'checking';
     } else if (currentAccount.accountType === 'Savings') {
-      donationPushSavings();
+      await donationPushSavings();
+      donationType = 'savings';
     }
-
+    if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+      await lessonEngine.onAppAction('donation_made', {
+        accountType: donationType,
+        amount: parseInt(donateAmount.value),
+        user: currentProfile?.memberName || currentProfile?.userName || '',
+      });
+    }
     donatePin.value = '';
     donateAmount.value = '';
   });

@@ -34,7 +34,7 @@ const backBTN = $('.backBtn');
 
 const loginBTN = document.querySelector('.login__btn');
 
-const depositLink = 'https://tcstudentserver-production.up.railway.app/deposits';
+const depositLink = 'http://localhost:3000/deposits';
 
 mainApp.css('display', 'none');
 
@@ -239,16 +239,15 @@ export async function sendDeposit(loan, destination, member) {
       'success',
     );
 
-    // Record deposit action using lesson engine
-    if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('deposit', {
+    // Record deposit action using lesson engine (direct call, no window)
+    if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+      await lessonEngine.onAppAction('deposit', {
         amount: loan,
         destination: destination,
         member: member,
         transactionType: 'deposit',
         timestamp: new Date().toISOString(),
       });
-
       console.log(
         '✅ Deposit action recorded for lesson tracking:',
         `$${loan.toFixed(2)} to ${destination}`,

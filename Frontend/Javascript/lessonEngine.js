@@ -114,7 +114,7 @@ class LessonEngine {
       // Encode the student ID to handle spaces and special characters
       const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `https://tcstudentserver-production.up.railway.app/api/student-current-lesson/${encodedStudentId}`,
+        `http://localhost:3000/api/student-current-lesson/${encodedStudentId}`,
       );
 
       if (response.ok) {
@@ -471,6 +471,27 @@ class LessonEngine {
     for (const condition of matchedConditions) {
       await this.executeConditionAction(condition, payload);
       this.lessonTracker.recordConditionMet(condition);
+      // Show progress notification after each condition is met
+      this.showLessonProgress();
+    }
+  }
+
+  /**
+   * Show notification of lesson progress (conditions met out of total)
+   */
+  showLessonProgress() {
+    if (!this.currentLesson || !this.currentLesson.lesson_conditions) return;
+    const total = this.currentLesson.lesson_conditions.filter(
+      c => !this.lessonTracker.isOptionalCondition(c),
+    ).length;
+    const met = this.lessonTracker.getRequiredConditionsMetCount(
+      this.currentLesson.lesson_conditions,
+    );
+    if (total > 0) {
+      this.showLessonNotification(
+        `Lesson Progress: ${met} of ${total} conditions met.`,
+        'info',
+      );
     }
   }
 
@@ -491,11 +512,11 @@ class LessonEngine {
       switch (actionType) {
         case 'send_message':
         case 'show_instruction':
-          // CRITICAL FIX: Only send congratulatory/follow-up messages AFTER action is confirmed complete
-          await this.sendDelayedMessage(
-            action.message || action.value,
-            actionDetails,
-          );
+          // Always show teacher-made message as notification
+          await this.sendDelayedMessage(action.message || action.value, {
+            ...actionDetails,
+            priority: 'info',
+          });
           break;
         case 'challenge_save_amount':
           await this.createSavingsChallenge(
@@ -533,10 +554,11 @@ class LessonEngine {
           await this.completeLesson(actionDetails);
           break;
         case 'praise_good_habit':
-          await this.praiseStudent(
-            action.message || action.value,
-            actionDetails,
-          );
+          // Always show praise as notification
+          await this.praiseStudent(action.message || action.value, {
+            ...actionDetails,
+            priority: 'success',
+          });
           break;
         case 'warn_poor_choice':
           await this.warnStudent(action.message || action.value, actionDetails);
@@ -607,7 +629,7 @@ class LessonEngine {
       // Handle completion data if provided
       if (actionDetails.completion_data) {
         try {
-          await fetch('https://tcstudentserver-production.up.railway.app/api/student-lesson/complete', {
+          await fetch('http://localhost:3000/api/student-lesson/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -662,7 +684,7 @@ class LessonEngine {
     try {
       const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `https://tcstudentserver-production.up.railway.app/api/student-financial-data/${encodedStudentId}`,
+        `http://localhost:3000/api/student-financial-data/${encodedStudentId}`,
       );
       if (response.ok) {
         return await response.json();
@@ -809,7 +831,7 @@ class LessonEngine {
     // Create challenge in backend if enabled
     if (actionDetails.create_backend_challenge) {
       try {
-        await fetch('https://tcstudentserver-production.up.railway.app/api/student-challenge/create', {
+        await fetch('http://localhost:3000/api/student-challenge/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -891,7 +913,7 @@ class LessonEngine {
   async lockLesson() {
     // API call to lock current lesson
     try {
-      await fetch('https://tcstudentserver-production.up.railway.app/api/lock-lesson', {
+      await fetch('http://localhost:3000/api/lock-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -907,7 +929,7 @@ class LessonEngine {
   async unlockNextLesson() {
     // API call to unlock next lesson
     try {
-      await fetch('https://tcstudentserver-production.up.railway.app/api/unlock-next-lesson', {
+      await fetch('http://localhost:3000/api/unlock-next-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -923,7 +945,7 @@ class LessonEngine {
   async syncWithTeacherDashboard(grade) {
     // API call to sync with teacher dashboard
     try {
-      await fetch('https://tcstudentserver-production.up.railway.app/api/sync-teacher-dashboard', {
+      await fetch('http://localhost:3000/api/sync-teacher-dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1017,6 +1039,24 @@ class LessonTracker {
 
   getPositiveConditionsCount() {
     return this.positiveConditions.length;
+  }
+
+  /**
+   * Count all required (non-optional) conditions that have been met for the current lesson
+   * @param {Array} allConditions - all lesson conditions
+   * @returns {number}
+   */
+  getRequiredConditionsMetCount(allConditions) {
+    if (!allConditions) return 0;
+    const required = allConditions.filter(c => !this.isOptionalCondition(c));
+    let met = 0;
+    for (const condition of required) {
+      const conditionKey = `${condition.condition_type}_${condition.value || ''}`;
+      if (this.conditionsMet.has(conditionKey)) {
+        met++;
+      }
+    }
+    return met;
   }
 
   getNegativeConditionsCount() {

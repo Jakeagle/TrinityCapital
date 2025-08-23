@@ -20,7 +20,7 @@ const recipient = document.querySelector('.recipients');
 const inputBTN = document.querySelector('.sendBtn');
 const backBTN = document.querySelector('.backBtn');
 
-const sendMoneyURL = `https://tcstudentserver-production.up.railway.app/sendFunds`;
+const sendMoneyURL = `http://localhost:3000/sendFunds`;
 let theRecipient;
 
 mainApp.style.display = 'none';
@@ -147,16 +147,15 @@ const sendFunds = async function (recip, sendr, amnt) {
       'success',
     );
 
-    // Record send money action using lesson engine
-    if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('money_sent', {
+    // Direct lesson engine call for send money action
+    if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+      await lessonEngine.onAppAction('money_sent', {
         amount: amnt,
         recipient: recip,
         sender: sendr,
         transactionType: 'peer_transfer',
         timestamp: new Date().toISOString(),
       });
-
       console.log(
         '✅ Send money action recorded for lesson tracking:',
         `$${amnt.toFixed(2)} to ${recip}`,

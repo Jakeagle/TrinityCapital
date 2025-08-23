@@ -41,7 +41,17 @@ function incomeSpendingCalc() {
     payArray.push(payAmount);
   }
   console.log(payArray);
+  const totalIncome = payArray.reduce((acc, mov) => acc + mov, 0);
   incomeSpending('income', payArray);
+
+  // Direct lesson engine call for income calculated
+  if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+    lessonEngine.onAppAction('income_calculated', {
+      totalIncome,
+      user: currentProfile?.memberName || currentProfile?.userName || '',
+      timestamp: new Date().toISOString(),
+    });
+  }
 
   for (let i = 0; i < currentProfile.checkingAccount.bills.length; i++) {
     let bill = currentProfile.checkingAccount.bills[i];
@@ -58,7 +68,17 @@ function incomeSpendingCalc() {
 
     billArray.push(billAmount);
   }
+  const totalSpending = billArray.reduce((acc, mov) => acc + mov, 0);
   incomeSpending('spending', billArray);
+
+  // Direct lesson engine call for spending calculated
+  if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+    lessonEngine.onAppAction('spending_calculated', {
+      totalSpending,
+      user: currentProfile?.memberName || currentProfile?.userName || '',
+      timestamp: new Date().toISOString(),
+    });
+  }
 }
 
 const incomeSpending = function (type, arr) {

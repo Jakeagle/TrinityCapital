@@ -1,6 +1,11 @@
 'use strict';
 
 // Import instruction templates for generating student instructions
+import {
+  getInstructionTemplate,
+  hasInstructionTemplate,
+  getAvailableConditionTypes,
+} from './instructionTemplates.js';
 
 /**
  * Trinity Capital - Lesson Renderer
@@ -14,13 +19,6 @@
  */
 
 class LessonRenderer {
-  constructor() {
-    this.currentStudent = null;
-    this.contentContainer = null;
-    this.currentLesson = null;
-    this.currentStudentProfile = null;
-  }
-
   /**
    * Fetch available lessons for the current student using assignedUnitIds.lessonIds
    * @returns {Promise<Array>} Promise resolving to an array of lesson objects
@@ -110,40 +108,176 @@ class LessonRenderer {
    * @private
    */
   async processProfileForLessons(profile) {
-    console.log('👤 Processing profile for lessons:', profile.memberName);
+    // Log detailed profile information
+    console.log('👤 Processing profile:', {
+      memberName: profile.memberName,
+      hasAssignedUnitIds: !!profile.assignedUnitIds,
+      assignedUnitIdsType: profile.assignedUnitIds
+        ? typeof profile.assignedUnitIds
+        : 'undefined',
+      isArray: profile.assignedUnitIds
+        ? Array.isArray(profile.assignedUnitIds)
+        : false,
+      length:
+        profile.assignedUnitIds && Array.isArray(profile.assignedUnitIds)
+          ? profile.assignedUnitIds.length
+          : 0,
+    });
 
-    // Get lesson IDs from the profile
-    let lessonIds = [];
-
+    // Check for valid assignedUnitIds
     if (
-      profile.assignedUnitIds &&
-      Array.isArray(profile.assignedUnitIds.lessonIds)
+      !profile ||
+      !Array.isArray(profile.assignedUnitIds) ||
+      profile.assignedUnitIds.length === 0
     ) {
-      // Direct assignedUnitIds.lessonIds structure
-      lessonIds = profile.assignedUnitIds.lessonIds;
-    } else if (
-      profile.assignedUnitIds &&
-      Array.isArray(profile.assignedUnitIds)
-    ) {
-      // Array of unit objects with lessonIds
-      profile.assignedUnitIds.forEach(unit => {
-        if (unit.lessonIds && Array.isArray(unit.lessonIds)) {
-          lessonIds = lessonIds.concat(unit.lessonIds);
-        }
-      });
+      console.warn('⚠️ No assignedUnitIds found in student profile');
+      console.log(
+        '📋 Full profile structure:',
+        JSON.stringify(profile, null, 2),
+      );
+      return [];
     }
 
-    // Fallback to sample lessons if no lessons found
-    if (lessonIds.length === 0) {
-      console.warn('⚠️ No lesson IDs found in profile, using sample lessons');
+    // Get Unit 1 lessons first, then all other lessons
+    let orderedUnits = [...profile.assignedUnitIds];
 
-      // Use default sample lesson IDs
-      lessonIds = [
-        '1754331337919',
-        '1754331337920',
-        '1754331337921',
-        '1754331337922',
-      ];
+    // Sort units to put unit1 first
+    orderedUnits.sort((a, b) => {
+      if (a.unitId === 'unit1' || a.unitValue === 'unit1') return -1;
+      if (b.unitId === 'unit1' || b.unitValue === 'unit1') return 1;
+      return 0;
+    });
+
+    console.log(
+      '📋 Units in order:',
+      orderedUnits.map(u => u.unitName || u.unitId),
+    );
+
+    // Gather all lessonIds from all assigned units (in correct order)
+    const lessonIds = orderedUnits
+      .flatMap(unit => {
+        // Detailed logging for each unit
+        console.log(`🔍 Processing unit: ${unit.unitName || unit.unitId}`);
+        console.log(`   - lessonIds exists: ${!!unit.lessonIds}`);
+        console.log(`   - lessonIds type: ${typeof unit.lessonIds}`);
+        console.log(
+          `   - lessonIds is array: ${Array.isArray(unit.lessonIds)}`,
+        );
+        if (Array.isArray(unit.lessonIds)) {
+          console.log(`   - lessonIds length: ${unit.lessonIds.length}`);
+          console.log(
+            `   - First few lessonIds: ${unit.lessonIds.slice(0, 3).join(', ')}${unit.lessonIds.length > 3 ? '...' : ''}`,
+          );
+        }
+
+        return Array.isArray(unit.lessonIds) ? unit.lessonIds : [];
+      })
+      /**
+       * Start a specific lesson - create modal that takes up the lessonsBlock
+       * @param {Object} lesson - The lesson object to start
+       */
+      startLesson(lesson) {
+        console.log(`🚀 Starting lesson modal for: ${lesson.lesson_title}`);
+
+        this.currentLesson = lesson;
+
+        // Create modal overlay that covers the entire screen
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'lesson-modal-overlay';
+        modalOverlay.style.cssText = `
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100vw;
+          height: 100vh;
+          background: rgba(0, 0, 0, 0.8);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          backdrop-filter: blur(5px);
+        `;
+
+        // Create the modal dialog
+        const modalDialog = document.createElement('div');
+        modalDialog.className = 'lesson-modal-dialog';
+        modalDialog.style.cssText = `
+          width: 90%;
+          max-width: 900px;
+          height: 650px;
+          background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+          border-radius: 20px;
+          box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+          overflow: hidden;
+          position: relative;
+          animation: modalSlideIn 0.4s ease-out;
+        `;
+
+        // Add a "Begin Activities" button
+        const beginButton = document.createElement('button');
+        beginButton.textContent = 'Begin Activities';
+        beginButton.style.cssText = `
+          position: absolute;
+          bottom: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          padding: 10px 20px;
+          font-size: 16px;
+          font-weight: bold;
+          color: white;
+          background: #3498db;
+          border: none;
+          border-radius: 5px;
+          cursor: pointer;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        `;
+
+        // Add click handler to activate lesson tracking
+        beginButton.addEventListener('click', () => {
+          if (window.lessonEngine && window.lessonEngine.initialized) {
+            window.lessonEngine.activateLesson(lesson).catch(err => {
+              console.error('❌ Failed to activate lesson in lesson engine:', err);
+            });
+          } else {
+            console.warn(
+              '⚠️ Lesson engine is not initialized. Tracking will not be active.',
+            );
+          }
+        });
+
+        modalDialog.appendChild(beginButton);
+        modalOverlay.appendChild(modalDialog);
+        document.body.appendChild(modalOverlay);
+
+        // Add animation keyframes
+        if (!document.querySelector('#lesson-modal-styles')) {
+          const styleSheet = document.createElement('style');
+          styleSheet.id = 'lesson-modal-styles';
+          styleSheet.textContent = `
+            @keyframes modalSlideIn {
+              from {
+                transform: translateY(-50px) scale(0.9);
+                opacity: 0;
+              }
+              to {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+              }
+            }
+            @keyframes modalSlideOut {
+              from {
+                transform: translateY(0) scale(1);
+                opacity: 1;
+              }
+              to {
+                transform: translateY(-50px) scale(0.9);
+                opacity: 0;
+              }
+            }
+          `;
+          document.head.appendChild(styleSheet);
+        }
+      }
     }
 
     // Log student profile and lesson IDs for debugging
@@ -193,11 +327,11 @@ class LessonRenderer {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          lessonIds,
+          lessonIds, // Send just the array of lesson IDs
           studentName: profile.memberName || 'Unknown Student',
         }),
-        credentials: 'omit',
-        mode: 'cors',
+        credentials: 'omit', // No credentials to avoid CORS issues
+        mode: 'cors', // Explicitly set CORS mode
       });
 
       console.log(
@@ -237,164 +371,6 @@ class LessonRenderer {
   }
 
   /**
-   * Initialize the lesson renderer for a student and container
-   * @param {string} studentName - The student's name or ID
-   * @param {string} containerSelector - The selector or ID of the container
-   * @returns {boolean} True if initialized
-   */
-  initialize(studentName, containerSelector) {
-    this.currentStudent = studentName;
-    // Support both selector string and element
-    if (typeof containerSelector === 'string') {
-      this.contentContainer =
-        document.getElementById(containerSelector) ||
-        document.querySelector('.' + containerSelector) ||
-        document.querySelector(containerSelector);
-    } else {
-      this.contentContainer = containerSelector;
-    }
-    return !!this.contentContainer;
-  }
-
-  /**
-   * Create a modern circular lesson button
-   * @param {Object} lesson - The lesson object
-   * @param {number} index - The lesson index
-   */
-  createCircularLessonButton(lesson, index) {
-    const buttonContainer = document.createElement('div');
-    buttonContainer.className = 'lesson-button-container';
-    buttonContainer.style.cssText = `
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      flex: 0 0 auto;
-      width: 100px;
-      cursor: pointer;
-      transition: transform 0.3s ease;
-    `;
-
-    // Determine lesson availability
-    const isLessonAvailable = this.checkLessonAvailability(lesson, index);
-
-    // Create circular button with modern styling
-    const circularButton = document.createElement('div');
-    circularButton.className = 'lesson-circle-button';
-
-    // Set appropriate styles based on lesson status
-    let buttonStyles = `
-      width: 70px;
-      height: 70px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all 0.3s ease;
-      margin-bottom: 10px;
-      border: 3px solid rgba(255,255,255,0.1);
-    `;
-
-    if (lesson.isCompleted) {
-      // Completed lesson - gradient green
-      buttonStyles += `
-        background: linear-gradient(135deg, #27ae60, #2ecc71);
-        box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-      `;
-    } else if (isLessonAvailable) {
-      // Available lesson - gradient blue
-      buttonStyles += `
-        background: linear-gradient(135deg, #2980b9, #3498db);
-        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);
-      `;
-    } else {
-      // Locked lesson - gradient gray
-      buttonStyles += `
-        background: linear-gradient(135deg, #95a5a6, #bdc3c7);
-        box-shadow: 0 4px 15px rgba(149, 165, 166, 0.3);
-        cursor: not-allowed;
-        opacity: 0.7;
-      `;
-    }
-
-    circularButton.style.cssText = buttonStyles;
-
-    // Add lesson icon
-    const lessonNumber = index + 1;
-    const icons = ['📚', '💰', '🏦', '📊', '💳', '🎯', '📈', '🎓', '💡', '🔍'];
-    const icon = icons[index % icons.length];
-
-    circularButton.innerHTML = `
-      <span style="font-size: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));">${icon}</span>
-    `;
-
-    // Add lesson title below the circle
-    const lessonTitle = document.createElement('p');
-    lessonTitle.className = 'lesson-title-text';
-    lessonTitle.style.cssText = `
-      text-align: center;
-      font-size: 12px;
-      font-weight: 600;
-      margin: 0;
-      max-width: 90px;
-      line-height: 1.3;
-      color: #2c3e50;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    `;
-    lessonTitle.textContent = lesson.lesson_title || `Lesson ${lessonNumber}`;
-
-    // Add click handler for available lessons
-    if (isLessonAvailable) {
-      buttonContainer.addEventListener('click', () => {
-        this.startLesson(lesson);
-      });
-
-      // Add hover effects
-      buttonContainer.addEventListener('mouseenter', () => {
-        circularButton.style.transform = 'scale(1.1) translateY(-5px)';
-        circularButton.style.boxShadow = lesson.isCompleted
-          ? '0 12px 35px rgba(39, 174, 96, 0.4)'
-          : '0 12px 35px rgba(52, 152, 219, 0.4)';
-      });
-
-      buttonContainer.addEventListener('mouseleave', () => {
-        circularButton.style.transform = 'scale(1) translateY(0)';
-        circularButton.style.boxShadow = lesson.isCompleted
-          ? '0 8px 25px rgba(39, 174, 96, 0.3)'
-          : '0 8px 25px rgba(52, 152, 219, 0.3)';
-      });
-    }
-
-    // Add completion indicator if lesson is completed
-    if (lesson.isCompleted) {
-      const completionBadge = document.createElement('div');
-      completionBadge.style.cssText = `
-        position: absolute;
-        top: -5px;
-        right: -5px;
-        width: 22px;
-        height: 22px;
-        background: linear-gradient(135deg, #f39c12, #e67e22);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 12px;
-        color: white;
-        font-weight: bold;
-        box-shadow: 0 4px 12px rgba(243, 156, 18, 0.4);
-      `;
-      completionBadge.innerHTML = '✓';
-      buttonContainer.style.position = 'relative';
-      buttonContainer.appendChild(completionBadge);
-    }
-
-    buttonContainer.appendChild(circularButton);
-    buttonContainer.appendChild(lessonTitle);
-
-    return buttonContainer;
-  }
-
-  /**
    * Render all content blocks as slides, including text slides
    * @param {Element} container - The container element
    * @param {Array} content - The content array
@@ -420,9 +396,7 @@ class LessonRenderer {
     processedBlocks.forEach((block, idx) => {
       const slide = document.createElement('div');
       slide.className = 'carousel-item';
-      if (idx === 0) {
-        slide.classList.add('active');
-      }
+      if (idx === 0) slide.classList.add('active');
 
       const contentBlock = this.createContentBlock(block, idx);
       slide.appendChild(contentBlock);
@@ -518,6 +492,9 @@ class LessonRenderer {
   checkLessonAvailability(lesson, index) {
     // First lesson is always available
     if (index === 0) return true;
+
+    // For now, assume lessons are available in sequence
+    // This would be enhanced with actual gating logic
     return true;
   }
 
@@ -528,8 +505,12 @@ class LessonRenderer {
   startLesson(lesson) {
     console.log(`🚀 Starting lesson modal for: ${lesson.lesson_title}`);
     this.currentLesson = lesson;
+
+    // Remove any existing modal overlays
     const oldModal = document.querySelector('.lesson-modal-overlay');
     if (oldModal) oldModal.remove();
+
+    // Create modal overlay
     const modalOverlay = document.createElement('div');
     modalOverlay.className = 'lesson-modal-overlay';
     modalOverlay.style.cssText = `
@@ -545,6 +526,8 @@ class LessonRenderer {
       z-index: 9999;
       backdrop-filter: blur(5px);
     `;
+
+    // Create modal dialog
     const modalDialog = document.createElement('div');
     modalDialog.className = 'lesson-modal-dialog';
     modalDialog.style.cssText = `
@@ -559,28 +542,31 @@ class LessonRenderer {
       animation: modalSlideIn 0.4s ease-out;
       padding-bottom: 80px;
     `;
+
+    // Content container for lesson blocks
     const contentContainer = document.createElement('div');
     contentContainer.className = 'lesson-modal-content';
     contentContainer.style.cssText = `
       padding: 32px 32px 0 32px;
       min-height: 400px;
     `;
-    if (
-      !lesson ||
-      !Array.isArray(lesson.content) ||
-      lesson.content.length === 0
-    ) {
-      contentContainer.innerHTML =
-        '<div class="lesson-slide"><h3>No lesson content available.</h3></div>';
+
+    // Render lesson content
+    if (!lesson || !Array.isArray(lesson.content) || lesson.content.length === 0) {
+      contentContainer.innerHTML = '<div class="lesson-slide"><h3>No lesson content available.</h3></div>';
     } else {
       this.renderLessonContent(contentContainer, lesson.content);
     }
+
+    // Render objectives if present
     if (lesson.learning_objectives && lesson.learning_objectives.length > 0) {
       const objectivesBlock = document.createElement('div');
       objectivesBlock.className = 'lesson-objectives-block';
       objectivesBlock.innerHTML = `<h4>🎯 Learning Objectives:</h4><ul>${lesson.learning_objectives.map(obj => `<li>${obj}</li>`).join('')}</ul>`;
       contentContainer.appendChild(objectivesBlock);
     }
+
+    // Render lesson conditions if present
     if (lesson.lesson_conditions && lesson.lesson_conditions.length > 0) {
       const conditionsBlock = document.createElement('div');
       conditionsBlock.className = 'lesson-conditions-block';
@@ -589,6 +575,8 @@ class LessonRenderer {
     }
 
     modalDialog.appendChild(contentContainer);
+
+    // Add a "Begin Activities" button
     const beginButton = document.createElement('button');
     beginButton.textContent = 'Begin Activities';
     beginButton.style.cssText = `
@@ -612,15 +600,15 @@ class LessonRenderer {
           console.error('❌ Failed to activate lesson in lesson engine:', err);
         });
       } else {
-        console.warn(
-          '⚠️ Lesson engine is not initialized. Tracking will not be active.',
-        );
+        console.warn('⚠️ Lesson engine is not initialized. Tracking will not be active.');
       }
     });
     modalDialog.appendChild(beginButton);
 
     modalOverlay.appendChild(modalDialog);
     document.body.appendChild(modalOverlay);
+
+    // Add animation keyframes if not present
     if (!document.querySelector('#lesson-modal-styles')) {
       const styleSheet = document.createElement('style');
       styleSheet.id = 'lesson-modal-styles';
@@ -660,7 +648,11 @@ class LessonRenderer {
       console.error('❌ Lessons container not found on the page.');
       return;
     }
+
+    // Clear existing content
     container.innerHTML = '';
+
+    // Create a horizontal row container
     const rowContainer = document.createElement('div');
     rowContainer.style.cssText = `
       display: flex;
@@ -671,8 +663,8 @@ class LessonRenderer {
     `;
 
     lessons.forEach((lesson, index) => {
-      const buttonElement = this.createCircularLessonButton(lesson, index);
-      rowContainer.appendChild(buttonElement);
+      const lessonButton = this.createCircularLessonButton(lesson, index);
+      rowContainer.appendChild(lessonButton);
     });
 
     container.appendChild(rowContainer);
@@ -686,6 +678,8 @@ class LessonRenderer {
    */
   renderSampleContent(container, lesson) {
     console.log('📚 Rendering sample content for lesson:', lesson.lesson_title);
+
+    // Create sample content based on lesson title
     const sampleContent = [];
 
     if (lesson.lesson_title?.toLowerCase().includes('money personality')) {
@@ -736,6 +730,7 @@ class LessonRenderer {
         },
       );
     } else {
+      // Generic sample content
       sampleContent.push(
         { type: 'header', content: 'Lesson Overview' },
         {
@@ -761,6 +756,8 @@ class LessonRenderer {
         },
       );
     }
+
+    // Render the sample content using the same architecture rules
     this.renderLessonContent(container, sampleContent);
   }
 
@@ -771,15 +768,20 @@ class LessonRenderer {
    */
   convertLessonBlocksToContent(lesson) {
     const content = [];
+
+    // Add intro text blocks first
     if (lesson.intro_text_blocks && Array.isArray(lesson.intro_text_blocks)) {
       lesson.intro_text_blocks.forEach(block => {
-        if (typeof block === 'string') {
-          content.push({ type: 'text', content: block });
-        } else if (block && block.type && block.content) {
-          content.push(block);
+        if (block.type === 'intro') {
+          content.push({ type: 'header', content: 'Welcome!' });
+          content.push({ type: 'text', content: block.content });
+        } else {
+          content.push({ type: 'text', content: block.content });
         }
       });
     }
+
+    // Create comprehensive lesson content based on the title and description
     if (lesson.lesson_title) {
       content.push({ type: 'header', content: 'Lesson Introduction' });
       content.push({
@@ -788,6 +790,8 @@ class LessonRenderer {
           lesson.lesson_description ||
           'This lesson will help you develop important financial skills.',
       });
+
+      // Add lesson-specific content based on title
       if (lesson.lesson_title.toLowerCase().includes('money personality')) {
         content.push(
           { type: 'header', content: 'Understanding Your Money Personality' },
@@ -926,6 +930,7 @@ class LessonRenderer {
           },
         );
       } else {
+        // Generic content for other lessons
         content.push(
           { type: 'header', content: 'Key Concepts' },
           {
@@ -952,12 +957,18 @@ class LessonRenderer {
         );
       }
     }
+
+    // Add lesson blocks if they exist
     if (lesson.lesson_blocks && Array.isArray(lesson.lesson_blocks)) {
       lesson.lesson_blocks.forEach(block => {
-        if (typeof block === 'string') {
-          content.push({ type: 'text', content: block });
-        } else if (block && block.type && block.content) {
-          content.push(block);
+        if (block.type === 'instruction') {
+          content.push({ type: 'header', content: 'Instructions' });
+          content.push({ type: 'text', content: block.content });
+        } else if (block.type === 'action') {
+          content.push({ type: 'header', content: 'Action Required' });
+          content.push({ type: 'text', content: block.content });
+        } else {
+          content.push({ type: 'text', content: block.content });
         }
       });
     }
@@ -979,14 +990,22 @@ class LessonRenderer {
       const block = content[i];
 
       if (block.type === 'header') {
+        // If we have a current group, finalize it
+        if (currentGroup) {
+          processedBlocks.push(currentGroup);
+        }
+
+        // Check if next block is also a header (consecutive headers)
         const nextBlock = content[i + 1];
         if (nextBlock && nextBlock.type === 'header') {
+          // Render this header independently
           processedBlocks.push({
             type: 'standalone_header',
             content: [block],
           });
           currentGroup = null;
         } else {
+          // Start new group with this header
           currentGroup = {
             type: 'header_group',
             content: [block],
@@ -994,8 +1013,10 @@ class LessonRenderer {
         }
       } else if (block.type === 'text') {
         if (currentGroup && currentGroup.type === 'header_group') {
+          // Add to current header group
           currentGroup.content.push(block);
         } else {
+          // Standalone text block or group with other text blocks
           if (!currentGroup || currentGroup.type !== 'text_group') {
             if (currentGroup) {
               processedBlocks.push(currentGroup);
@@ -1008,6 +1029,7 @@ class LessonRenderer {
           currentGroup.content.push(block);
         }
       } else {
+        // Other content types
         if (currentGroup) {
           processedBlocks.push(currentGroup);
           currentGroup = null;
@@ -1019,6 +1041,8 @@ class LessonRenderer {
         });
       }
     }
+
+    // Add final group if exists
     if (currentGroup) {
       processedBlocks.push(currentGroup);
     }
@@ -1049,15 +1073,19 @@ class LessonRenderer {
       border-left: 5px solid ${this.getBlockColor(block.type)};
       transition: transform 0.3s ease, box-shadow 0.3s ease;
     `;
+
+    // Add hover effect
     blockContainer.addEventListener('mouseenter', () => {
-      blockContainer.style.transform = 'translateY(-5px)';
-      blockContainer.style.boxShadow = '0 15px 30px rgba(0,0,0,0.12)';
+      blockContainer.style.transform = 'translateY(-2px)';
+      blockContainer.style.boxShadow = '0 8px 30px rgba(0,0,0,0.12)';
     });
 
     blockContainer.addEventListener('mouseleave', () => {
       blockContainer.style.transform = 'translateY(0)';
       blockContainer.style.boxShadow = '0 5px 20px rgba(0,0,0,0.08)';
     });
+
+    // Render content based on block type
     switch (block.type) {
       case 'header_group':
         this.renderHeaderGroup(blockContainer, block.content);
@@ -1097,7 +1125,7 @@ class LessonRenderer {
    * @param {Array} content - Content items
    */
   renderHeaderGroup(container, content) {
-    content.forEach((item, index) => {
+    content.forEach(item => {
       if (item.type === 'header') {
         const header = document.createElement('h2');
         header.textContent = item.content;
@@ -1105,21 +1133,24 @@ class LessonRenderer {
           color: #2c3e50;
           font-size: 1.8rem;
           font-weight: 700;
-          margin-bottom: 15px;
+          margin-bottom: 20px;
+          padding-bottom: 10px;
+          border-bottom: 2px solid #3498db;
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         `;
         container.appendChild(header);
       } else if (item.type === 'text') {
-        const paragraph = document.createElement('p');
-        paragraph.textContent = item.content;
-        paragraph.style.cssText = `
-          color: #34495e;
+        const text = document.createElement('p');
+        text.textContent = item.content;
+        text.style.cssText = `
+          color: #2c3e50;
           font-size: 1.1rem;
-          line-height: 1.7;
+          line-height: 1.8;
           margin-bottom: 15px;
+          text-align: justify;
           font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         `;
-        container.appendChild(paragraph);
+        container.appendChild(text);
       }
     });
   }
@@ -1131,17 +1162,19 @@ class LessonRenderer {
    */
   renderTextGroup(container, content) {
     content.forEach((item, index) => {
-      const paragraph = document.createElement('p');
-      paragraph.textContent = item.content;
-      paragraph.style.cssText = `
-        color: #34495e;
-        font-size: ${index === 0 ? '1.2rem' : '1.1rem'};
-        line-height: 1.7;
+      const text = document.createElement('p');
+      text.textContent = item.content;
+      text.style.cssText = `
+        color: #2c3e50;
+        font-size: 1.1rem;
+        line-height: 1.8;
         margin-bottom: 15px;
+        text-align: justify;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        ${index === 0 ? 'font-weight: 600;' : ''}
+        padding-left: ${index > 0 ? '20px' : '0'};
+        border-left: ${index > 0 ? '3px solid #27ae60' : 'none'};
       `;
-      container.appendChild(paragraph);
+      container.appendChild(text);
     });
   }
 
@@ -1218,45 +1251,39 @@ class LessonRenderer {
     instructionsList.className = 'instructions-list';
     instructionsList.style.cssText =
       'display: flex; flex-direction: column; gap: 15px;';
+
+    // Generate specific instructions using lesson engine
     console.log('🎯 Generating lesson instructions via lesson engine...');
     const specificInstructions = this.generateLessonEngineInstructions(lesson);
 
     specificInstructions.forEach((instruction, index) => {
       const instructionItem = document.createElement('div');
-      instructionItem.className = 'instruction-item';
       instructionItem.style.cssText = `
-        background: rgba(255, 255, 255, 0.15);
-        padding: 15px;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 20px;
         border-radius: 10px;
-        display: flex;
-        align-items: center;
-        gap: 15px;
+        border-left: 4px solid rgba(255, 255, 255, 0.8);
+        margin-bottom: 10px;
       `;
 
-      const icon = document.createElement('div');
-      icon.innerHTML = instruction.icon || '📌';
-      icon.style.cssText = `
-        font-size: 24px;
-        min-width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 50%;
+      // Create instruction with proper formatting
+      const instructionContent = document.createElement('div');
+      instructionContent.innerHTML = `
+        <div style="display: flex; align-items: flex-start; gap: 15px;">
+          <div style="font-size: 1.5rem; line-height: 1;">${instruction.icon}</div>
+          <div style="flex: 1;">
+            <div style="font-weight: 600; font-size: 1.1rem; margin-bottom: 8px;">${instruction.title}</div>
+            <div style="font-size: 0.95rem; line-height: 1.4; opacity: 0.9;">${instruction.description}</div>
+            ${instruction.location ? `<div style=\"font-size: 0.85rem; margin-top: 8px; padding: 6px 12px; background: rgba(255,255,255,0.15); border-radius: 15px; display: inline-block;"><strong>Location:</strong> ${instruction.location}</div>` : ''}
+          </div>
+        </div>
       `;
 
-      const text = document.createElement('div');
-      text.innerHTML = `
-        <strong>${instruction.title || 'Task ' + (index + 1)}</strong>
-        <p style="margin: 5px 0 0 0; font-size: 0.9rem;">${instruction.description || instruction.text}</p>
-      `;
-
-      instructionItem.appendChild(icon);
-      instructionItem.appendChild(text);
+      instructionItem.appendChild(instructionContent);
       instructionsList.appendChild(instructionItem);
     });
 
+    // Add begin button
     const beginButton = document.createElement('button');
     beginButton.textContent = 'Begin Activities';
     beginButton.style.cssText = `
@@ -1278,18 +1305,11 @@ class LessonRenderer {
     `;
 
     beginButton.addEventListener('click', async () => {
-      if (window.lessonEngine) {
-        try {
-          await this.activateLessonTracking(lesson);
-          const modalOverlay = instructionsContainer.closest('.modal-overlay');
-          if (modalOverlay) {
-            this.closeModal(modalOverlay);
-          }
-        } catch (error) {
-          console.error('❌ Error activating lesson:', error);
-        }
-      } else {
-        console.warn('⚠️ Lesson engine not available');
+      await this.activateLessonTracking(lesson);
+      // Close the modal instead of returning to lessons list
+      const modalOverlay = container.closest('.lesson-modal-overlay');
+      if (modalOverlay) {
+        this.closeModal(modalOverlay);
       }
     });
 
@@ -1319,6 +1339,7 @@ class LessonRenderer {
       ];
     }
 
+    // Process each lesson condition and generate specific instructions
     lesson.lesson_conditions.forEach((condition, index) => {
       const instruction = this.interpretConditionToInstruction(
         condition,
@@ -1329,6 +1350,7 @@ class LessonRenderer {
       }
     });
 
+    // If no specific instructions were generated, provide fallback
     if (instructions.length === 0) {
       instructions.push({
         icon: '🎯',
@@ -1351,15 +1373,11 @@ class LessonRenderer {
   interpretConditionToInstruction(condition, lesson) {
     console.log('🔍 Processing condition:', condition.condition_type);
 
-    // This is a placeholder - in a real implementation, getInstructionTemplate would be defined
-    const template = {
-      icon: '📝',
-      title: `Complete action: ${condition.condition_type || 'Task'}`,
-      description: `Perform the required action: ${condition.condition_value || 'Complete the task'}`,
-      location: 'Use the appropriate section in the app',
-    };
+    // Get template from imported templates file - no more duplicate inline templates!
+    const template = getInstructionTemplate(condition.condition_type);
 
     if (template) {
+      // Add any additional context from action_details
       let enhancedDescription = template.description;
       if (condition.action_details?.message) {
         enhancedDescription += ` ${condition.action_details.message}`;
@@ -1407,14 +1425,20 @@ class LessonRenderer {
         console.log(
           `📋 Lesson has ${lesson.lesson_conditions.length} conditions`,
         );
+
+        // Ensure each condition has the required properties
         lesson.lesson_conditions.forEach((condition, index) => {
           console.log(
-            `  ${index + 1}. ${condition.condition_type || condition.type || 'Unknown condition'}`,
+            `Condition ${index + 1}:`,
+            condition.condition_type,
+            condition.condition_value || condition.value,
           );
         });
       } else {
         console.warn('⚠️ No conditions found for lesson! Check lesson data.');
       }
+
+      // Explicitly call initializeLessonWithRequirements to ensure conditions are loaded
       if (typeof window.initializeLessonWithRequirements === 'function') {
         try {
           const result = await window.initializeLessonWithRequirements(lesson);
@@ -1423,9 +1447,13 @@ class LessonRenderer {
           console.error('Error initializing lesson requirements:', error);
         }
       }
+
+      // Force refresh the current lesson in the engine
       try {
         await window.lessonEngine.refreshCurrentLesson();
         console.log('🔄 Refreshed current lesson in engine');
+
+        // Trigger an explicit check to see if conditions can be evaluated
         const testAction = 'lesson_view';
         const testPayload = { lessonId: lesson.lesson_id || lesson._id };
 
@@ -1455,6 +1483,8 @@ class LessonRenderer {
     } else {
       console.warn('⚠️ Lesson engine not available for tracking');
     }
+
+    // Store lesson progress
     this.markLessonAsStarted(lesson);
   }
 
@@ -1613,7 +1643,9 @@ class LessonRenderer {
       modalOverlay.style.pointerEvents = 'none';
 
       setTimeout(() => {
-        modalOverlay.remove();
+        if (modalOverlay.parentNode) {
+          modalOverlay.parentNode.removeChild(modalOverlay);
+        }
       }, 300);
     }
   }
@@ -1642,12 +1674,14 @@ export async function renderLessons(studentProfile) {
   // Store the profile globally for future use
   window.currentStudentProfile = studentProfile;
 
+  // Check assignedUnitIds for debugging
   if (studentProfile.assignedUnitIds) {
     console.log('✅ Assigned Unit IDs:', studentProfile.assignedUnitIds);
   } else {
     console.warn('⚠️ No assigned Unit IDs found for the student.');
   }
 
+  // Initialize the lesson renderer for this student
   console.log('🔥 Attempting to initialize lesson renderer...');
   const initialized = window.lessonRenderer.initialize(
     studentProfile.memberName,

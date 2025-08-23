@@ -13,7 +13,7 @@ import {
 const loginButton = document.querySelector('.login__btn');
 const accountBTNs = document.querySelectorAll('.form__btn--accountSwitch');
 const accountContainer = document.querySelector('.accountListBg');
-const testServerProfiles = 'https://tcstudentserver-production.up.railway.app/profiles';
+const testServerProfiles = 'http://localhost:3000/profiles';
 
 let btnNum = 0;
 
@@ -71,23 +71,19 @@ function initializeAccountSwitch() {
     });
 
     updateUI(newProfile.checkingAccount);
-
-    // Use the proper formatting function for account number display
     updateAccountNumberDisplay(newProfile.checkingAccount);
 
-    // Record account switch action using lesson engine
-    if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('account_switch', {
+    // Direct lesson engine call
+    if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+      await lessonEngine.onAppAction('account_switch', {
         fromAccount: currentAccount?.accountType || 'unknown',
         toAccount: 'Checking',
         accountNumber: newProfile.checkingAccount.accountNumber,
         balance: newProfile.checkingAccount.balanceTotal,
         timestamp: new Date().toISOString(),
       });
-
       console.log('✅ Account switch to Checking recorded for lesson tracking');
     }
-
     console.log(Profiles);
   });
 
@@ -104,23 +100,19 @@ function initializeAccountSwitch() {
     });
 
     updateUI(newProfile.savingsAccount);
-
-    // Use the proper formatting function for account number display
     updateAccountNumberDisplay(newProfile.savingsAccount);
 
-    // Record account switch action using lesson engine
-    if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('account_switch', {
+    // Direct lesson engine call
+    if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+      await lessonEngine.onAppAction('account_switch', {
         fromAccount: currentAccount?.accountType || 'unknown',
         toAccount: 'Savings',
         accountNumber: newProfile.savingsAccount.accountNumber,
         balance: newProfile.savingsAccount.balanceTotal,
         timestamp: new Date().toISOString(),
       });
-
       console.log('✅ Account switch to Savings recorded for lesson tracking');
     }
-
     console.log(Profiles);
   });
 }

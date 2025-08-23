@@ -36,7 +36,7 @@ let accountRecieve;
 
 let amount;
 
-const transferLink = `https://tcstudentserver-production.up.railway.app/transfer`;
+const transferLink = `http://localhost:3000/transfer`;
 
 /************************************************Functions*************************************************/
 
@@ -206,9 +206,9 @@ const sendTransferData = async function (
       'success',
     );
 
-    // Record transfer action using lesson engine
-    if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('transfer', {
+    // Direct lesson engine call for transfer action
+    if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+      await lessonEngine.onAppAction('transfer', {
         amount: amount,
         fromAccount: from.accountType,
         toAccount: to.accountType,
@@ -217,7 +217,6 @@ const sendTransferData = async function (
         member: memberName,
         timestamp: new Date().toISOString(),
       });
-
       console.log(
         '✅ Transfer action recorded for lesson tracking:',
         `$${amount.toFixed(2)} from ${from.accountType} to ${to.accountType}`,

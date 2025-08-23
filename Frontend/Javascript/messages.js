@@ -272,7 +272,16 @@ function sendMessage(textarea) {
   // Show success notification
   showNotification('Message sent to teacher!', 'success');
 
-  // Note: Lesson tracking removed - simplified messaging
+  // Direct lesson engine call for message sent
+  if (typeof lessonEngine !== 'undefined' && lessonEngine.onAppAction) {
+    lessonEngine.onAppAction('message_sent', {
+      content: content,
+      conversationId: messagesState.currentConversation?.id || '',
+      recipient: messagesState.currentConversation?.name || '',
+      user: currentProfile?.memberName || currentProfile?.userName || '',
+      timestamp: message.timestamp,
+    });
+  }
 
   // Simulate teacher response after a short delay
   setTimeout(() => {
