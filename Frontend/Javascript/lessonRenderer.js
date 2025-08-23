@@ -402,6 +402,8 @@ class LessonRenderer {
   renderLessonContent(container, content) {
     // Remove old content
     container.innerHTML = '';
+    
+    console.log('🔍 Rendering lesson content with schema:', content);
 
     // Create carousel wrapper
     const carouselId = 'lessonCarousel_' + Math.floor(Math.random() * 1000000);
@@ -415,19 +417,30 @@ class LessonRenderer {
     const carouselInner = document.createElement('div');
     carouselInner.className = 'carousel-inner';
 
-    // Render all content blocks as slides
-    const processedBlocks = this.processContentBlocks(content);
-    processedBlocks.forEach((block, idx) => {
-      const slide = document.createElement('div');
-      slide.className = 'carousel-item';
-      if (idx === 0) {
-        slide.classList.add('active');
-      }
+    // Check if content is in the proper format
+    if (!Array.isArray(content)) {
+      console.error('❌ Content is not an array:', content);
+      const errorSlide = document.createElement('div');
+      errorSlide.className = 'carousel-item active';
+      errorSlide.innerHTML = '<div class="content-block error"><h3>Error: Invalid content format</h3></div>';
+      carouselInner.appendChild(errorSlide);
+    } else {
+      // Render all content blocks as slides
+      const processedBlocks = this.processContentBlocks(content);
+      console.log('📚 Processed blocks for rendering:', processedBlocks);
+      
+      processedBlocks.forEach((block, idx) => {
+        const slide = document.createElement('div');
+        slide.className = 'carousel-item';
+        if (idx === 0) {
+          slide.classList.add('active');
+        }
 
-      const contentBlock = this.createContentBlock(block, idx);
-      slide.appendChild(contentBlock);
-      carouselInner.appendChild(slide);
-    });
+        const contentBlock = this.createContentBlock(block, idx);
+        slide.appendChild(contentBlock);
+        carouselInner.appendChild(slide);
+      });
+    }
 
     // Add instructions as the final slide
     const instructionsSlide = document.createElement('div');
@@ -459,12 +472,31 @@ class LessonRenderer {
       overflow-y: auto;
     `;
 
+    // Add a heading for the instructions slide
+    const instructionsHeading = document.createElement('h2');
+    instructionsHeading.textContent = 'Lesson Activities';
+    instructionsHeading.style.cssText = `
+      text-align: center;
+      margin-bottom: 20px;
+      color: #333;
+      font-weight: 600;
+    `;
+    instructionsList.appendChild(instructionsHeading);
+
     const lesson = this.currentLesson || {};
     const instructions = this.generateLessonEngineInstructions(lesson);
     if (instructions.length > 0) {
       instructions.forEach(instruction => {
         const instructionItem = document.createElement('div');
         instructionItem.className = 'instruction-item';
+        instructionItem.style.cssText = `
+          padding: 12px;
+          background: #f8f9fa;
+          border-left: 4px solid #3498db;
+          border-radius: 6px;
+          font-size: 16px;
+          line-height: 1.5;
+        `;
         instructionItem.textContent = instruction.text;
         instructionsList.appendChild(instructionItem);
       });
@@ -478,6 +510,59 @@ class LessonRenderer {
     carouselInner.appendChild(instructionsSlide);
 
     carousel.appendChild(carouselInner);
+
+    // Add carousel indicators
+    const indicatorsCount = carouselInner.querySelectorAll('.carousel-item').length;
+    if (indicatorsCount > 1) {
+      const indicators = document.createElement('div');
+      indicators.className = 'carousel-indicators';
+      indicators.style.cssText = `
+        position: absolute;
+        bottom: 10px;
+        left: 0;
+        right: 0;
+        display: flex;
+        justify-content: center;
+        padding: 0;
+        margin-right: 15%;
+        margin-bottom: 1rem;
+        margin-left: 15%;
+        list-style: none;
+      `;
+      
+      for (let i = 0; i < indicatorsCount; i++) {
+        const indicator = document.createElement('button');
+        indicator.type = 'button';
+        indicator.setAttribute('data-bs-target', `#${carouselId}`);
+        indicator.setAttribute('data-bs-slide-to', i.toString());
+        indicator.setAttribute('aria-label', `Slide ${i+1}`);
+        indicator.style.cssText = `
+          box-sizing: content-box;
+          flex: 0 1 auto;
+          width: 30px;
+          height: 3px;
+          margin-right: 3px;
+          margin-left: 3px;
+          cursor: pointer;
+          background-color: rgba(0,0,0,0.5);
+          background-clip: padding-box;
+          border: 0;
+          border-radius: 3px;
+          opacity: .5;
+          transition: opacity .6s ease;
+        `;
+        
+        if (i === 0) {
+          indicator.classList.add('active');
+          indicator.setAttribute('aria-current', 'true');
+          indicator.style.opacity = '1';
+        }
+        
+        indicators.appendChild(indicator);
+      }
+      
+      carousel.appendChild(indicators);
+    }
 
     // Carousel controls
     if (processedBlocks.length > 1) {
@@ -506,7 +591,26 @@ class LessonRenderer {
     }
 
     container.appendChild(carousel);
-    console.log('✅ Lesson slides and instructions rendered successfully.');
+    
+    // Initialize the Bootstrap carousel
+    try {
+      setTimeout(() => {
+        new bootstrap.Carousel(carousel, {
+          interval: false, // Don't auto-advance
+          wrap: false,     // Don't loop back to first slide
+          keyboard: true,  // Allow keyboard navigation
+          pause: 'hover'   // Pause on hover
+        });
+        console.log('✅ Lesson slides and instructions rendered successfully.');
+      }, 100);
+    } catch (error) {
+      console.error('❌ Error initializing carousel:', error);
+    }
+    
+    // Mark this lesson as the current lesson for instruction generation
+    if (lesson) {
+      this.currentLesson = lesson;
+    }
   }
 
   /**
@@ -574,17 +678,105 @@ class LessonRenderer {
         '<div class="lesson-slide"><h3>No lesson content available.</h3></div>';
     } else {
       this.renderLessonContent(contentContainer, lesson.content);
+      
+      // After rendering content, find the carousel and add controls
+      setTimeout(() => {
+        const carousel = contentContainer.querySelector('.carousel');
+        if (carousel) {
+          // Add prev/next controls if they don't exist
+          if (!carousel.querySelector('.carousel-control-prev')) {
+            // Previous button
+            const prevButton = document.createElement('button');
+            prevButton.className = 'carousel-control-prev';
+            prevButton.type = 'button';
+            prevButton.setAttribute('data-bs-target', `#${carousel.id}`);
+            prevButton.setAttribute('data-bs-slide', 'prev');
+            prevButton.innerHTML = `
+              <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Previous</span>
+            `;
+            carousel.appendChild(prevButton);
+            
+            // Next button
+            const nextButton = document.createElement('button');
+            nextButton.className = 'carousel-control-next';
+            nextButton.type = 'button';
+            nextButton.setAttribute('data-bs-target', `#${carousel.id}`);
+            nextButton.setAttribute('data-bs-slide', 'next');
+            nextButton.innerHTML = `
+              <span class="carousel-control-next-icon" aria-hidden="true"></span>
+              <span class="visually-hidden">Next</span>
+            `;
+            carousel.appendChild(nextButton);
+            
+            // Add slide indicators
+            const carouselInner = carousel.querySelector('.carousel-inner');
+            const slideCount = carouselInner.querySelectorAll('.carousel-item').length;
+            
+            if (slideCount > 1) {
+              const indicators = document.createElement('div');
+              indicators.className = 'carousel-indicators';
+              
+              for (let i = 0; i < slideCount; i++) {
+                const indicator = document.createElement('button');
+                indicator.type = 'button';
+                indicator.setAttribute('data-bs-target', `#${carousel.id}`);
+                indicator.setAttribute('data-bs-slide-to', i.toString());
+                if (i === 0) {
+                  indicator.classList.add('active');
+                  indicator.setAttribute('aria-current', 'true');
+                }
+                indicator.setAttribute('aria-label', `Slide ${i+1}`);
+                indicators.appendChild(indicator);
+              }
+              
+              carousel.insertBefore(indicators, carouselInner);
+            }
+            
+            // Initialize the Bootstrap carousel
+            try {
+              new bootstrap.Carousel(carousel, {
+                interval: false, // Don't auto-advance slides
+                wrap: false,    // Don't loop back to first slide
+                keyboard: true  // Allow keyboard navigation
+              });
+              console.log('✅ Bootstrap carousel initialized successfully');
+            } catch (error) {
+              console.error('❌ Error initializing Bootstrap carousel:', error);
+            }
+          }
+        }
+      }, 100);
     }
+    
     if (lesson.learning_objectives && lesson.learning_objectives.length > 0) {
       const objectivesBlock = document.createElement('div');
       objectivesBlock.className = 'lesson-objectives-block';
+      objectivesBlock.style.cssText = `
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #4facfe;
+      `;
       objectivesBlock.innerHTML = `<h4>🎯 Learning Objectives:</h4><ul>${lesson.learning_objectives.map(obj => `<li>${obj}</li>`).join('')}</ul>`;
       contentContainer.appendChild(objectivesBlock);
     }
+    
     if (lesson.lesson_conditions && lesson.lesson_conditions.length > 0) {
       const conditionsBlock = document.createElement('div');
       conditionsBlock.className = 'lesson-conditions-block';
-      conditionsBlock.innerHTML = `<h4>📋 What you'll need to do:</h4><ul>${lesson.lesson_conditions.map(cond => `<li>${cond.type || cond}</li>`).join('')}</ul>`;
+      conditionsBlock.style.cssText = `
+        margin-top: 20px;
+        padding: 15px;
+        background: #f8f9fa;
+        border-radius: 10px;
+        border-left: 4px solid #f5576c;
+      `;
+      conditionsBlock.innerHTML = `<h4>📋 What you'll need to do:</h4><ul>${lesson.lesson_conditions.map(cond => {
+        const condType = cond.condition_type || cond.type || cond;
+        return `<li>${this.formatConditionForDisplay(condType)}</li>`;
+      }).join('')}</ul>`;
       contentContainer.appendChild(conditionsBlock);
     }
 
@@ -972,21 +1164,48 @@ class LessonRenderer {
    * @returns {Array} Processed content blocks
    */
   processContentBlocks(content) {
+    // Validate content input
+    if (!Array.isArray(content)) {
+      console.error('❌ Cannot process content: not an array', content);
+      return [];
+    }
+
+    console.log('🔄 Processing content blocks with length:', content.length);
+    
     const processedBlocks = [];
     let currentGroup = null;
 
+    // Architecture rules from LESSON_ENGINE_ARCHITECTURE.md:
+    // - Headers + text blocks are grouped
+    // - Multiple text blocks with no header appear standalone
+    // - Consecutive headers render independently
+
     for (let i = 0; i < content.length; i++) {
       const block = content[i];
+      
+      // Skip invalid blocks
+      if (!block || !block.type) {
+        console.warn('⚠️ Skipping invalid content block:', block);
+        continue;
+      }
 
       if (block.type === 'header') {
+        // If we have a previous group, push it to processed blocks
+        if (currentGroup) {
+          processedBlocks.push(currentGroup);
+        }
+        
+        // Check if next block is also a header (consecutive headers)
         const nextBlock = content[i + 1];
         if (nextBlock && nextBlock.type === 'header') {
+          // Render consecutive headers independently
           processedBlocks.push({
             type: 'standalone_header',
             content: [block],
           });
           currentGroup = null;
         } else {
+          // Start a new header group
           currentGroup = {
             type: 'header_group',
             content: [block],
@@ -994,31 +1213,40 @@ class LessonRenderer {
         }
       } else if (block.type === 'text') {
         if (currentGroup && currentGroup.type === 'header_group') {
+          // Add text to existing header group
           currentGroup.content.push(block);
         } else {
+          // Handle text block without a header
           if (!currentGroup || currentGroup.type !== 'text_group') {
+            // If we have a previous non-text group, push it
             if (currentGroup) {
               processedBlocks.push(currentGroup);
             }
+            // Start a new text group
             currentGroup = {
               type: 'text_group',
               content: [],
             };
           }
+          // Add text to text group
           currentGroup.content.push(block);
         }
       } else {
+        // Handle other content types
         if (currentGroup) {
           processedBlocks.push(currentGroup);
           currentGroup = null;
         }
 
+        // Add standalone content
         processedBlocks.push({
           type: 'standalone_content',
           content: [block],
         });
       }
     }
+
+    // Add the last group if any
     if (currentGroup) {
       processedBlocks.push(currentGroup);
     }
@@ -1042,13 +1270,31 @@ class LessonRenderer {
       height: 450px;
       overflow-y: auto;
       margin: 0 auto;
-      background: rgba(255, 255, 255, 0.9);
+      background: rgba(255, 255, 255, 0.95);
       border-radius: 15px;
       padding: 25px;
       box-shadow: 0 5px 20px rgba(0,0,0,0.08);
       border-left: 5px solid ${this.getBlockColor(block.type)};
       transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
     `;
+    
+    // Add subtle indication of block index/position
+    const positionIndicator = document.createElement('div');
+    positionIndicator.style.cssText = `
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      font-size: 12px;
+      color: #aaa;
+      padding: 3px 8px;
+      border-radius: 10px;
+      background: rgba(0,0,0,0.05);
+    `;
+    positionIndicator.textContent = `${index + 1}`;
+    blockContainer.appendChild(positionIndicator);
+    
+    // Add hover effects
     blockContainer.addEventListener('mouseenter', () => {
       blockContainer.style.transform = 'translateY(-5px)';
       blockContainer.style.boxShadow = '0 15px 30px rgba(0,0,0,0.12)';
@@ -1058,6 +1304,8 @@ class LessonRenderer {
       blockContainer.style.transform = 'translateY(0)';
       blockContainer.style.boxShadow = '0 5px 20px rgba(0,0,0,0.08)';
     });
+    
+    // Render content based on block type
     switch (block.type) {
       case 'header_group':
         this.renderHeaderGroup(blockContainer, block.content);
@@ -1071,6 +1319,11 @@ class LessonRenderer {
       case 'standalone_content':
         this.renderStandaloneContent(blockContainer, block.content[0]);
         break;
+      default:
+        console.warn('⚠️ Unknown block type:', block.type);
+        const errorDiv = document.createElement('div');
+        errorDiv.textContent = `Unknown block type: ${block.type}`;
+        blockContainer.appendChild(errorDiv);
     }
 
     return blockContainer;
@@ -1604,7 +1857,34 @@ class LessonRenderer {
   }
 
   /**
-   * Helper method to close modal overlays
+   * Format a condition type for display to the user
+   * @param {string} conditionType - The condition type from the lesson
+   * @returns {string} Human-readable condition description
+   */
+  formatConditionForDisplay(conditionType) {
+    const conditionMap = {
+      'lesson_content_viewed': 'Review the lesson content',
+      'account_checked': 'Check your account details',
+      'spending_analyzed': 'Analyze your spending patterns',
+      'bill_created': 'Create a bill payment',
+      'deposit_completed': 'Make a deposit',
+      'transfer_completed': 'Complete a transfer between accounts',
+      'payment_created': 'Create a payment',
+      'money_sent': 'Send money to someone',
+      'money_received': 'Receive money from someone',
+      'account_switched': 'Switch between accounts',
+      'goal_set_specific': 'Set a savings goal',
+      'message_sent': 'Send a message',
+      'personality_insight': 'Identify your money personality type',
+      'needs_vs_wants': 'Differentiate between needs and wants',
+      'budget_created': 'Create a budget'
+    };
+    
+    return conditionMap[conditionType] || `Complete the "${conditionType}" activity`;
+  }
+
+  /**
+   * Close modal overlays
    * @param {Element} modalOverlay - The modal overlay element to close
    */
   closeModal(modalOverlay) {
