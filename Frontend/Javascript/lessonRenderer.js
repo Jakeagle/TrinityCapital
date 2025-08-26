@@ -475,9 +475,10 @@ class LessonRenderer {
       });
     }
 
-    // Add instructions as the final slide (but not active by default)
+    // Add instructions as the final slide (but never active by default)
     const instructionsSlide = document.createElement('div');
-    instructionsSlide.className = 'carousel-item';
+    instructionsSlide.className = 'carousel-item'; // Ensure no active class here
+    instructionsSlide.setAttribute('data-slide-type', 'instructions'); // Mark as instructions slide
     instructionsSlide.style.cssText = `
       min-height: 580px;
       display: flex;
@@ -587,6 +588,7 @@ class LessonRenderer {
     const indicatorsCount =
       carouselInner.querySelectorAll('.carousel-item').length;
     if (indicatorsCount > 1) {
+      console.log(`🎠 Creating indicators for ${indicatorsCount} slides`);
       const indicators = document.createElement('div');
       indicators.className = 'carousel-indicators';
       indicators.style.cssText = `
@@ -709,22 +711,60 @@ class LessonRenderer {
 
     container.appendChild(carousel);
 
-    // Initialize the Bootstrap carousel
+    // Initialize the Bootstrap carousel with improved controls
     try {
+      console.log('🎠 Initializing carousel...');
+      
+      // First, verify only one slide has the active class
+      const activeSlides = carousel.querySelectorAll('.carousel-item.active');
+      if (activeSlides.length > 1) {
+        console.warn('⚠️ Multiple active slides detected, fixing...');
+        activeSlides.forEach((slide, idx) => {
+          if (idx > 0) slide.classList.remove('active');
+        });
+      } else if (activeSlides.length === 0) {
+        console.warn('⚠️ No active slides detected, fixing...');
+        const firstSlide = carousel.querySelector('.carousel-item');
+        if (firstSlide) firstSlide.classList.add('active');
+      }
+
       setTimeout(() => {
         try {
+          console.log('🎠 Creating carousel instance with preventative settings...');
           const carouselInstance = new bootstrap.Carousel(carousel, {
-            interval: false, // Don't auto-advance
-            wrap: false, // Don't loop back to first slide
+            interval: false, // Explicitly prevent auto-advance
+            wrap: false, // Prevent wrapping around to the first/last slide
             keyboard: true, // Allow keyboard navigation
-            pause: 'hover', // Pause on hover
+            pause: true, // Always paused - never auto-cycle
+            ride: false, // Ensure it doesn't auto-start cycling
+            touch: true // Enable touch/swipe navigation
           });
 
-          // Reset to first slide explicitly
-          carouselInstance.to(0);
+          console.log('🎠 Forcing carousel to slide 0');
+          // Force the carousel to start at the first slide
+          setTimeout(() => {
+            carouselInstance.to(0);
+            console.log('🎠 Carousel explicitly set to first slide');
+          }, 100);
+
+          // Add event listeners to control buttons for better control
+          const prevButton = carousel.querySelector('.carousel-control-prev');
+          const nextButton = carousel.querySelector('.carousel-control-next');
+          if (prevButton && nextButton) {
+            console.log('🎠 Adding custom navigation button listeners');
+            prevButton.addEventListener('click', (e) => {
+              e.preventDefault();
+              carouselInstance.prev();
+            });
+            nextButton.addEventListener('click', (e) => {
+              e.preventDefault();
+              carouselInstance.next();
+            });
+          }
 
           // Add event listener for slide change to update active indicator
           carousel.addEventListener('slide.bs.carousel', function (event) {
+            console.log(`🎠 Sliding to index: ${event.to}`);
             const indicators = this.querySelectorAll(
               '.carousel-indicators button',
             );
@@ -745,15 +785,25 @@ class LessonRenderer {
             '✅ Lesson slides and instructions rendered successfully.',
           );
         } catch (innerError) {
-          console.error('❌ Error initializing carousel:', innerError);
+          console.error('❌ Error initializing carousel (inner):', innerError);
           // Fallback initialization if the standard method fails
           try {
+            console.log('🎠 Attempting fallback jQuery carousel initialization');
             $(carousel).carousel({
               interval: false,
               wrap: false,
               keyboard: true,
+              pause: true
             });
+            
+            // Force the carousel to the first slide using jQuery
+            $(carousel).carousel(0);
             console.log('✅ Fallback carousel initialization successful');
+            
+            // Add custom event handlers for jQuery version too
+            $(carousel).on('slide.bs.carousel', function(event) {
+              console.log(`🎠 jQuery carousel sliding to index: ${event.to}`);
+            });
           } catch (jqueryError) {
             console.error(
               '❌ All carousel initialization methods failed:',
@@ -763,7 +813,7 @@ class LessonRenderer {
         }
       }, 100);
     } catch (error) {
-      console.error('❌ Error in carousel setup:', error);
+      console.error('❌ Error initializing carousel:', error);
     }
 
     // Mark this lesson as the current lesson for instruction generation
