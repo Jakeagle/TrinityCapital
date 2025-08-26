@@ -527,7 +527,7 @@ class LessonRenderer {
         instructionItem.className = 'instruction-item';
         instructionItem.style.cssText = `
           padding: 15px;
-          background: rgba(255,255,255,0.1);
+          background: #1a2035;
           border-left: 4px solid #3498db;
           border-radius: 6px;
           font-size: 16px;
@@ -535,20 +535,31 @@ class LessonRenderer {
           margin-bottom: 12px;
           display: flex;
           align-items: center;
+          color: #ffffff;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         `;
 
-        // Add an icon for each instruction
+        // Add an icon for each instruction using Font Awesome
         const instructionIcon = document.createElement('span');
-        instructionIcon.innerHTML = '📌';
+        // Use Font Awesome icon instead of emoji
+        instructionIcon.innerHTML = `<i class="fas fa-clipboard-check" aria-hidden="true"></i>`;
         instructionIcon.style.cssText = `
           font-size: 20px;
           margin-right: 12px;
+          color: #3498db;
+          width: 30px;
+          height: 30px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         `;
 
         const instructionText = document.createElement('span');
         instructionText.textContent = instruction.text;
         instructionText.style.cssText = `
-          color: rgba(255,255,255,0.9);
+          color: #ffffff;
+          font-weight: 400;
+          flex-grow: 1;
         `;
 
         instructionItem.appendChild(instructionIcon);
@@ -708,7 +719,7 @@ class LessonRenderer {
             keyboard: true, // Allow keyboard navigation
             pause: 'hover', // Pause on hover
           });
-          
+
           // Reset to first slide explicitly
           carouselInstance.to(0);
 
@@ -1750,7 +1761,7 @@ class LessonRenderer {
       console.warn('⚠️ No lesson conditions found for instruction generation');
       return [
         {
-          icon: '📚',
+          icon: '<i class="fas fa-book"></i>',
           title: 'Complete the lesson activities',
           description: 'Follow the guidance provided to complete this lesson.',
           location: 'Use the Trinity Capital app features',
@@ -1792,7 +1803,7 @@ class LessonRenderer {
 
     // This is a placeholder - in a real implementation, getInstructionTemplate would be defined
     const template = {
-      icon: '📝',
+      icon: '<i class="fas fa-clipboard-list"></i>',
       title: `Complete action: ${condition.condition_type || 'Task'}`,
       description: `Perform the required action: ${condition.condition_value || 'Complete the task'}`,
       location: 'Use the appropriate section in the app',
@@ -2215,7 +2226,8 @@ class LessonRenderer {
       budget_created: 'Create a budget',
     };
 
-    const formattedText = conditionMap[conditionType] || `Complete the "${conditionType}" activity`;
+    const formattedText =
+      conditionMap[conditionType] || `Complete the "${conditionType}" activity`;
     return `<span style="color: rgba(255,255,255,0.9);">${formattedText}</span>`;
   }
 
