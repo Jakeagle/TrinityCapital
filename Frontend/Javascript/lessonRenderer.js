@@ -475,7 +475,7 @@ class LessonRenderer {
       });
     }
 
-    // Add instructions as the final slide
+    // Add instructions as the final slide (but not active by default)
     const instructionsSlide = document.createElement('div');
     instructionsSlide.className = 'carousel-item';
     instructionsSlide.style.cssText = `
@@ -484,6 +484,7 @@ class LessonRenderer {
       align-items: center;
       justify-content: center;
       padding: 20px;
+      z-index: 1; /* Ensure proper stacking */
     `;
     const instructionsList = document.createElement('div');
     instructionsList.className = 'instructions-list';
@@ -707,6 +708,9 @@ class LessonRenderer {
             keyboard: true, // Allow keyboard navigation
             pause: 'hover', // Pause on hover
           });
+          
+          // Reset to first slide explicitly
+          carouselInstance.to(0);
 
           // Add event listener for slide change to update active indicator
           carousel.addEventListener('slide.bs.carousel', function (event) {
@@ -933,16 +937,23 @@ class LessonRenderer {
       conditionsBlock.style.cssText = `
         margin-top: 20px;
         padding: 15px;
-        background: #f8f9fa;
+        background: #1a2035;
         border-radius: 10px;
         border-left: 4px solid #f5576c;
+        color: #ffffff;
       `;
-      conditionsBlock.innerHTML = `<h4>📋 What you'll need to do:</h4><ul>${lesson.lesson_conditions
-        .map(cond => {
-          const condType = cond.condition_type || cond.type || cond;
-          return `<li>${this.formatConditionForDisplay(condType)}</li>`;
-        })
-        .join('')}</ul>`;
+      conditionsBlock.innerHTML = `
+        <h4 style="color: #ffffff; font-weight: 600; margin-bottom: 10px;">
+          📋 What you'll need to do:
+        </h4>
+        <ul style="color: rgba(255,255,255,0.9); padding-left: 20px; line-height: 1.6;">
+          ${lesson.lesson_conditions
+            .map(cond => {
+              const condType = cond.condition_type || cond.type || cond;
+              return `<li style="margin-bottom: 8px;">${this.formatConditionForDisplay(condType)}</li>`;
+            })
+            .join('')}
+        </ul>`;
       contentContainer.appendChild(conditionsBlock);
     }
 
@@ -2204,9 +2215,8 @@ class LessonRenderer {
       budget_created: 'Create a budget',
     };
 
-    return (
-      conditionMap[conditionType] || `Complete the "${conditionType}" activity`
-    );
+    const formattedText = conditionMap[conditionType] || `Complete the "${conditionType}" activity`;
+    return `<span style="color: rgba(255,255,255,0.9);">${formattedText}</span>`;
   }
 
   /**
