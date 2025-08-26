@@ -410,12 +410,23 @@ class LessonRenderer {
     const carousel = document.createElement('div');
     carousel.id = carouselId;
     carousel.className = 'carousel slide';
-    carousel.setAttribute('data-bs-ride', 'carousel');
-    carousel.setAttribute('data-bs-wrap', 'true');
+    carousel.setAttribute('data-bs-ride', 'false'); // Disable auto sliding
+    carousel.setAttribute('data-bs-wrap', 'false'); // Disable wrapping
+    carousel.style.cssText = `
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+    `;
 
     // Carousel inner
     const carouselInner = document.createElement('div');
     carouselInner.className = 'carousel-inner';
+    carouselInner.style.cssText = `
+      position: relative;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    `;
 
     // Define processedBlocks outside the conditional to make it accessible in the entire method
     let processedBlocks = [];
@@ -465,8 +476,20 @@ class LessonRenderer {
       processedBlocks.forEach((block, idx) => {
         const slide = document.createElement('div');
         slide.className = 'carousel-item';
+        slide.style.cssText = `
+          position: absolute;
+          left: 0;
+          top: 0;
+          width: 100%;
+          transition: transform .6s ease-in-out;
+          opacity: 0;
+          visibility: hidden;
+        `;
+
         if (idx === 0) {
           slide.classList.add('active');
+          slide.style.opacity = '1';
+          slide.style.visibility = 'visible';
         }
 
         const contentBlock = this.createContentBlock(block, idx);
@@ -485,7 +508,10 @@ class LessonRenderer {
       align-items: center;
       justify-content: center;
       padding: 20px;
-      z-index: 1; /* Ensure proper stacking */
+      position: relative;
+      opacity: 0;
+      visibility: hidden;
+      transition: transform .6s ease-in-out;
     `;
     const instructionsList = document.createElement('div');
     instructionsList.className = 'instructions-list';
@@ -711,10 +737,37 @@ class LessonRenderer {
 
     container.appendChild(carousel);
 
+    // Add custom CSS to override any problematic global styles
+    const styleId = 'carousel-fix-style-' + carouselId;
+    if (!document.getElementById(styleId)) {
+      const carouselFixStyle = document.createElement('style');
+      carouselFixStyle.id = styleId;
+      carouselFixStyle.textContent = `
+        #${carouselId} .carousel-item {
+          display: block;
+          width: 100%;
+          margin-left: 0;
+          position: absolute;
+          transition: opacity 0.5s ease-in-out;
+        }
+        #${carouselId} .carousel-item.active {
+          opacity: 1 !important;
+          visibility: visible !important;
+          position: relative !important;
+        }
+        #${carouselId} .carousel-inner {
+          height: 580px;
+          position: relative;
+        }
+      `;
+      document.head.appendChild(carouselFixStyle);
+      console.log('🎠 Added custom carousel fix styles');
+    }
+
     // Initialize the Bootstrap carousel with improved controls
     try {
       console.log('🎠 Initializing carousel...');
-      
+
       // First, verify only one slide has the active class
       const activeSlides = carousel.querySelectorAll('.carousel-item.active');
       if (activeSlides.length > 1) {
@@ -730,14 +783,16 @@ class LessonRenderer {
 
       setTimeout(() => {
         try {
-          console.log('🎠 Creating carousel instance with preventative settings...');
+          console.log(
+            '🎠 Creating carousel instance with preventative settings...',
+          );
           const carouselInstance = new bootstrap.Carousel(carousel, {
             interval: false, // Explicitly prevent auto-advance
             wrap: false, // Prevent wrapping around to the first/last slide
             keyboard: true, // Allow keyboard navigation
             pause: true, // Always paused - never auto-cycle
             ride: false, // Ensure it doesn't auto-start cycling
-            touch: true // Enable touch/swipe navigation
+            touch: true, // Enable touch/swipe navigation
           });
 
           console.log('🎠 Forcing carousel to slide 0');
@@ -752,19 +807,34 @@ class LessonRenderer {
           const nextButton = carousel.querySelector('.carousel-control-next');
           if (prevButton && nextButton) {
             console.log('🎠 Adding custom navigation button listeners');
-            prevButton.addEventListener('click', (e) => {
+            prevButton.addEventListener('click', e => {
               e.preventDefault();
               carouselInstance.prev();
             });
-            nextButton.addEventListener('click', (e) => {
+            nextButton.addEventListener('click', e => {
               e.preventDefault();
               carouselInstance.next();
             });
           }
 
-          // Add event listener for slide change to update active indicator
+          // Add event listener for slide change to update active indicator and handle visibility
           carousel.addEventListener('slide.bs.carousel', function (event) {
             console.log(`🎠 Sliding to index: ${event.to}`);
+
+            // Update all slides visibility
+            const allSlides = this.querySelectorAll('.carousel-item');
+            allSlides.forEach((slide, idx) => {
+              // Hide all slides except the target one
+              if (idx === event.to) {
+                slide.style.opacity = '1';
+                slide.style.visibility = 'visible';
+              } else {
+                slide.style.opacity = '0';
+                slide.style.visibility = 'hidden';
+              }
+            });
+
+            // Update indicators
             const indicators = this.querySelectorAll(
               '.carousel-indicators button',
             );
@@ -788,20 +858,22 @@ class LessonRenderer {
           console.error('❌ Error initializing carousel (inner):', innerError);
           // Fallback initialization if the standard method fails
           try {
-            console.log('🎠 Attempting fallback jQuery carousel initialization');
+            console.log(
+              '🎠 Attempting fallback jQuery carousel initialization',
+            );
             $(carousel).carousel({
               interval: false,
               wrap: false,
               keyboard: true,
-              pause: true
+              pause: true,
             });
-            
+
             // Force the carousel to the first slide using jQuery
             $(carousel).carousel(0);
             console.log('✅ Fallback carousel initialization successful');
-            
+
             // Add custom event handlers for jQuery version too
-            $(carousel).on('slide.bs.carousel', function(event) {
+            $(carousel).on('slide.bs.carousel', function (event) {
               console.log(`🎠 jQuery carousel sliding to index: ${event.to}`);
             });
           } catch (jqueryError) {
