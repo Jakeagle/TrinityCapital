@@ -7,17 +7,35 @@
 /**
  * Show notification to user with different styles based on type
  */
+let notificationTimeout;
+
 export function showNotification(message, type = 'info', duration = 4000) {
-  // Remove any existing notifications
+  // Clear any existing timeout to prevent overlapping notifications
+  if (notificationTimeout) {
+    clearTimeout(notificationTimeout);
+  }
+
+  // Debug log to confirm function is called
+  console.log('[showNotification] Called with:', { message, type, duration });
+
+  // Remove any existing notifications (single notification at a time)
   const existingNotifications = document.querySelectorAll(
     '.trinity-notification',
   );
+  if (existingNotifications.length > 0) {
+    console.log(
+      '[showNotification] Removing previous notifications:',
+      existingNotifications.length,
+    );
+  }
   existingNotifications.forEach(notification => notification.remove());
 
   // Create notification element
   const notification = document.createElement('div');
   notification.className = `trinity-notification trinity-notification-${type}`;
-  notification.textContent = message;
+  notification.setAttribute('role', 'alert'); // Accessibility
+  notification.setAttribute('aria-live', 'assertive');
+  notification.innerHTML = message;
 
   // Style the notification
   notification.style.cssText = `
@@ -36,9 +54,11 @@ export function showNotification(message, type = 'info', duration = 4000) {
     font-size: 14px;
     line-height: 1.4;
     border-left: 4px solid rgba(255, 255, 255, 0.3);
+    opacity: 0;
+    transform: translateX(100%);
   `;
 
-  // Set color based on type
+  // Set color and icon based on type
   switch (type) {
     case 'success':
       notification.style.backgroundColor = '#4CAF50';
@@ -57,22 +77,33 @@ export function showNotification(message, type = 'info', duration = 4000) {
       notification.innerHTML = `ℹ ${message}`;
   }
 
-  // Add to page with animation
+  // Ensure document.body is available before appending
+  if (!document.body) {
+    console.error(
+      '[showNotification] document.body not available! Notification cannot be displayed.',
+    );
+    return;
+  }
+
+  // Append notification to the body
   document.body.appendChild(notification);
+  console.log('[showNotification] Notification appended to body.');
 
   // Animate in
   setTimeout(() => {
     notification.style.transform = 'translateX(0)';
     notification.style.opacity = '1';
+    console.log('[showNotification] Notification animated in.');
   }, 10);
 
   // Remove after specified duration
-  setTimeout(() => {
+  notificationTimeout = setTimeout(() => {
     notification.style.opacity = '0';
     notification.style.transform = 'translateX(100%)';
     setTimeout(() => {
       if (notification.parentNode) {
         notification.parentNode.removeChild(notification);
+        console.log('[showNotification] Notification removed from DOM.');
       }
     }, 300);
   }, duration);

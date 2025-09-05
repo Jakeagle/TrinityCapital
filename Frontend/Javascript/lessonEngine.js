@@ -99,8 +99,14 @@ class LessonEngine {
       // 4. Instruction & Challenge Generation
       await this.processMatchedConditions(matchedConditions, payload);
 
-      // 5. Completion Validation
-      await this.checkLessonCompletion();
+      // Notify lesson progress
+      this.showLessonProgress();
+
+      // Check for lesson completion
+      const isLessonComplete = await this.checkLessonCompletion();
+      if (isLessonComplete) {
+        this.showLessonCompletionModal();
+      }
     } catch (error) {
       console.error('❌ Error processing app action:', error);
     }
@@ -114,7 +120,7 @@ class LessonEngine {
       // Encode the student ID to handle spaces and special characters
       const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `http://localhost:3000/api/student-current-lesson/${encodedStudentId}`,
+        `https://tcstudentserver-production.up.railway.app/api/student-current-lesson/${encodedStudentId}`,
       );
 
       if (response.ok) {
@@ -471,7 +477,7 @@ class LessonEngine {
     for (const condition of matchedConditions) {
       await this.executeConditionAction(condition, payload);
       this.lessonTracker.recordConditionMet(condition);
-      // Show progress notification after each condition is met
+      // Show progress notification for every condition met
       this.showLessonProgress();
     }
   }
@@ -480,19 +486,47 @@ class LessonEngine {
    * Show notification of lesson progress (conditions met out of total)
    */
   showLessonProgress() {
-    if (!this.currentLesson || !this.currentLesson.lesson_conditions) return;
-    const total = this.currentLesson.lesson_conditions.filter(
-      c => !this.lessonTracker.isOptionalCondition(c),
-    ).length;
-    const met = this.lessonTracker.getRequiredConditionsMetCount(
-      this.currentLesson.lesson_conditions,
-    );
-    if (total > 0) {
-      this.showLessonNotification(
-        `Lesson Progress: ${met} of ${total} conditions met.`,
-        'info',
-      );
+    if (!this.currentLesson || !this.currentLesson.lesson_conditions) {
+      console.warn('⚠️ No active lesson or conditions to show progress for.');
+      return;
     }
+
+    const totalConditions = this.currentLesson.lesson_conditions.length;
+    const metConditions = this.lessonTracker.getMetConditionsCount();
+
+    showNotification(
+      `📘 Lesson Progress: ${metConditions}/${totalConditions} conditions met.`,
+      'info',
+    );
+  }
+
+  /**
+   * Display lesson completion modal with grade and details
+   */
+  async showLessonCompletionModal() {
+    if (!this.currentLesson) {
+      console.warn('⚠️ No active lesson to complete.');
+      return;
+    }
+
+    const grade = await this.calculateLessonGrade();
+    const modalContent = `
+      <div>
+        <h2>🎉 Lesson Complete!</h2>
+        <p>Grade: ${grade}</p>
+        <p>Lesson: ${this.currentLesson.lesson_title}</p>
+        <p>Details: All conditions met successfully.</p>
+      </div>
+    `;
+
+    const modal = document.createElement('div');
+    modal.className = 'lesson-completion-modal';
+    modal.innerHTML = modalContent;
+    document.body.appendChild(modal);
+
+    setTimeout(() => {
+      modal.remove();
+    }, 10000);
   }
 
   /**
@@ -576,31 +610,15 @@ class LessonEngine {
    */
   async checkLessonCompletion() {
     if (!this.currentLesson) return;
-
-    const completionConditions = this.currentLesson.lesson_conditions.filter(
-      condition => condition.action?.action_type === 'complete_lesson',
+    // Only complete lesson if all required actions are met
+    const requiredActions = this.currentLesson.required_actions || [];
+    const allConditions = this.currentLesson.lesson_conditions;
+    const metCount = this.lessonTracker.getRequiredConditionsMetCount(
+      allConditions,
+      requiredActions,
     );
-
-    if (completionConditions.length === 0) {
-      // Auto-complete if no specific completion conditions
-      if (
-        this.lessonTracker.getAllConditionsMet(
-          this.currentLesson.lesson_conditions,
-        )
-      ) {
-        await this.completeLesson();
-      }
-    } else {
-      // Check specific completion conditions
-      for (const condition of completionConditions) {
-        const studentData = await this.getStudentFinancialData();
-        if (
-          this.conditionMatches(condition, 'completion_check', {}, studentData)
-        ) {
-          await this.completeLesson();
-          break;
-        }
-      }
+    if (metCount >= requiredActions.length && requiredActions.length > 0) {
+      await this.completeLesson();
     }
   }
 
@@ -629,7 +647,7 @@ class LessonEngine {
       // Handle completion data if provided
       if (actionDetails.completion_data) {
         try {
-          await fetch('http://localhost:3000/api/student-lesson/complete', {
+          await fetch('https://tcstudentserver-production.up.railway.app/api/student-lesson/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -651,30 +669,20 @@ class LessonEngine {
    * Calculate lesson grade based on conditions met and penalties
    */
   async calculateLessonGrade() {
-    const baseScore = 70; // Starting score
-    const conditionBonus = 5; // Points per positive condition
-    const conditionPenalty = 3; // Points deducted per negative condition
-
-    const positiveConditions = this.lessonTracker.getPositiveConditionsCount();
-    const negativeConditions = this.lessonTracker.getNegativeConditionsCount();
-
-    let activityScore =
-      baseScore +
-      positiveConditions * conditionBonus -
-      negativeConditions * conditionPenalty;
-    activityScore = Math.max(0, Math.min(100, activityScore)); // Clamp between 0-100
-
-    // If lesson has quiz component, integrate it
-    const quizScore = this.lessonTracker.getQuizScore();
-    let finalScore = activityScore;
-
-    if (quizScore !== null) {
-      const activityWeight = 0.7; // 70% activity, 30% quiz
-      const quizWeight = 0.3;
-      finalScore = activityScore * activityWeight + quizScore * quizWeight;
-    }
-
-    return Math.round(finalScore);
+    // Use Texas public high school grading equivalency
+    const lesson = this.currentLesson;
+    if (!lesson || !lesson.lesson_conditions) return 70;
+    const requiredActions = lesson.required_actions || [];
+    const allConditions = lesson.lesson_conditions;
+    const metCount = this.lessonTracker.getRequiredConditionsMetCount(
+      allConditions,
+      requiredActions,
+    );
+    const totalRequired = requiredActions.length;
+    if (totalRequired === 0) return 70;
+    // 100% if all met, else scale
+    const percent = Math.round((metCount / totalRequired) * 100);
+    return percent;
   }
 
   /**
@@ -684,7 +692,7 @@ class LessonEngine {
     try {
       const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `http://localhost:3000/api/student-financial-data/${encodedStudentId}`,
+        `https://tcstudentserver-production.up.railway.app/api/student-financial-data/${encodedStudentId}`,
       );
       if (response.ok) {
         return await response.json();
@@ -831,7 +839,7 @@ class LessonEngine {
     // Create challenge in backend if enabled
     if (actionDetails.create_backend_challenge) {
       try {
-        await fetch('http://localhost:3000/api/student-challenge/create', {
+        await fetch('https://tcstudentserver-production.up.railway.app/api/student-challenge/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -913,7 +921,7 @@ class LessonEngine {
   async lockLesson() {
     // API call to lock current lesson
     try {
-      await fetch('http://localhost:3000/api/lock-lesson', {
+      await fetch('https://tcstudentserver-production.up.railway.app/api/lock-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -929,7 +937,7 @@ class LessonEngine {
   async unlockNextLesson() {
     // API call to unlock next lesson
     try {
-      await fetch('http://localhost:3000/api/unlock-next-lesson', {
+      await fetch('https://tcstudentserver-production.up.railway.app/api/unlock-next-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -945,7 +953,7 @@ class LessonEngine {
   async syncWithTeacherDashboard(grade) {
     // API call to sync with teacher dashboard
     try {
-      await fetch('http://localhost:3000/api/sync-teacher-dashboard', {
+      await fetch('https://tcstudentserver-production.up.railway.app/api/sync-teacher-dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1046,15 +1054,16 @@ class LessonTracker {
    * @param {Array} allConditions - all lesson conditions
    * @returns {number}
    */
-  getRequiredConditionsMetCount(allConditions) {
-    if (!allConditions) return 0;
-    const required = allConditions.filter(c => !this.isOptionalCondition(c));
+  getRequiredConditionsMetCount(allConditions, requiredActions) {
+    if (!allConditions || !requiredActions) return 0;
     let met = 0;
-    for (const condition of required) {
-      const conditionKey = `${condition.condition_type}_${condition.value || ''}`;
-      if (this.conditionsMet.has(conditionKey)) {
-        met++;
-      }
+    for (const action of requiredActions) {
+      const found = allConditions.find(
+        cond =>
+          cond.condition_type === action &&
+          this.conditionsMet.has(`${cond.condition_type}_${cond.value || ''}`),
+      );
+      if (found) met++;
     }
     return met;
   }
@@ -1117,6 +1126,14 @@ class LessonTracker {
       condition.action?.action_type === 'show_tip' ||
       condition.action?.action_type === 'highlight_feature'
     );
+  }
+
+  /**
+   * Get the total number of conditions met
+   * @returns {number}
+   */
+  getMetConditionsCount() {
+    return this.conditionsMet.size;
   }
 }
 

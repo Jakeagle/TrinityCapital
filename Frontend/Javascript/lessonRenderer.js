@@ -1,6 +1,7 @@
 'use strict';
 
 // Import instruction templates for generating student instructions
+import { instructionTemplates } from './instructionTemplates.js';
 
 /**
  * Trinity Capital - Lesson Renderer
@@ -40,7 +41,7 @@ class LessonRenderer {
       // Fetch the student profile directly from the server
       try {
         const profileResponse = await fetch(
-          `http://localhost:3000/profiles/${encodeURIComponent(studentName)}`,
+          `https://tcstudentserver-production.up.railway.app/profiles/${encodeURIComponent(studentName)}`,
         );
 
         if (!profileResponse.ok) {
@@ -156,7 +157,7 @@ class LessonRenderer {
       'background: #ff0000; color: white; font-size: 20px;',
     );
     console.log(
-      '%c POST to http://localhost:4000/get-lessons-by-ids ',
+      '%c POST to https://tclessonserver-production.up.railway.app/get-lessons-by-ids ',
       'background: #ff0000; color: white; font-size: 16px;',
     );
     console.log(
@@ -172,7 +173,7 @@ class LessonRenderer {
 
     try {
       // Define the URL with correct origin
-      const lessonServerUrl = 'http://localhost:4000/get-lessons-by-ids';
+      const lessonServerUrl = 'https://tclessonserver-production.up.railway.app/get-lessons-by-ids';
 
       console.log(
         '%c Fetch URL: ',
@@ -552,28 +553,46 @@ class LessonRenderer {
       instructions.forEach(instruction => {
         const instructionItem = document.createElement('div');
         instructionItem.className = 'instruction-item';
+
+        // Set border color based on priority
+        let borderColor = '#3498db'; // Default blue for medium priority
+        if (instruction.priority === 'high') {
+          borderColor = '#e74c3c'; // Red for high priority
+        } else if (instruction.priority === 'low') {
+          borderColor = '#2ecc71'; // Green for low priority
+        }
+
         instructionItem.style.cssText = `
           padding: 15px;
           background: #1a2035;
-          border-left: 4px solid #3498db;
+          border-left: 4px solid ${borderColor};
           border-radius: 6px;
           font-size: 16px;
           line-height: 1.5;
           margin-bottom: 12px;
           display: flex;
-          align-items: center;
+          flex-direction: column;
           color: #ffffff;
           box-shadow: 0 2px 8px rgba(0,0,0,0.15);
         `;
 
-        // Add an icon for each instruction using Font Awesome
+        // Create the header section with icon and title
+        const instructionHeader = document.createElement('div');
+        instructionHeader.style.cssText = `
+          display: flex;
+          align-items: center;
+          margin-bottom: 8px;
+        `;
+
+        // Add the icon from the instruction template
         const instructionIcon = document.createElement('span');
-        // Use Font Awesome icon instead of emoji
-        instructionIcon.innerHTML = `<i class="fas fa-clipboard-check" aria-hidden="true"></i>`;
+        instructionIcon.innerHTML =
+          instruction.icon ||
+          '<i class="fas fa-clipboard-check" aria-hidden="true"></i>';
         instructionIcon.style.cssText = `
           font-size: 20px;
           margin-right: 12px;
-          color: #3498db;
+          color: ${borderColor};
           width: 30px;
           height: 30px;
           display: flex;
@@ -581,16 +600,47 @@ class LessonRenderer {
           justify-content: center;
         `;
 
-        const instructionText = document.createElement('span');
-        instructionText.textContent = instruction.text;
-        instructionText.style.cssText = `
-          color: #ffffff;
-          font-weight: 400;
-          flex-grow: 1;
+        // Add the title
+        const instructionTitle = document.createElement('h3');
+        instructionTitle.textContent = instruction.title || 'Complete Action';
+        instructionTitle.style.cssText = `
+          margin: 0;
+          font-size: 16px;
+          font-weight: 600;
+          color: ${borderColor};
         `;
 
-        instructionItem.appendChild(instructionIcon);
-        instructionItem.appendChild(instructionText);
+        // Add icon and title to header
+        instructionHeader.appendChild(instructionIcon);
+        instructionHeader.appendChild(instructionTitle);
+
+        // Add the description
+        const instructionDescription = document.createElement('p');
+        instructionDescription.textContent =
+          instruction.description ||
+          'Follow the instructions to complete this task.';
+        instructionDescription.style.cssText = `
+          margin: 0 0 8px 0;
+          color: #ffffff;
+          font-weight: 400;
+        `;
+
+        // Add the location guidance if available
+        const instructionLocation = document.createElement('p');
+        instructionLocation.textContent =
+          instruction.location || 'Use the appropriate section in the app';
+        instructionLocation.style.cssText = `
+          margin: 0;
+          font-size: 14px;
+          font-style: italic;
+          color: rgba(255,255,255,0.7);
+        `;
+
+        // Assemble all parts
+        instructionItem.appendChild(instructionHeader);
+        instructionItem.appendChild(instructionDescription);
+        instructionItem.appendChild(instructionLocation);
+
         instructionsList.appendChild(instructionItem);
       });
     } else {
@@ -929,6 +979,7 @@ class LessonRenderer {
       justify-content: center;
       z-index: 9999;
       backdrop-filter: blur(5px);
+      transition: opacity 0.3s ease;
     `;
     const modalDialog = document.createElement('div');
     modalDialog.className = 'lesson-modal-dialog';
@@ -943,7 +994,53 @@ class LessonRenderer {
       position: relative;
       animation: modalSlideIn 0.4s ease-out;
       padding-bottom: 80px;
+      transition: transform 0.3s ease, opacity 0.3s ease;
     `;
+
+    // Add close button in the top-right corner
+    const closeButton = document.createElement('button');
+    closeButton.className = 'lesson-modal-close-btn';
+    closeButton.innerHTML = '&times;'; // × symbol
+    closeButton.style.cssText = `
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      width: 40px;
+      height: 40px;
+      background: #e74c3c;
+      border: none;
+      border-radius: 50%;
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 10;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      transition: all 0.2s ease;
+      padding: 0;
+      line-height: 1;
+    `;
+
+    // Add hover effect
+    closeButton.addEventListener('mouseenter', () => {
+      closeButton.style.background = '#c0392b';
+      closeButton.style.transform = 'scale(1.05)';
+    });
+
+    closeButton.addEventListener('mouseleave', () => {
+      closeButton.style.background = '#e74c3c';
+      closeButton.style.transform = 'scale(1)';
+    });
+
+    // Add click handler to close the modal
+    closeButton.addEventListener('click', () => {
+      this.closeModal(modalOverlay);
+    });
+
+    modalDialog.appendChild(closeButton);
     const contentContainer = document.createElement('div');
     contentContainer.className = 'lesson-modal-content';
     contentContainer.style.cssText = `
@@ -1064,32 +1161,6 @@ class LessonRenderer {
       contentContainer.appendChild(objectivesBlock);
     }
 
-    if (lesson.lesson_conditions && lesson.lesson_conditions.length > 0) {
-      const conditionsBlock = document.createElement('div');
-      conditionsBlock.className = 'lesson-conditions-block';
-      conditionsBlock.style.cssText = `
-        margin-top: 20px;
-        padding: 15px;
-        background: #1a2035;
-        border-radius: 10px;
-        border-left: 4px solid #f5576c;
-        color: #ffffff;
-      `;
-      conditionsBlock.innerHTML = `
-        <h4 style="color: #ffffff; font-weight: 600; margin-bottom: 10px;">
-          📋 What you'll need to do:
-        </h4>
-        <ul style="color: rgba(255,255,255,0.9); padding-left: 20px; line-height: 1.6;">
-          ${lesson.lesson_conditions
-            .map(cond => {
-              const condType = cond.condition_type || cond.type || cond;
-              return `<li style="margin-bottom: 8px;">${this.formatConditionForDisplay(condType)}</li>`;
-            })
-            .join('')}
-        </ul>`;
-      contentContainer.appendChild(conditionsBlock);
-    }
-
     modalDialog.appendChild(contentContainer);
     const beginButton = document.createElement('button');
     beginButton.textContent = 'Begin Activities';
@@ -1123,6 +1194,23 @@ class LessonRenderer {
 
     modalOverlay.appendChild(modalDialog);
     document.body.appendChild(modalOverlay);
+
+    // Add keyboard event listener to close modal on Escape key
+    const escapeKeyHandler = event => {
+      if (event.key === 'Escape') {
+        this.closeModal(modalOverlay);
+        document.removeEventListener('keydown', escapeKeyHandler);
+      }
+    };
+    document.addEventListener('keydown', escapeKeyHandler);
+
+    // Add click event listener to close modal when clicking outside the dialog
+    modalOverlay.addEventListener('click', event => {
+      if (event.target === modalOverlay) {
+        this.closeModal(modalOverlay);
+      }
+    });
+
     if (!document.querySelector('#lesson-modal-styles')) {
       const styleSheet = document.createElement('style');
       styleSheet.id = 'lesson-modal-styles';
@@ -1891,6 +1979,23 @@ class LessonRenderer {
       ];
     }
 
+    // Get current student profile if available
+    this.currentStudentProfile =
+      this.currentStudentProfile ||
+      window.currentStudentProfile ||
+      window.studentProfile;
+
+    if (!this.currentStudentProfile) {
+      console.warn(
+        '⚠️ No student profile found for condition validation, showing all instructions',
+      );
+    } else {
+      console.log(
+        '✅ Using student profile for condition validation:',
+        this.currentStudentProfile.memberName || 'Unknown student',
+      );
+    }
+
     lesson.lesson_conditions.forEach((condition, index) => {
       const instruction = this.interpretConditionToInstruction(
         condition,
@@ -1903,7 +2008,7 @@ class LessonRenderer {
 
     if (instructions.length === 0) {
       instructions.push({
-        icon: '🎯',
+        icon: '<i class="fas fa-bullseye"></i>',
         title: 'Complete lesson objectives',
         description:
           'Use the Trinity Capital banking app to practice the concepts covered in this lesson.',
@@ -1923,30 +2028,113 @@ class LessonRenderer {
   interpretConditionToInstruction(condition, lesson) {
     console.log('🔍 Processing condition:', condition.condition_type);
 
-    // This is a placeholder - in a real implementation, getInstructionTemplate would be defined
-    const template = {
+    // Get the appropriate template from instructionTemplates based on condition type
+    const template = instructionTemplates[condition.condition_type];
+
+    // Check if this condition should be shown based on account status
+    if (this.shouldShowCondition(condition, lesson) === false) {
+      console.log(
+        `⏭️ Skipping condition ${condition.condition_type} - not applicable to current account state`,
+      );
+      return null;
+    }
+
+    // If we have a matching template
+    if (template) {
+      // Replace emoji icons with Font Awesome icons for better cross-platform compatibility
+      let icon = template.icon;
+
+      // Convert common emoji icons to Font Awesome equivalents
+      const emojiToFontAwesome = {
+        '💰': '<i class="fas fa-money-bill-wave"></i>',
+        '⚠️': '<i class="fas fa-exclamation-triangle"></i>',
+        '🏦': '<i class="fas fa-university"></i>',
+        '📉': '<i class="fas fa-chart-line"></i>',
+        '💎': '<i class="fas fa-gem"></i>',
+        '📊': '<i class="fas fa-chart-bar"></i>',
+        '⚖️': '<i class="fas fa-balance-scale"></i>',
+        '💸': '<i class="fas fa-exchange-alt"></i>',
+        '💵': '<i class="fas fa-money-bill-alt"></i>',
+        '💳': '<i class="fas fa-credit-card"></i>',
+        '🔔': '<i class="fas fa-bell"></i>',
+        '📅': '<i class="fas fa-calendar-alt"></i>',
+        '💼': '<i class="fas fa-briefcase"></i>',
+        '📝': '<i class="fas fa-edit"></i>',
+        '📋': '<i class="fas fa-clipboard"></i>',
+        '🔍': '<i class="fas fa-search"></i>',
+        '📈': '<i class="fas fa-chart-line"></i>',
+        '🎯': '<i class="fas fa-bullseye"></i>',
+        '🏆': '<i class="fas fa-trophy"></i>',
+        '⏱️': '<i class="fas fa-stopwatch"></i>',
+        '📢': '<i class="fas fa-bullhorn"></i>',
+        '🔄': '<i class="fas fa-sync"></i>',
+      };
+
+      // Replace emoji with Font Awesome icon if available
+      if (emojiToFontAwesome[icon]) {
+        icon = emojiToFontAwesome[icon];
+      } else {
+        // Default icon if no match found
+        icon = '<i class="fas fa-clipboard-list"></i>';
+      }
+
+      // Enhance description with any additional details from the condition
+      let enhancedDescription = template.description;
+
+      // Add condition-specific values to make instructions more precise
+      if (condition.condition_value) {
+        // Handle different condition types with specific formatting
+        if (condition.condition_type.includes('balance')) {
+          enhancedDescription = enhancedDescription.replace(
+            'the target amount',
+            `$${parseFloat(condition.condition_value).toFixed(2)}`,
+          );
+        } else if (condition.condition_type.includes('transfer')) {
+          enhancedDescription = enhancedDescription.replace(
+            'the specified amount',
+            `$${parseFloat(condition.condition_value).toFixed(2)}`,
+          );
+        }
+      }
+
+      // Add any additional messages from the action details
+      if (condition.action_details?.message) {
+        enhancedDescription += ` ${condition.action_details.message}`;
+      }
+
+      return {
+        icon: icon,
+        title: template.title,
+        description: enhancedDescription,
+        location: template.location,
+        priority: condition.action_details?.priority || 'medium',
+        autoTrigger: condition.action_details?.auto_trigger || false,
+      };
+    }
+
+    // Fallback template if no matching template is found
+    console.warn(
+      `No template found for condition type: ${condition.condition_type}`,
+    );
+    const fallbackTemplate = {
       icon: '<i class="fas fa-clipboard-list"></i>',
       title: `Complete action: ${condition.condition_type || 'Task'}`,
       description: `Perform the required action: ${condition.condition_value || 'Complete the task'}`,
       location: 'Use the appropriate section in the app',
     };
 
-    if (template) {
-      let enhancedDescription = template.description;
-      if (condition.action_details?.message) {
-        enhancedDescription += ` ${condition.action_details.message}`;
-      }
-
-      return {
-        ...template,
-        description: enhancedDescription,
-        priority: condition.action_details?.priority || 'medium',
-        autoTrigger: condition.action_details?.auto_trigger || false,
-      };
+    // Add any additional messages from the action details
+    let fallbackDescription = fallbackTemplate.description;
+    if (condition.action_details?.message) {
+      fallbackDescription += ` ${condition.action_details.message}`;
     }
 
-    // Return null if no template found
-    return null;
+    return {
+      ...fallbackTemplate,
+      description: fallbackDescription,
+      priority: condition.action_details?.priority || 'medium',
+      autoTrigger: condition.action_details?.auto_trigger || false,
+    };
   }
 
   /**
@@ -2329,6 +2517,82 @@ class LessonRenderer {
    * @param {string} conditionType - The condition type from the lesson
    * @returns {string} Human-readable condition description
    */
+  /**
+   * Determine if a condition should be shown based on the current account state
+   * @param {Object} condition - The lesson condition
+   * @param {Object} lesson - The full lesson object
+   * @returns {boolean} Whether the condition should be displayed
+   */
+  shouldShowCondition(condition, lesson) {
+    // If no currentStudentProfile is available, show all conditions
+    if (!this.currentStudentProfile && !window.currentStudentProfile) {
+      console.log('⚠️ No student profile available, showing all conditions');
+      return true;
+    }
+
+    const profile = this.currentStudentProfile || window.currentStudentProfile;
+    const conditionType = condition.condition_type;
+    const conditionValue = condition.condition_value || 0;
+
+    // Special handling for account-specific conditions
+    switch (conditionType) {
+      // Budget conditions
+      case 'budget_positive_above':
+        // Only show if the budget is actually positive and above the threshold
+        const income = profile.totalIncome || 0;
+        const expenses = profile.totalExpenses || 0;
+        const budgetSurplus = income - expenses;
+        return budgetSurplus > 0 && budgetSurplus >= parseFloat(conditionValue);
+
+      case 'budget_negative':
+        // Only show if the budget is actually negative
+        const negIncome = profile.totalIncome || 0;
+        const negExpenses = profile.totalExpenses || 0;
+        return negIncome < negExpenses;
+
+      // Account balance conditions
+      case 'checking_balance_above':
+        return (
+          (profile.accounts?.checking?.balance || 0) >=
+          parseFloat(conditionValue)
+        );
+
+      case 'checking_balance_below':
+        return (
+          (profile.accounts?.checking?.balance || 0) <=
+          parseFloat(conditionValue)
+        );
+
+      case 'savings_balance_above':
+        return (
+          (profile.accounts?.savings?.balance || 0) >=
+          parseFloat(conditionValue)
+        );
+
+      case 'savings_balance_below':
+        return (
+          (profile.accounts?.savings?.balance || 0) <=
+          parseFloat(conditionValue)
+        );
+
+      case 'bank_balance_above':
+        const totalBalance =
+          (profile.accounts?.checking?.balance || 0) +
+          (profile.accounts?.savings?.balance || 0);
+        return totalBalance >= parseFloat(conditionValue);
+
+      case 'bank_balance_below':
+        const lowTotalBalance =
+          (profile.accounts?.checking?.balance || 0) +
+          (profile.accounts?.savings?.balance || 0);
+        return lowTotalBalance <= parseFloat(conditionValue);
+
+      // For other conditions not tied to account state, show them all
+      default:
+        return true;
+    }
+  }
+
   formatConditionForDisplay(conditionType) {
     const conditionMap = {
       lesson_content_viewed: 'Review the lesson content',
@@ -2359,8 +2623,16 @@ class LessonRenderer {
    */
   closeModal(modalOverlay) {
     if (modalOverlay) {
+      // Add fade-out animation
       modalOverlay.style.opacity = '0';
       modalOverlay.style.pointerEvents = 'none';
+
+      // Find the dialog element and add slide-out animation
+      const dialog = modalOverlay.querySelector('.lesson-modal-dialog');
+      if (dialog) {
+        dialog.style.transform = 'scale(0.9)';
+        dialog.style.opacity = '0';
+      }
 
       setTimeout(() => {
         modalOverlay.remove();
