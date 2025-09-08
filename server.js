@@ -369,7 +369,7 @@ io.on('connection', socket => {
 // Listen for 'studentCreated' event from another server (localhost:5000)
 const { io: ClientIO } = require('socket.io-client');
 const EXTERNAL_SOCKET_URL =
-  process.env.EXTERNAL_SOCKET_URL || 'https://tcregistrationserver-production.up.railway.app';
+  process.env.EXTERNAL_SOCKET_URL || 'http://localhost:5000';
 const externalSocket = ClientIO(EXTERNAL_SOCKET_URL);
 
 externalSocket.on('connect', () => {
@@ -508,14 +508,127 @@ app.get('/profiles', async (req, res) => {
 
     // Send profiles only to the requesting user
     const userSocket = userSockets.get(req.query.userId);
+
     if (userSocket) {
-      userSocket.emit('profiles', profiles);
+      userSocket.emit('profilesData', profiles);
     }
 
-    res.status(200).send(profiles);
+    res.json(profiles);
   } catch (error) {
-    console.error('Error fetching profiles:', error);
-    res.status(500).send('Internal Server Error');
+    console.error('Error retrieving profiles:', error);
+    res.status(500).json({ error: 'Error retrieving profiles' });
+  }
+});
+
+// NEW: Get profile by memberName (student name)
+app.get('/profiles/:memberName', async (req, res) => {
+  try {
+    const { memberName } = req.params;
+    console.log(`\n\n📋 PROFILE REQUEST for student: ${memberName}`);
+
+    const collection = client.db('TrinityCapital').collection('User Profiles');
+    const profile = await collection.findOne({ memberName });
+
+    if (!profile) {
+      console.log(`❌ No profile found for student: ${memberName}`);
+      return res.status(404).json({
+        success: false,
+        message: `No profile found for student: ${memberName}`,
+      });
+    }
+
+    console.log(`✅ Profile found for student: ${memberName}`);
+    console.log(`👤 Student: ${profile.memberName}`);
+    console.log(`🏫 School: ${profile.school || 'N/A'}`);
+    console.log(`👨‍🏫 Teacher: ${profile.teacher || 'N/A'}`);
+
+    // Log assigned units structure
+    if (profile.assignedUnitIds && Array.isArray(profile.assignedUnitIds)) {
+      console.log(`📚 Assigned Units: ${profile.assignedUnitIds.length}`);
+      profile.assignedUnitIds.forEach((unit, index) => {
+        console.log(
+          `  Unit ${index + 1}: ${unit.unitName || unit.unitId || 'Unknown'}`,
+        );
+        console.log(
+          `    - Lesson IDs: ${Array.isArray(unit.lessonIds) ? unit.lessonIds.length : 'None'}`,
+        );
+        if (Array.isArray(unit.lessonIds)) {
+          console.log(
+            `    - First few lesson IDs: ${unit.lessonIds.slice(0, 3).join(', ')}${unit.lessonIds.length > 3 ? '...' : ''}`,
+          );
+        }
+      });
+    } else {
+      console.log(`❌ No assignedUnitIds found or not an array`);
+      console.log(
+        `   assignedUnitIds value: ${JSON.stringify(profile.assignedUnitIds)}`,
+      );
+    }
+
+    res.json(profile);
+  } catch (error) {
+    console.error('Error retrieving profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error retrieving profile',
+      message: error.message,
+    });
+  }
+});
+
+// NEW: Get profile by memberName (student name)
+app.get('/profiles/:memberName', async (req, res) => {
+  try {
+    const { memberName } = req.params;
+    console.log(`\n\n📋 PROFILE REQUEST for student: ${memberName}`);
+
+    const collection = client.db('TrinityCapital').collection('User Profiles');
+    const profile = await collection.findOne({ memberName });
+
+    if (!profile) {
+      console.log(`❌ No profile found for student: ${memberName}`);
+      return res.status(404).json({
+        success: false,
+        message: `No profile found for student: ${memberName}`,
+      });
+    }
+
+    console.log(`✅ Profile found for student: ${memberName}`);
+    console.log(`👤 Student: ${profile.memberName}`);
+    console.log(`🏫 School: ${profile.school || 'N/A'}`);
+    console.log(`👨‍🏫 Teacher: ${profile.teacher || 'N/A'}`);
+
+    // Log assigned units structure
+    if (profile.assignedUnitIds && Array.isArray(profile.assignedUnitIds)) {
+      console.log(`📚 Assigned Units: ${profile.assignedUnitIds.length}`);
+      profile.assignedUnitIds.forEach((unit, index) => {
+        console.log(
+          `  Unit ${index + 1}: ${unit.unitName || unit.unitId || 'Unknown'}`,
+        );
+        console.log(
+          `    - Lesson IDs: ${Array.isArray(unit.lessonIds) ? unit.lessonIds.length : 'None'}`,
+        );
+        if (Array.isArray(unit.lessonIds)) {
+          console.log(
+            `    - First few lesson IDs: ${unit.lessonIds.slice(0, 3).join(', ')}${unit.lessonIds.length > 3 ? '...' : ''}`,
+          );
+        }
+      });
+    } else {
+      console.log(`❌ No assignedUnitIds found or not an array`);
+      console.log(
+        `   assignedUnitIds value: ${JSON.stringify(profile.assignedUnitIds)}`,
+      );
+    }
+
+    res.json(profile);
+  } catch (error) {
+    console.error('Error retrieving profile:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error retrieving profile',
+      message: error.message,
+    });
   }
 });
 
@@ -1982,7 +2095,7 @@ app.get('/api/student-current-lesson/:studentId', async (req, res) => {
           const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
           
           const lessonServerResponse = await fetch(
-            'https://tclessonserver-production.up.railway.app/get-lessons-by-ids',
+            'http://localhost:4000/get-lessons-by-ids',
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3599,7 +3712,7 @@ app.get('/student/:studentId/assignedUnits', async (req, res) => {
       try {
         // Fetch fresh lesson content from the lesson server
         const lessonServerResponse = await fetch(
-          `https://tclessonserver-production.up.railway.app/lessons/${unit.assignedBy}`,
+          `http://localhost:4000/lessons/${unit.assignedBy}`,
         );
 
         if (lessonServerResponse.ok) {
@@ -3892,7 +4005,7 @@ app.get('/student-lessons-by-ids/:studentId', async (req, res) => {
     try {
       console.log(`🔗 Requesting lesson content from lesson server...`);
       const lessonServerResponse = await fetch(
-        'https://tclessonserver-production.up.railway.app/get-lessons-by-ids',
+        'http://localhost:4000/get-lessons-by-ids',
         {
           method: 'POST',
           headers: {
@@ -3982,7 +4095,7 @@ app.post('/assignUnitToStudent', async (req, res) => {
         `🔍 Fetching unit structure from lesson server for unit ${unitId}...`,
       );
       const lessonServerResponse = await fetch(
-        `https://tclessonserver-production.up.railway.app/lessons/${assignedBy}`,
+        `http://localhost:4000/lessons/${assignedBy}`,
       );
       if (lessonServerResponse.ok) {
         const lessonData = await lessonServerResponse.json();
