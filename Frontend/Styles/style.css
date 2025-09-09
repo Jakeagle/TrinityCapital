@@ -3421,6 +3421,5 @@ input::placeholder {
   .signOnBox .pinRow,
   .signOnBox .signUpBtn {
     transform: scale(0.85); /* Scale down these specific elements */
-    transform-origin: top left; /* Ensure scaling starts from the top left */
   }
 }
