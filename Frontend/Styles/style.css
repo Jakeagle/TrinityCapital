@@ -32,9 +32,6 @@
   --transition-fast: 0.2s ease-out;
   --transition-medium: 0.4s ease-out;
   --transition-slow: 0.6s ease-out;
-
-  --app-gutter: 12px;
-  --card-radius: 10px;
 }
 
 /* Global Animation Keyframes */
@@ -341,34 +338,6 @@
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: var(--shadow-medium);
   animation: fadeInUp 1s ease-out;
-  /* make modal responsive and scrollable when content overflows */
-  width: 90vw;
-  max-width: 920px;
-  max-height: 80vh;
-  overflow-y: auto;
-  padding: 0.5rem;
-  box-sizing: border-box;
-}
-
-/* Use flex layout inside the modal background to control the left (promo) and right (login) panes */
-.signOnBox .backGround {
-  display: flex;
-  gap: 0;
-  align-items: stretch;
-}
-
-/* Left promo column (sec1) and right login column (sec2) sizing */
-.signOnBox .sec1 {
-  flex: 0 0 34%;
-  min-width: 200px;
-  padding: 1.2rem 1rem;
-  box-sizing: border-box;
-}
-.signOnBox .sec2 {
-  flex: 1 1 66%;
-  min-width: 220px;
-  padding: 1.2rem 1rem;
-  box-sizing: border-box;
 }
 
 .sec1 {
@@ -522,11 +491,11 @@
 .welcomeBackSignOn {
   text-align: center;
   color: white;
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: 700;
   width: 80%;
   margin: auto;
-  margin-top: 2.5rem;
+  margin-top: 4rem;
   background: linear-gradient(135deg, #ffffff, #f093fb);
   background-clip: text;
   -webkit-background-clip: text;
@@ -538,7 +507,7 @@
   font-size: 1.1rem;
   font-weight: 300;
   margin-top: 2rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 3rem;
   width: 100%;
   color: rgba(255, 255, 255, 0.8);
   letter-spacing: 0.3px;
@@ -637,7 +606,13 @@
 }
 
 .mobileSignOnBox {
-  display: none;
+  height: 80%;
+  width: 60%;
+  background: var(--bg-glass);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-style: none;
+  border-radius: 20px;
 }
 
 .mobileWelcome {
@@ -653,7 +628,6 @@
 .mobilePinRow {
   position: relative;
   bottom: 2rem;
-  margin-bottom: 20px; /* Add spacing below the PIN box */
 }
 
 .mobileIcon {
@@ -667,8 +641,7 @@
   position: relative;
   left: 0.5rem;
   margin: auto;
-  margin-top: 20px; /* Add spacing above the sign-in button */
-  align-self: center; /* Center the button horizontally */
+
   width: 90%;
 }
 
@@ -723,13 +696,12 @@ body::before {
     var(--bg-secondary) 0%,
     var(--bg-card) 100%
   );
-  width: 18%; /* Reduce width slightly */
-  height: 100vh; /* Ensure it fits within the viewport */
+  width: 20%;
+  height: 110vh;
   position: relative;
   box-shadow: var(--shadow-medium);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   animation: fadeInLeft 1s ease-out;
-  overflow-y: auto; /* Add scroll if content overflows */
 }
 
 .section1::before {
@@ -1609,6 +1581,7 @@ body::before {
     rgba(255, 255, 255, 0.05) 100%
   );
   pointer-events: none;
+  border-radius: 20px;
 }
 
 .lessonDiv:hover {
@@ -2751,20 +2724,6 @@ input::placeholder {
 
   @media screen and (max-width: 376px) {
     .section1 {
-      width: 90%; /* Full width for smaller screens */
-      height: 100vh; /* Ensure it fits within the viewport */
-    }
-  }
-
-  @media screen and (max-width: 415px) {
-    .section1 {
-      width: 85%; /* Slightly narrower for better fit */
-      height: 100vh; /* Ensure it fits within the viewport */
-    }
-  }
-
-  @media screen and (max-width: 376px) {
-    .section1 {
       height: 200vh;
     }
   }
@@ -3102,6 +3061,8 @@ input::placeholder {
     }
   }
 
+  /*********************************************Tablets**********************************************/
+
   @media screen and (min-width: 820px) {
     .section1 {
       height: 180vh;
@@ -3149,6 +3110,19 @@ input::placeholder {
     .lesson-item-wrapper {
       min-width: 90px;
       max-width: 110px;
+    }
+
+    .lessonDiv {
+      width: 60px;
+      height: 60px;
+    }
+
+    .lessonIcon {
+      font-size: 1.3rem;
+    }
+
+    .lessonName {
+      font-size: 0.75rem;
     }
 
     .lessonDiv {
