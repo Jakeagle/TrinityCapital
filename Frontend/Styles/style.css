@@ -3414,3 +3414,16 @@ input::placeholder {
     font-size: 0.75rem;
   }
 }
+
+/* Adjustments for Chromebook screens */
+@media screen and (max-height: 800px) {
+  .mobileSignOnBox {
+    height: 90vh; /* Increase modal height to fit more content */
+    overflow-y: auto; /* Enable scrolling if content overflows */
+    transform: scale(0.95); /* Slightly reduce content size */
+  }
+
+  .mobileLoginBtn {
+    margin-top: 15px; /* Ensure spacing above the sign-in button */
+  }
+}
