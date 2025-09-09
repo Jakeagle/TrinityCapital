@@ -3137,19 +3137,6 @@ input::placeholder {
     }
 
     .lessonDiv {
-      width: 60px;
-      height: 60px;
-    }
-
-    .lessonIcon {
-      font-size: 1.3rem;
-    }
-
-    .lessonName {
-      font-size: 0.75rem;
-    }
-
-    .lessonDiv {
       width: 5rem;
       height: 5rem;
     }
@@ -3419,4 +3406,18 @@ input::placeholder {
     height: 110vh; /* Increase modal height to fit more content */
     overflow-y: auto; /* Enable scrolling if content overflows */
   }
+}
+
+/* Ensure scrolling works properly on the modal */
+.signOnBox {
+  overflow-y: auto; /* Allow vertical scrolling */
+  max-height: 80vh; /* Restrict height to viewport */
+}
+
+.signOnBox::backdrop {
+  pointer-events: auto; /* Enable interaction with the backdrop */
+}
+
+.signOnBox .backGround {
+  overflow: visible; /* Ensure parent does not block scrolling */
 }
