@@ -3416,7 +3416,7 @@ input::placeholder {
 }
 
 /* Adjustments for Chromebook screens */
-@media screen and (max-height: 700px) {
+@media screen and (max-height: 500px) {
   .mobileSignOnBox {
     height: 90vh; /* Increase modal height to fit more content */
     overflow-y: auto; /* Enable scrolling if content overflows */
