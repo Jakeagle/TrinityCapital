@@ -3405,6 +3405,32 @@ input::placeholder {
   .signOnBox {
     height: 110vh; /* Increase modal height to fit more content */
     overflow-y: auto; /* Enable scrolling if content overflows */
+    .signOnBox .backGround {
+      overflow: visible; /* Ensure parent does not block scrolling */
+    }
+
+    /* Adjust vertical spacing and recenter the sign-in button */
+    .signOnBox .sec2 .signInToApp {
+      margin-top: 1rem; /* Reduce spacing above "Sign in to Trinity Capital" */
+      margin-bottom: 0.5rem; /* Reduce spacing below "Sign in to Trinity Capital" */
+    }
+
+    .signOnBox .sec2 .enterInfo {
+      margin-top: 0.5rem; /* Reduce spacing above "Use Your Information Below" */
+      margin-bottom: 0.5rem; /* Reduce spacing below "Use Your Information Below" */
+    }
+
+    .signOnBox .sec2 .userNameRow,
+    .signOnBox .sec2 .pinRow {
+      margin-bottom: 0.5rem; /* Reduce spacing below input rows */
+    }
+
+    .signOnBox .sec2 .login__btn {
+      margin-top: 1rem; /* Adjust spacing above the button */
+      margin-left: auto;
+      margin-right: auto;
+      display: block; /* Center the button horizontally */
+    }
   }
 }
 
@@ -3416,8 +3442,4 @@ input::placeholder {
 
 .signOnBox::backdrop {
   pointer-events: auto; /* Enable interaction with the backdrop */
-}
-
-.signOnBox .backGround {
-  overflow: visible; /* Ensure parent does not block scrolling */
 }
