@@ -637,13 +637,14 @@
 }
 
 .mobileSignOnBox {
-  height: 80%;
-  width: 60%;
-  background: var(--bg-glass);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-style: none;
-  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh; /* Ensure it takes the full viewport height */
+  overflow-y: auto; /* Enable scrolling if content overflows */
+  padding: 20px; /* Add padding to prevent content from touching edges */
+  box-sizing: border-box; /* Include padding in height calculations */
 }
 
 .mobileWelcome {
@@ -659,6 +660,7 @@
 .mobilePinRow {
   position: relative;
   bottom: 2rem;
+  margin-bottom: 20px; /* Add spacing below the PIN box */
 }
 
 .mobileIcon {
@@ -672,7 +674,8 @@
   position: relative;
   left: 0.5rem;
   margin: auto;
-
+  margin-top: 20px; /* Add spacing above the sign-in button */
+  align-self: center; /* Center the button horizontally */
   width: 90%;
 }
 
