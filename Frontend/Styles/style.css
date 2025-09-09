@@ -3437,117 +3437,132 @@ input::placeholder {
 @media screen and (max-width: 1024px) {
   .section1 {
     height: auto;
-    padding: 0.5rem;
+    padding: 0.2rem;
   }
 
   .welcomeBack h3 {
-    font-size: 1rem;
-  }
-
-  .welcomeBack h1 {
-    font-size: 1.2rem;
-  }
-
-  .pfp {
-    width: 3rem;
-    height: 3rem;
-  }
-
-  .budgetClass h1 {
-    font-size: 1.2rem;
-  }
-
-  .budgetClass h2 {
-    font-size: 1rem;
-  }
-
-  .bankingTools .row {
-    margin-bottom: 0.5rem;
-  }
-
-  .bankingImg {
-    font-size: 1.5rem;
-  }
-
-  .bankingText {
-    font-size: 0.9rem;
-  }
-
-  .accountsLogout .row {
-    margin-bottom: 0.5rem;
-  }
-
-  .copyright {
-    font-size: 0.7rem;
-  }
-}
-
-@media screen and (max-width: 768px) {
-  .welcomeBack h3 {
-    font-size: 0.9rem;
+    font-size: 0.8rem;
+    margin-bottom: 0.2rem;
   }
 
   .welcomeBack h1 {
     font-size: 1rem;
+    margin-bottom: 0.3rem;
   }
 
   .pfp {
     width: 2.5rem;
     height: 2.5rem;
+    margin-bottom: 0.2rem;
   }
 
   .budgetClass h1 {
     font-size: 1rem;
+    margin-bottom: 0.2rem;
   }
 
   .budgetClass h2 {
     font-size: 0.8rem;
+    margin-bottom: 0.2rem;
+  }
+
+  .bankingTools .row {
+    margin-bottom: 0.3rem;
   }
 
   .bankingImg {
-    font-size: 1.2rem;
+    font-size: 1rem;
   }
 
   .bankingText {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
+  }
+
+  .accountsLogout .row {
+    margin-bottom: 0.3rem;
   }
 
   .copyright {
-    font-size: 0.6rem;
+    font-size: 0.5rem;
   }
 }
 
-@media screen and (max-width: 480px) {
+@media screen and (max-width: 768px) {
   .welcomeBack h3 {
-    font-size: 0.8rem;
+    font-size: 0.7rem;
+    margin-bottom: 0.1rem;
   }
 
   .welcomeBack h1 {
     font-size: 0.9rem;
+    margin-bottom: 0.2rem;
   }
 
   .pfp {
     width: 2rem;
     height: 2rem;
+    margin-bottom: 0.1rem;
   }
 
   .budgetClass h1 {
     font-size: 0.9rem;
+    margin-bottom: 0.1rem;
   }
 
   .budgetClass h2 {
     font-size: 0.7rem;
+    margin-bottom: 0.1rem;
   }
 
   .bankingImg {
-    font-size: 1rem;
+    font-size: 0.9rem;
   }
 
   .bankingText {
-    font-size: 0.7rem;
+    font-size: 0.6rem;
   }
 
   .copyright {
+    font-size: 0.4rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .welcomeBack h3 {
+    font-size: 0.6rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .welcomeBack h1 {
+    font-size: 0.8rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .pfp {
+    width: 1.5rem;
+    height: 1.5rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .budgetClass h1 {
+    font-size: 0.8rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .budgetClass h2 {
+    font-size: 0.6rem;
+    margin-bottom: 0.1rem;
+  }
+
+  .bankingImg {
+    font-size: 0.8rem;
+  }
+
+  .bankingText {
     font-size: 0.5rem;
+  }
+
+  .copyright {
+    font-size: 0.3rem;
   }
 }
