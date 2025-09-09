@@ -3434,12 +3434,79 @@ input::placeholder {
   }
 }
 
-/* Ensure scrolling works properly on the modal */
-.signOnBox {
-  overflow-y: auto; /* Allow vertical scrolling */
-  max-height: 80vh; /* Restrict height to viewport */
+@media screen and (max-width: 1024px) {
+  .mainApp {
+    flex-direction: column;
+    padding: 1rem;
+  }
+
+  .section1,
+  .section2 {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+
+  .budgetClass h1 {
+    font-size: 1.5rem;
+  }
+
+  .budgetClass h2 {
+    font-size: 1rem;
+  }
+
+  .bankingTools .row {
+    margin-bottom: 1rem;
+  }
+
+  .accountsLogout {
+    text-align: center;
+  }
+
+  .copyright {
+    font-size: 0.8rem;
+  }
 }
 
-.signOnBox::backdrop {
-  pointer-events: auto; /* Enable interaction with the backdrop */
+@media screen and (max-width: 768px) {
+  .mainApp {
+    padding: 0.5rem;
+  }
+
+  .budgetClass h1 {
+    font-size: 1.2rem;
+  }
+
+  .budgetClass h2 {
+    font-size: 0.9rem;
+  }
+
+  .bankingTools .row {
+    flex-direction: column;
+  }
+
+  .accountsLogout {
+    font-size: 0.9rem;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .budgetClass h1 {
+    font-size: 1rem;
+  }
+
+  .budgetClass h2 {
+    font-size: 0.8rem;
+  }
+
+  .bankingTools {
+    font-size: 0.8rem;
+  }
+
+  .accountsLogout {
+    font-size: 0.7rem;
+  }
+
+  .copyright {
+    font-size: 0.6rem;
+  }
 }
