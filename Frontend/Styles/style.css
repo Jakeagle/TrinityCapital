@@ -3420,7 +3420,6 @@ input::placeholder {
   .signOnBox {
     height: 95vh; /* Increase modal height to fit more content */
     overflow-y: auto; /* Enable scrolling if content overflows */
-    transform: scale(0.85); /* Slightly reduce content size */
   }
 
   .signUpButton {
