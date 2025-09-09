@@ -369,7 +369,7 @@ io.on('connection', socket => {
 // Listen for 'studentCreated' event from another server (localhost:5000)
 const { io: ClientIO } = require('socket.io-client');
 const EXTERNAL_SOCKET_URL =
-  process.env.EXTERNAL_SOCKET_URL || 'http://localhost:5000';
+  process.env.EXTERNAL_SOCKET_URL || 'https://tcregistrationserver-production.up.railway.app';
 const externalSocket = ClientIO(EXTERNAL_SOCKET_URL);
 
 externalSocket.on('connect', () => {
@@ -2095,7 +2095,7 @@ app.get('/api/student-current-lesson/:studentId', async (req, res) => {
           const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
           
           const lessonServerResponse = await fetch(
-            'http://localhost:4000/get-lessons-by-ids',
+            'https://tclessonserver-production.up.railway.app/get-lessons-by-ids',
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3712,7 +3712,7 @@ app.get('/student/:studentId/assignedUnits', async (req, res) => {
       try {
         // Fetch fresh lesson content from the lesson server
         const lessonServerResponse = await fetch(
-          `http://localhost:4000/lessons/${unit.assignedBy}`,
+          `https://tclessonserver-production.up.railway.app/lessons/${unit.assignedBy}`,
         );
 
         if (lessonServerResponse.ok) {
@@ -4005,7 +4005,7 @@ app.get('/student-lessons-by-ids/:studentId', async (req, res) => {
     try {
       console.log(`🔗 Requesting lesson content from lesson server...`);
       const lessonServerResponse = await fetch(
-        'http://localhost:4000/get-lessons-by-ids',
+        'https://tclessonserver-production.up.railway.app/get-lessons-by-ids',
         {
           method: 'POST',
           headers: {
@@ -4095,7 +4095,7 @@ app.post('/assignUnitToStudent', async (req, res) => {
         `🔍 Fetching unit structure from lesson server for unit ${unitId}...`,
       );
       const lessonServerResponse = await fetch(
-        `http://localhost:4000/lessons/${assignedBy}`,
+        `https://tclessonserver-production.up.railway.app/lessons/${assignedBy}`,
       );
       if (lessonServerResponse.ok) {
         const lessonData = await lessonServerResponse.json();
