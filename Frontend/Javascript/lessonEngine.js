@@ -31,6 +31,10 @@ class LessonEngine {
     this.lessonTracker = new LessonTracker();
     this.instructionTemplates = new InstructionTemplates();
     this.initialized = false;
+    this.lessonCompleted = false; // prevent duplicate completions
+    // Flag: true when the user clicks "Begin Activities" and lesson tracking should run
+    this.lessonActive = false;
+    this.currentLessonLoadedAt = 0; // timestamp when currentLesson was last loaded
 
     console.log('🎓 Trinity Capital Lesson Engine initialized');
   }
@@ -65,6 +69,12 @@ class LessonEngine {
       return;
     }
 
+    // Only process app actions if the student has explicitly activated the lesson
+    if (!this.lessonActive) {
+      console.log('ℹ️ Lesson engine inactive - ignoring action:', actionType);
+      return;
+    }
+
     try {
       console.log(`🔄 Processing action: ${actionType}`, payload);
 
@@ -72,7 +82,15 @@ class LessonEngine {
       const normalizedActionType = this.normalizeActionType(actionType);
 
       // 2. Active Lesson Tracking
-      await this.refreshCurrentLesson();
+      // Avoid forcing a server refresh on every action. Only refresh if we have no
+      // currentLesson or if the lesson data is stale (>30s). This prevents briefly
+      // overwriting an active lesson when the server returns null for fresh/new
+      // students.
+      const now = Date.now();
+      const lessonIsStale = now - (this.currentLessonLoadedAt || 0) > 30000; // 30s TTL
+      if (!this.currentLesson || lessonIsStale) {
+        await this.refreshCurrentLesson();
+      }
 
       if (!this.currentLesson) {
         console.log('📝 No active lesson found');
@@ -120,15 +138,26 @@ class LessonEngine {
       // Encode the student ID to handle spaces and special characters
       const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `https://tcstudentserver-production.up.railway.app/api/student-current-lesson/${encodedStudentId}`,
+        `http://localhost:3000/api/student-current-lesson/${encodedStudentId}`,
       );
 
       if (response.ok) {
-        this.currentLesson = await response.json();
-        console.log(
-          '📚 Current lesson loaded:',
-          this.currentLesson?.lesson_title,
-        );
+        const data = await response.json();
+        // If the server returns null (no lesson assigned) keep any existing
+        // currentLesson instead of clearing it. This avoids briefly losing an
+        // active lesson due to a stale/empty server response.
+        if (data === null) {
+          console.log(
+            'ℹ️ Server reports no current lesson; keeping local lesson if present',
+          );
+        } else {
+          this.currentLesson = data;
+          this.currentLessonLoadedAt = Date.now();
+          console.log(
+            '📚 Current lesson loaded:',
+            this.currentLesson?.lesson_title,
+          );
+        }
       } else if (response.status === 404) {
         console.log('📝 No current lesson found for student');
         this.currentLesson = null;
@@ -167,6 +196,11 @@ class LessonEngine {
 
       // Reset lesson tracker for the new lesson
       this.lessonTracker = new LessonTracker();
+
+      // Mark lesson as active and reset completed flag
+      this.lessonActive = true;
+      this.lessonCompleted = false;
+      this.currentLessonLoadedAt = Date.now();
 
       // Show activation notification
       this.showLessonNotification(
@@ -475,10 +509,26 @@ class LessonEngine {
    */
   async processMatchedConditions(matchedConditions, payload) {
     for (const condition of matchedConditions) {
-      await this.executeConditionAction(condition, payload);
-      this.lessonTracker.recordConditionMet(condition);
-      // Show progress notification for every condition met
-      this.showLessonProgress();
+      // Skip if this condition was already recorded as met
+      if (this.lessonTracker.hasConditionMet(condition)) {
+        console.log(
+          'ℹ️ Condition already met, skipping:',
+          condition.condition_type,
+        );
+        continue;
+      }
+
+      // Execute action and only record if execution succeeds (recordConditionMet returns true if newly recorded)
+      try {
+        await this.executeConditionAction(condition, payload);
+        const added = this.lessonTracker.recordConditionMet(condition);
+        if (added) {
+          // Show progress notification for every newly met condition
+          this.showLessonProgress();
+        }
+      } catch (error) {
+        console.error('❌ Error processing matched condition:', error);
+      }
     }
   }
 
@@ -486,13 +536,30 @@ class LessonEngine {
    * Show notification of lesson progress (conditions met out of total)
    */
   showLessonProgress() {
+    // Only show lesson progress after the student clicked "Begin Activities"
+    if (!this.lessonActive) return;
+
     if (!this.currentLesson || !this.currentLesson.lesson_conditions) {
       console.warn('⚠️ No active lesson or conditions to show progress for.');
       return;
     }
 
-    const totalConditions = this.currentLesson.lesson_conditions.length;
-    const metConditions = this.lessonTracker.getMetConditionsCount();
+    // Only count actionable, non-optional conditions for progress
+    const actionableConditions = this.currentLesson.lesson_conditions.filter(
+      c =>
+        !this.lessonTracker.isOptionalCondition(c) &&
+        this.lessonTracker.isActionableCondition(c),
+    );
+    const totalConditions = actionableConditions.length;
+    // If there are no actionable conditions, don't show a 0/0 progress notification
+    if (totalConditions === 0) return;
+    // Count only met actionable conditions
+    let metConditions = 0;
+    for (const cond of actionableConditions) {
+      const id =
+        cond._id || cond.id || `${cond.condition_type}_${cond.value || ''}`;
+      if (this.lessonTracker.conditionsMet.has(id)) metConditions++;
+    }
 
     showNotification(
       `📘 Lesson Progress: ${metConditions}/${totalConditions} conditions met.`,
@@ -609,15 +676,35 @@ class LessonEngine {
    * Check if all lesson conditions have been met for completion
    */
   async checkLessonCompletion() {
-    if (!this.currentLesson) return;
-    // Only complete lesson if all required actions are met
+    if (!this.currentLesson || this.lessonCompleted) return;
+
     const requiredActions = this.currentLesson.required_actions || [];
-    const allConditions = this.currentLesson.lesson_conditions;
+    const allConditions = this.currentLesson.lesson_conditions || [];
+
+    // Determine actionable non-optional conditions (the canonical set we want students to perform)
+    const actionableConditions = allConditions.filter(
+      c =>
+        !this.lessonTracker.isOptionalCondition(c) &&
+        this.lessonTracker.isActionableCondition(c),
+    );
+
+    const actionableCount = actionableConditions.length;
+
+    // Count met conditions using our tracker helper (this will only count actionable ones)
     const metCount = this.lessonTracker.getRequiredConditionsMetCount(
       allConditions,
       requiredActions,
     );
-    if (metCount >= requiredActions.length && requiredActions.length > 0) {
+
+    // Determine the target: prefer explicit required_actions only if it covers all actionable conditions
+    let targetCount = actionableCount;
+    if (Array.isArray(requiredActions) && requiredActions.length > 0) {
+      // If requiredActions explicitly lists more items than actionableCount, honor it; otherwise
+      // prefer the actionableCount to avoid accidental completion when required_actions is incomplete.
+      targetCount = Math.max(actionableCount, requiredActions.length);
+    }
+
+    if (targetCount > 0 && metCount >= targetCount) {
       await this.completeLesson();
     }
   }
@@ -626,7 +713,7 @@ class LessonEngine {
    * Complete the current lesson and calculate final score
    */
   async completeLesson(actionDetails = {}) {
-    if (!this.currentLesson) return;
+    if (!this.currentLesson || this.lessonCompleted) return;
 
     try {
       console.log('🏆 Completing lesson:', this.currentLesson.lesson_title);
@@ -641,13 +728,18 @@ class LessonEngine {
       // Sync with teacher dashboard
       await this.syncWithTeacherDashboard(grade);
 
+      // Mark as completed to avoid duplicate processing
+      this.lessonCompleted = true;
+      // Disable active tracking after completion
+      this.lessonActive = false;
+
       // Show completion message with enhanced features
       await this.showCompletionMessage(grade, actionDetails);
 
       // Handle completion data if provided
       if (actionDetails.completion_data) {
         try {
-          await fetch('https://tcstudentserver-production.up.railway.app/api/student-lesson/complete', {
+          await fetch('http://localhost:3000/api/student-lesson/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -674,12 +766,27 @@ class LessonEngine {
     if (!lesson || !lesson.lesson_conditions) return 70;
     const requiredActions = lesson.required_actions || [];
     const allConditions = lesson.lesson_conditions;
+
+    // Use actionable conditions as the canonical total when required_actions is missing
+    const actionableConditions = allConditions.filter(
+      c =>
+        !this.lessonTracker.isOptionalCondition(c) &&
+        this.lessonTracker.isActionableCondition(c),
+    );
+    const actionableCount = actionableConditions.length;
+
     const metCount = this.lessonTracker.getRequiredConditionsMetCount(
       allConditions,
       requiredActions,
     );
-    const totalRequired = requiredActions.length;
+
+    const totalRequired =
+      Array.isArray(requiredActions) && requiredActions.length > 0
+        ? Math.max(requiredActions.length, actionableCount)
+        : actionableCount;
+
     if (totalRequired === 0) return 70;
+
     // 100% if all met, else scale
     const percent = Math.round((metCount / totalRequired) * 100);
     return percent;
@@ -692,7 +799,7 @@ class LessonEngine {
     try {
       const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `https://tcstudentserver-production.up.railway.app/api/student-financial-data/${encodedStudentId}`,
+        `http://localhost:3000/api/student-financial-data/${encodedStudentId}`,
       );
       if (response.ok) {
         return await response.json();
@@ -720,7 +827,8 @@ class LessonEngine {
     // Check passive conditions every 5 minutes
     setInterval(
       async () => {
-        if (this.currentLesson) {
+        // Only run passive checks when a lesson is actively being tracked
+        if (this.currentLesson && this.lessonActive) {
           await this.evaluatePassiveConditions();
         }
       },
@@ -743,12 +851,17 @@ class LessonEngine {
     const studentData = await this.getStudentFinancialData();
 
     for (const condition of this.currentLesson.lesson_conditions) {
-      if (passiveConditionTypes.includes(condition.condition_type)) {
-        if (
-          this.conditionMatches(condition, 'passive_check', {}, studentData)
-        ) {
+      if (!passiveConditionTypes.includes(condition.condition_type)) continue;
+
+      // Skip if already met
+      if (this.lessonTracker.hasConditionMet(condition)) continue;
+
+      if (this.conditionMatches(condition, 'passive_check', {}, studentData)) {
+        try {
           await this.executeConditionAction(condition, {});
           this.lessonTracker.recordConditionMet(condition);
+        } catch (error) {
+          console.error('❌ Error executing passive condition action:', error);
         }
       }
     }
@@ -839,7 +952,7 @@ class LessonEngine {
     // Create challenge in backend if enabled
     if (actionDetails.create_backend_challenge) {
       try {
-        await fetch('https://tcstudentserver-production.up.railway.app/api/student-challenge/create', {
+        await fetch('http://localhost:3000/api/student-challenge/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -921,7 +1034,7 @@ class LessonEngine {
   async lockLesson() {
     // API call to lock current lesson
     try {
-      await fetch('https://tcstudentserver-production.up.railway.app/api/lock-lesson', {
+      await fetch('http://localhost:3000/api/lock-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -937,7 +1050,7 @@ class LessonEngine {
   async unlockNextLesson() {
     // API call to unlock next lesson
     try {
-      await fetch('https://tcstudentserver-production.up.railway.app/api/unlock-next-lesson', {
+      await fetch('http://localhost:3000/api/unlock-next-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -953,7 +1066,7 @@ class LessonEngine {
   async syncWithTeacherDashboard(grade) {
     // API call to sync with teacher dashboard
     try {
-      await fetch('https://tcstudentserver-production.up.railway.app/api/sync-teacher-dashboard', {
+      await fetch('http://localhost:3000/api/sync-teacher-dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1010,7 +1123,8 @@ class LessonEngine {
  */
 class LessonTracker {
   constructor() {
-    this.conditionsMet = new Set();
+    // store conditions met keyed by condition id or fallback key
+    this.conditionsMet = new Map();
     this.positiveConditions = [];
     this.negativeConditions = [];
     this.quizScores = [];
@@ -1018,10 +1132,13 @@ class LessonTracker {
   }
 
   recordConditionMet(condition) {
-    const conditionKey = `${condition.condition_type}_${condition.value || ''}`;
+    const id =
+      condition._id ||
+      condition.id ||
+      `${condition.condition_type}_${condition.value || ''}`;
 
-    if (!this.conditionsMet.has(conditionKey)) {
-      this.conditionsMet.add(conditionKey);
+    if (!this.conditionsMet.has(id)) {
+      this.conditionsMet.set(id, { condition, timestamp: Date.now() });
 
       // Categorize condition as positive or negative for scoring
       if (this.isPositiveCondition(condition)) {
@@ -1029,7 +1146,18 @@ class LessonTracker {
       } else if (this.isNegativeCondition(condition)) {
         this.negativeConditions.push(condition);
       }
+      return true;
     }
+    return false;
+  }
+
+  hasConditionMet(condition) {
+    if (!condition) return false;
+    const id =
+      condition._id ||
+      condition.id ||
+      `${condition.condition_type}_${condition.value || ''}`;
+    return this.conditionsMet.has(id);
   }
 
   recordPositiveCondition(conditionType, data) {
@@ -1055,15 +1183,34 @@ class LessonTracker {
    * @returns {number}
    */
   getRequiredConditionsMetCount(allConditions, requiredActions) {
-    if (!allConditions || !requiredActions) return 0;
+    if (!allConditions) return 0;
+
+    // If explicit requiredActions array is provided, count those
+    if (Array.isArray(requiredActions) && requiredActions.length > 0) {
+      let met = 0;
+      for (const action of requiredActions) {
+        const found = allConditions.find(
+          cond => cond.condition_type === action,
+        );
+        if (!found) continue;
+        const id =
+          found._id ||
+          found.id ||
+          `${found.condition_type}_${found.value || ''}`;
+        if (this.conditionsMet.has(id)) met++;
+      }
+      return met;
+    }
+
+    // Otherwise count all non-optional conditions that are met
     let met = 0;
-    for (const action of requiredActions) {
-      const found = allConditions.find(
-        cond =>
-          cond.condition_type === action &&
-          this.conditionsMet.has(`${cond.condition_type}_${cond.value || ''}`),
-      );
-      if (found) met++;
+    for (const cond of allConditions) {
+      if (this.isOptionalCondition(cond)) continue;
+      // Only count actionable conditions (those that correspond to user actions)
+      if (!this.isActionableCondition(cond)) continue;
+      const id =
+        cond._id || cond.id || `${cond.condition_type}_${cond.value || ''}`;
+      if (this.conditionsMet.has(id)) met++;
     }
     return met;
   }
@@ -1082,13 +1229,48 @@ class LessonTracker {
   }
 
   getAllConditionsMet(allConditions) {
+    if (!Array.isArray(allConditions) || allConditions.length === 0)
+      return false;
+    // Consider only non-optional actionable conditions as required for completion
     const requiredConditions = allConditions.filter(
-      c => !this.isOptionalCondition(c),
+      c => !this.isOptionalCondition(c) && this.isActionableCondition(c),
     );
+    // If there are no actionable non-optional conditions, treat as not complete
+    // (require explicit required_actions in the lesson schema)
+    if (requiredConditions.length === 0) return false;
+
     return requiredConditions.every(condition => {
-      const conditionKey = `${condition.condition_type}_${condition.value || ''}`;
-      return this.conditionsMet.has(conditionKey);
+      const id =
+        condition._id ||
+        condition.id ||
+        `${condition.condition_type}_${condition.value || ''}`;
+      return this.conditionsMet.has(id);
     });
+  }
+
+  /**
+   * Determine whether a condition corresponds to a user action that can be met
+   * by app activity (as opposed to passive/display conditions)
+   */
+  isActionableCondition(condition) {
+    if (!condition || typeof condition !== 'object') return false;
+    const type = condition.condition_type || condition.type || '';
+    const actionable = [
+      'account_checked',
+      'account_switched',
+      'payment_created',
+      'bill_created',
+      'income_added',
+      'income_calculated',
+      'transfer_completed',
+      'deposit_completed',
+      'money_sent',
+      'money_received',
+      'goal_set_specific',
+      'loan_taken',
+      'message_sent',
+    ];
+    return actionable.includes(type) || actionable.includes(type.toLowerCase());
   }
 
   getReportData() {
