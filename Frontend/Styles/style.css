@@ -637,14 +637,7 @@
 }
 
 .mobileSignOnBox {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  height: 100vh; /* Ensure it takes the full viewport height */
-  overflow-y: auto; /* Enable scrolling if content overflows */
-  padding: 20px; /* Add padding to prevent content from touching edges */
-  box-sizing: border-box; /* Include padding in height calculations */
+  display: none;
 }
 
 .mobileWelcome {
