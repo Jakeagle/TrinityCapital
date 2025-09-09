@@ -723,12 +723,13 @@ body::before {
     var(--bg-secondary) 0%,
     var(--bg-card) 100%
   );
-  width: 20%;
-  height: 110vh;
+  width: 18%; /* Reduce width slightly */
+  height: 100vh; /* Ensure it fits within the viewport */
   position: relative;
   box-shadow: var(--shadow-medium);
   border-right: 1px solid rgba(255, 255, 255, 0.1);
   animation: fadeInLeft 1s ease-out;
+  overflow-y: auto; /* Add scroll if content overflows */
 }
 
 .section1::before {
@@ -2745,6 +2746,20 @@ input::placeholder {
     .bankInfo {
       position: relative;
       bottom: 2.5rem;
+    }
+  }
+
+  @media screen and (max-width: 376px) {
+    .section1 {
+      width: 90%; /* Full width for smaller screens */
+      height: 100vh; /* Ensure it fits within the viewport */
+    }
+  }
+
+  @media screen and (max-width: 415px) {
+    .section1 {
+      width: 85%; /* Slightly narrower for better fit */
+      height: 100vh; /* Ensure it fits within the viewport */
     }
   }
 
