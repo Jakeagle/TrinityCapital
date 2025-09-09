@@ -3415,11 +3415,8 @@ input::placeholder {
 
 /* Adjustments for Chromebook screens */
 @media screen and (max-height: 800px) {
-  .signOnBox .welcomeBackSignOn,
-  .signOnBox .enterInfo,
-  .signOnBox .userNameRow,
-  .signOnBox .pinRow,
-  .signOnBox .signUpBtn {
-    transform: scale(0.85); /* Scale down these specific elements */
+  .signOnBox {
+    height: 95vh; /* Increase modal height to fit more content */
+    overflow-y: auto; /* Enable scrolling if content overflows */
   }
 }
