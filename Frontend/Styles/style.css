@@ -3415,11 +3415,11 @@ input::placeholder {
 
 /* Adjustments for Chromebook screens */
 @media screen and (max-height: 800px) {
-  .signOnBox .sec2 .welcomeBackSignOn,
-  .signOnBox .sec2 .enterInfo,
-  .signOnBox .sec2 .userNameRow,
-  .signOnBox .sec2 .pinRow,
-  .signOnBox .sec2 .signUpBtn {
+  .signOnBox .welcomeBackSignOn,
+  .signOnBox .enterInfo,
+  .signOnBox .userNameRow,
+  .signOnBox .pinRow,
+  .signOnBox .signUpBtn {
     transform: scale(0.85); /* Scale down these specific elements */
     transform-origin: top left; /* Ensure scaling starts from the top left */
   }
