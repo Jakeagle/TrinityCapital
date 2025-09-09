@@ -75,7 +75,7 @@ class SchedulerStatusDisplay {
 
   async updateStatus() {
     try {
-      const response = await fetch('http://localhost:3000/scheduler/status');
+      const response = await fetch('https://tcstudentserver-production.up.railway.app/scheduler/status');
       if (response.ok) {
         const status = await response.json();
         this.displayStatus(status);
