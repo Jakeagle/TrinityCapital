@@ -3087,8 +3087,6 @@ input::placeholder {
     }
   }
 
-  /*********************************************Tablets**********************************************/
-
   @media screen and (min-width: 820px) {
     .section1 {
       height: 180vh;
@@ -3417,15 +3415,12 @@ input::placeholder {
 
 /* Adjustments for Chromebook screens */
 @media screen and (max-height: 800px) {
-  .signOnBox {
-    height: 95vh; /* Increase modal height to fit more content */
-    overflow-y: auto; /* Enable scrolling if content overflows */
-  }
-
-  .sec2 {
-    transform: scale(0.85); /* Slightly reduce content size */
-  }
-  .signUpButton {
-    margin-top: 15px; /* Ensure spacing above the sign-in button */
+  .signOnBox .sec2 .welcomeBackSignOn,
+  .signOnBox .sec2 .enterInfo,
+  .signOnBox .sec2 .userNameRow,
+  .signOnBox .sec2 .pinRow,
+  .signOnBox .sec2 .signUpBtn {
+    transform: scale(0.85); /* Scale down these specific elements */
+    transform-origin: top left; /* Ensure scaling starts from the top left */
   }
 }
