@@ -369,7 +369,7 @@ io.on('connection', socket => {
 // Listen for 'studentCreated' event from another server (localhost:5000)
 const { io: ClientIO } = require('socket.io-client');
 const EXTERNAL_SOCKET_URL =
-  process.env.EXTERNAL_SOCKET_URL || 'https://tcregistrationserver-production.up.railway.app';
+  process.env.EXTERNAL_SOCKET_URL || 'http://localhost:5000';
 const externalSocket = ClientIO(EXTERNAL_SOCKET_URL);
 
 externalSocket.on('connect', () => {
@@ -1485,6 +1485,151 @@ app.post('/donationsSavings', async (req, res) => {
   }
 });
 
+/**************************************************FEEDBACK*********************************************/
+
+let feedbackTransporter;
+
+if (process.env.FEEDBACK_EMAIL_USER && process.env.FEEDBACK_EMAIL_PASS) {
+  // Create a transporter for sending feedback emails.
+  // NOTE: You must set FEEDBACK_EMAIL_USER and FEEDBACK_EMAIL_PASS in your .env file.
+  // For Gmail, you'll need to generate an "App Password".
+  feedbackTransporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: process.env.FEEDBACK_EMAIL_USER, // Your sending email address from .env
+      pass: process.env.FEEDBACK_EMAIL_PASS, // Your email app password from .env
+    },
+  });
+  console.log('✅ Feedback email service is configured.');
+} else {
+  console.warn(
+    '⚠️ WARNING: Feedback email credentials are not set in the .env file.',
+  );
+  console.warn(
+    'The /submit-feedback endpoint will save to the database but will NOT send emails.',
+  );
+}
+
+app.post('/submit-feedback', async (req, res) => {
+  try {
+    const { parcel } = req.body;
+    const { type, userType, ...data } = parcel;
+
+    if (!type || !data) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid feedback data.' });
+    }
+
+    if (type === 'general') {
+      // --- General Feedback Handler ---
+      const { category, details } = data;
+      const feedbackDoc = {
+        studentName: 'Anonymous',
+        userType: userType || 'Unknown',
+        category,
+        details,
+        submittedAt: new Date(),
+      };
+
+      // 1. Save to database
+      await client
+        .db('TrinityCapital')
+        .collection('GeneralFeedback')
+        .insertOne(feedbackDoc);
+
+      // 2. Send email (only if transporter is configured)
+      if (feedbackTransporter) {
+        const mailOptions = {
+          from: `"Trinity Capital Feedback" <${process.env.FEEDBACK_EMAIL_USER}>`,
+          to: 'trinitycapitalsim@gmail.com',
+          subject: `New General Feedback from a ${userType || 'user'}`,
+          html: `
+          <h3>General Feedback Received</h3>
+          <p><strong>User Type:</strong> ${userType || 'Unknown'}</p>
+          <p><strong>Student:</strong> Anonymous</p>
+          <p><strong>Category:</strong> ${category}</p>
+          <p><strong>Details:</strong></p>
+          <pre>${details}</pre>
+          <p><em>Submitted at: ${feedbackDoc.submittedAt.toString()}</em></p>
+        `,
+        };
+        await feedbackTransporter.sendMail(mailOptions);
+      } else {
+        console.warn(
+          'Skipping feedback email because email service is not configured.',
+        );
+      }
+
+      res.json({
+        success: true,
+        message: 'General feedback submitted successfully.',
+      });
+    } else if (type === 'bug') {
+      // --- Bug Report Handler ---
+      const { device, datetime, school, features, details } = data;
+      const bugReportDoc = {
+        studentName: 'Anonymous',
+        userType: userType || 'Unknown',
+        device,
+        datetime: new Date(datetime),
+        school,
+        feature: features,
+        details,
+        submittedAt: new Date(),
+      };
+
+      // 1. Save to database
+      await client
+        .db('TrinityCapital')
+        .collection('BugReports')
+        .insertOne(bugReportDoc);
+
+      // 2. Send email (only if transporter is configured)
+      if (feedbackTransporter) {
+        const mailOptions = {
+          from: `"Trinity Capital Bug Report" <${process.env.FEEDBACK_EMAIL_USER}>`,
+          to: 'trinitycapitalsim@gmail.com',
+          subject: `🚨 New Bug Report from a ${userType || 'user'}`,
+          html: `
+          <h3>Bug Report Submitted</h3>
+          <p><strong>User Type:</strong> ${userType || 'Unknown'}</p>
+          <p><strong>Student:</strong> Anonymous</p>
+          <p><strong>School:</strong> ${school}</p>
+          <p><strong>Device:</strong> ${device}</p>
+          <p><strong>Feature:</strong> ${features}</p>
+          <p><strong>Date & Time of Issue:</strong> ${bugReportDoc.datetime.toString()}</p>
+          <p><strong>Details:</strong></p>
+          <pre>${details}</pre>
+          <p><em>Submitted at: ${bugReportDoc.submittedAt.toString()}</em></p>
+        `,
+        };
+        await feedbackTransporter.sendMail(mailOptions);
+      } else {
+        console.warn(
+          'Skipping feedback email because email service is not configured.',
+        );
+      }
+
+      res.json({
+        success: true,
+        message: 'Bug report submitted successfully.',
+      });
+    } else {
+      res
+        .status(400)
+        .json({ success: false, message: `Unknown feedback type: ${type}` });
+    }
+  } catch (error) {
+    console.error('Error processing feedback:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An internal error occurred.',
+      details: error.message,
+    });
+  }
+});
+
 /**************************************************LESSON SERVER FUNCTIONS*********************************************/
 
 // Helper function to calculate student health metrics
@@ -2095,7 +2240,7 @@ app.get('/api/student-current-lesson/:studentId', async (req, res) => {
           const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
           
           const lessonServerResponse = await fetch(
-            'https://tclessonserver-production.up.railway.app/get-lessons-by-ids',
+            'http://localhost:4000/get-lessons-by-ids',
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3712,7 +3857,7 @@ app.get('/student/:studentId/assignedUnits', async (req, res) => {
       try {
         // Fetch fresh lesson content from the lesson server
         const lessonServerResponse = await fetch(
-          `https://tclessonserver-production.up.railway.app/lessons/${unit.assignedBy}`,
+          `http://localhost:4000/lessons/${unit.assignedBy}`,
         );
 
         if (lessonServerResponse.ok) {
@@ -4005,7 +4150,7 @@ app.get('/student-lessons-by-ids/:studentId', async (req, res) => {
     try {
       console.log(`🔗 Requesting lesson content from lesson server...`);
       const lessonServerResponse = await fetch(
-        'https://tclessonserver-production.up.railway.app/get-lessons-by-ids',
+        'http://localhost:4000/get-lessons-by-ids',
         {
           method: 'POST',
           headers: {
@@ -4095,7 +4240,7 @@ app.post('/assignUnitToStudent', async (req, res) => {
         `🔍 Fetching unit structure from lesson server for unit ${unitId}...`,
       );
       const lessonServerResponse = await fetch(
-        `https://tclessonserver-production.up.railway.app/lessons/${assignedBy}`,
+        `http://localhost:4000/lessons/${assignedBy}`,
       );
       if (lessonServerResponse.ok) {
         const lessonData = await lessonServerResponse.json();
