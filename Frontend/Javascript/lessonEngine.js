@@ -138,7 +138,7 @@ class LessonEngine {
       // Encode the student ID to handle spaces and special characters
       const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `https://tcstudentserver-production.up.railway.app/api/student-current-lesson/${encodedStudentId}`,
+        `http://localhost:3000/api/student-current-lesson/${encodedStudentId}`,
       );
 
       if (response.ok) {
@@ -739,7 +739,7 @@ class LessonEngine {
       // Handle completion data if provided
       if (actionDetails.completion_data) {
         try {
-          await fetch('https://tcstudentserver-production.up.railway.app/api/student-lesson/complete', {
+          await fetch('http://localhost:3000/api/student-lesson/complete', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -799,7 +799,7 @@ class LessonEngine {
     try {
       const encodedStudentId = encodeURIComponent(this.currentStudent);
       const response = await fetch(
-        `https://tcstudentserver-production.up.railway.app/api/student-financial-data/${encodedStudentId}`,
+        `http://localhost:3000/api/student-financial-data/${encodedStudentId}`,
       );
       if (response.ok) {
         return await response.json();
@@ -952,7 +952,7 @@ class LessonEngine {
     // Create challenge in backend if enabled
     if (actionDetails.create_backend_challenge) {
       try {
-        await fetch('https://tcstudentserver-production.up.railway.app/api/student-challenge/create', {
+        await fetch('http://localhost:3000/api/student-challenge/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1034,7 +1034,7 @@ class LessonEngine {
   async lockLesson() {
     // API call to lock current lesson
     try {
-      await fetch('https://tcstudentserver-production.up.railway.app/api/lock-lesson', {
+      await fetch('http://localhost:3000/api/lock-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1050,7 +1050,7 @@ class LessonEngine {
   async unlockNextLesson() {
     // API call to unlock next lesson
     try {
-      await fetch('https://tcstudentserver-production.up.railway.app/api/unlock-next-lesson', {
+      await fetch('http://localhost:3000/api/unlock-next-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -1066,7 +1066,7 @@ class LessonEngine {
   async syncWithTeacherDashboard(grade) {
     // API call to sync with teacher dashboard
     try {
-      await fetch('https://tcstudentserver-production.up.railway.app/api/sync-teacher-dashboard', {
+      await fetch('http://localhost:3000/api/sync-teacher-dashboard', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -41,7 +41,7 @@ class LessonRenderer {
       // Fetch the student profile directly from the server
       try {
         const profileResponse = await fetch(
-          `https://tcstudentserver-production.up.railway.app/profiles/${encodeURIComponent(studentName)}`,
+          `http://localhost:3000/profiles/${encodeURIComponent(studentName)}`,
         );
 
         if (!profileResponse.ok) {
@@ -157,7 +157,7 @@ class LessonRenderer {
       'background: #ff0000; color: white; font-size: 20px;',
     );
     console.log(
-      '%c POST to https://tclessonserver-production.up.railway.app/get-lessons-by-ids ',
+      '%c POST to http://localhost:4000/get-lessons-by-ids ',
       'background: #ff0000; color: white; font-size: 16px;',
     );
     console.log(
@@ -173,7 +173,7 @@ class LessonRenderer {
 
     try {
       // Define the URL with correct origin (local lesson server)
-      const lessonServerUrl = 'https://tclessonserver-production.up.railway.app/get-lessons-by-ids';
+      const lessonServerUrl = 'http://localhost:4000/get-lessons-by-ids';
 
       console.log(
         '%c Fetch URL: ',

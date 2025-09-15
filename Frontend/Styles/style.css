@@ -863,7 +863,7 @@ body::before {
 }
 
 .copyright {
-  margin-top: 7rem;
+  margin-top: 3rem;
   animation: fadeInUp 2s ease-out 1s both;
 }
 
