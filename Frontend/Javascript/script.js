@@ -53,7 +53,7 @@ function hideLoadingAndShowLogin() {
 }
 
 // Configure socket with reconnection options to handle server disconnects
-const socket = io('https://tcstudentserver-production.up.railway.app', {
+const socket = io('http://localhost:3000', {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
@@ -94,6 +94,11 @@ const billsModalBTN = document.querySelector('.billsModalBTN');
 const depositModalBTN = document.querySelector('.depositsBTN');
 const sendMoneyBTN = document.querySelector('.sendMoneyBTN');
 const messagesBTN = document.querySelector('.messagesBTN');
+
+// Feedback elements (new)
+const feedbackBTN = document.querySelector('.feedbackBTN');
+const feedbackDialog = document.getElementById('feedbackDialog');
+const feedbackCloseBtn = document.querySelector('.feedbackCloseBtn');
 
 //close Modals
 const closeTransferModal = document.querySelector('.transferExitButton');
@@ -152,6 +157,266 @@ closeSendMoneyModal.addEventListener('click', function () {
 
 messagesBTN.addEventListener('click', openMessageCenter);
 
+// Feedback UI: simple, DOMContentLoaded-based wiring.
+// Behavior: the dialog contains an options view (`#feedbackOptionsView`) and
+// a pre-made general feedback form (`#generalFeedbackView`) which is hidden by default.
+// Clicking "General feedback" hides the options and shows the form. Back restores.
+// Feedback button open/close handlers
+if (feedbackBTN && feedbackDialog) {
+  feedbackBTN.addEventListener('click', () => {
+    try {
+      feedbackDialog.showModal();
+      // Ensure focus lands in the dialog (close button) to avoid descendants keeping focus
+      const closeBtn = feedbackDialog.querySelector('.feedbackCloseBtn');
+      if (closeBtn) closeBtn.focus();
+    } catch (err) {
+      // Fallback for browsers that don't support <dialog>
+      feedbackDialog.style.display = 'block';
+      const closeBtn = feedbackDialog.querySelector('.feedbackCloseBtn');
+      if (closeBtn) closeBtn.focus();
+    }
+  });
+}
+
+if (feedbackCloseBtn && feedbackDialog) {
+  feedbackCloseBtn.addEventListener('click', () => {
+    try {
+      feedbackDialog.close();
+    } catch (err) {
+      feedbackDialog.style.display = 'none';
+    }
+  });
+}
+
+// New feedback action buttons (selectors only; behavior can be added later)
+const feedbackGeneralBtn = document.querySelector('.feedback-general-btn');
+const feedbackBugBtn = document.querySelector('.feedback-bug-btn');
+// Views inside the dialog will be resolved lazily because the dialog markup
+// may be placed after the script tag in the HTML. initFeedbackDialogViews
+// finds the elements and attaches one-time listeners for Back/Submit.
+function initFeedbackDialogViews() {
+  const feedbackOptionsView = document.getElementById('feedbackOptionsView');
+  const generalFeedbackView = document.getElementById('generalFeedbackView');
+  const gfBackBtn = document.getElementById('gfBackBtn');
+  const gfSubmitBtn = document.getElementById('gfSubmitBtn');
+  const gfDetails = document.getElementById('gfDetails');
+  const gfCategory = document.getElementById('gfCategory');
+  // Bug report form elements
+  const bugReportView = document.getElementById('bugReportView');
+  const bugBackBtn = document.getElementById('bugBackBtn');
+  const bugSubmitBtn = document.getElementById('bugSubmitBtn');
+  const bugDevice = document.getElementById('bugDevice');
+  const bugDatetime = document.getElementById('bugDatetime');
+  const bugSchool = document.getElementById('bugSchool');
+  const bugFeatures = document.getElementById('bugFeatures');
+  const bugDetails = document.getElementById('bugDetails');
+
+  // Attach Back listener once
+  if (gfBackBtn && !gfBackBtn.dataset.listenerAdded) {
+    gfBackBtn.addEventListener('click', () => {
+      // Use the centralized view manager so aria-hidden/inert and focus are handled correctly
+      setFeedbackView('feedbackOptionsView');
+      if (feedbackDialog) feedbackDialog.dataset.type = '';
+    });
+    gfBackBtn.dataset.listenerAdded = 'true';
+  }
+
+  // Attach Submit placeholder once
+  if (gfSubmitBtn && !gfSubmitBtn.dataset.listenerAdded) {
+    gfSubmitBtn.addEventListener('click', () => {
+      console.log('General feedback SUBMIT clicked', {
+        category: gfCategory ? gfCategory.value : null,
+        details: gfDetails ? gfDetails.value : null,
+      });
+      // no-op submit; server integration will be added later
+    });
+    gfSubmitBtn.dataset.listenerAdded = 'true';
+  }
+
+  // Bug form back button
+  if (bugBackBtn && !bugBackBtn.dataset.listenerAdded) {
+    bugBackBtn.addEventListener('click', () => {
+      // Use the centralized view manager to restore options view safely
+      setFeedbackView('feedbackOptionsView');
+      if (feedbackDialog) feedbackDialog.dataset.type = '';
+    });
+    bugBackBtn.dataset.listenerAdded = 'true';
+  }
+
+  // Bug form submit - placeholder: log payload and close dialog
+  if (bugSubmitBtn && !bugSubmitBtn.dataset.listenerAdded) {
+    bugSubmitBtn.addEventListener('click', () => {
+      const payload = {
+        device: bugDevice ? bugDevice.value : null,
+        datetime: bugDatetime ? bugDatetime.value : null,
+        school: bugSchool ? bugSchool.value : null,
+        features: bugFeatures ? bugFeatures.value : null,
+        details: bugDetails ? bugDetails.value : null,
+      };
+      console.log('Bug report submitted (placeholder):', payload);
+      try {
+        if (feedbackDialog) feedbackDialog.close();
+      } catch (err) {
+        if (feedbackDialog) feedbackDialog.style.display = 'none';
+      }
+    });
+    bugSubmitBtn.dataset.listenerAdded = 'true';
+  }
+
+  return { feedbackOptionsView, generalFeedbackView, gfDetails, gfCategory };
+}
+
+// Helper to safely switch feedback dialog views.
+// - activeId: id of the view to show (e.g. 'feedbackOptionsView', 'generalFeedbackView', 'bugReportView')
+function setFeedbackView(activeId) {
+  const ids = ['feedbackOptionsView', 'generalFeedbackView', 'bugReportView'];
+  // Determine a safe fallback focus target (close button)
+  const closeBtn = document.querySelector('.feedbackCloseBtn');
+
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const isActive = id === activeId;
+
+    // If hiding and the element contains focus, move focus first to avoid aria-hidden being applied
+    if (!isActive && el.contains(document.activeElement)) {
+      try {
+        if (closeBtn) closeBtn.focus();
+        else document.activeElement.blur();
+      } catch (e) {
+        /* ignore focus move errors */
+      }
+    }
+
+    // Show/hide visually
+    el.style.display = isActive ? 'block' : 'none';
+
+    // Manage aria-hidden so screen readers know state
+    el.setAttribute('aria-hidden', isActive ? 'false' : 'true');
+    // We intentionally avoid setting `inert` here to prevent browser-specific
+    // focus/pointer interaction issues. Rely on display + aria-hidden + focus
+    // movement to keep hidden sections non-interactive.
+  });
+
+  // Move focus into the newly active view if possible
+  const activeEl = document.getElementById(activeId);
+  if (activeEl) {
+    const firstFocusable = activeEl.querySelector(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+    );
+    try {
+      if (firstFocusable) firstFocusable.focus();
+      else if (closeBtn) closeBtn.focus();
+    } catch (e) {
+      /* ignore focus errors */
+    }
+  }
+}
+
+if (feedbackGeneralBtn) {
+  // placeholder: wire up behavior later
+  feedbackGeneralBtn.addEventListener('click', () => {
+    console.log('General feedback button clicked');
+    // mark dialog with selected type for later submit handling
+    if (feedbackDialog) feedbackDialog.dataset.type = 'general';
+    // Resolve views now (they may not have existed at module load time)
+    initFeedbackDialogViews();
+    setFeedbackView('generalFeedbackView');
+  });
+}
+
+if (feedbackBugBtn) {
+  feedbackBugBtn.addEventListener('click', () => {
+    console.log('Bug report button clicked');
+    // show the dialog and swap to bug form
+    if (feedbackDialog) {
+      try {
+        feedbackDialog.showModal();
+        const closeBtn = feedbackDialog.querySelector('.feedbackCloseBtn');
+        if (closeBtn) closeBtn.focus();
+      } catch (err) {
+        feedbackDialog.style.display = 'block';
+        const closeBtn = feedbackDialog.querySelector('.feedbackCloseBtn');
+        if (closeBtn) closeBtn.focus();
+      }
+      feedbackDialog.dataset.type = 'bug';
+    }
+    initFeedbackDialogViews();
+    setFeedbackView('bugReportView');
+  });
+}
+
+// Delegated click handler to ensure option buttons inside the dialog always work
+// (handles cases where the dialog markup is loaded after this script runs).
+document.addEventListener('click', function (e) {
+  const btn = e.target.closest('.feedback-general-btn, .feedback-bug-btn');
+  if (!btn) return;
+
+  // If the button lives inside the feedback dialog, or is an external CTA, handle it here.
+  if (btn.classList.contains('feedback-general-btn')) {
+    e.preventDefault();
+    if (feedbackDialog && !feedbackDialog.open) {
+      try {
+        feedbackDialog.showModal();
+        const closeBtn = feedbackDialog.querySelector('.feedbackCloseBtn');
+        if (closeBtn) closeBtn.focus();
+      } catch (err) {
+        feedbackDialog.style.display = 'block';
+      }
+    }
+    if (feedbackDialog) feedbackDialog.dataset.type = 'general';
+    initFeedbackDialogViews();
+    setFeedbackView('generalFeedbackView');
+  } else if (btn.classList.contains('feedback-bug-btn')) {
+    e.preventDefault();
+    if (feedbackDialog && !feedbackDialog.open) {
+      try {
+        feedbackDialog.showModal();
+        const closeBtn = feedbackDialog.querySelector('.feedbackCloseBtn');
+        if (closeBtn) closeBtn.focus();
+      } catch (err) {
+        feedbackDialog.style.display = 'block';
+      }
+    }
+    if (feedbackDialog) feedbackDialog.dataset.type = 'bug';
+    initFeedbackDialogViews();
+    setFeedbackView('bugReportView');
+  }
+});
+// Bind UI CTAs (any element with class `form__btn--feedback`) to open the feedback dialog
+// and show the general feedback form. Adds console logs for click and content swap.
+const uiFeedbackCTAs = document.querySelectorAll('.form__btn--feedback');
+if (uiFeedbackCTAs && uiFeedbackCTAs.length > 0) {
+  uiFeedbackCTAs.forEach(cta => {
+    cta.addEventListener('click', e => {
+      e.preventDefault();
+      console.log('UI feedback CTA clicked:', cta);
+      // open dialog
+      if (feedbackDialog) {
+        try {
+          feedbackDialog.showModal();
+          const closeBtn = feedbackDialog.querySelector('.feedbackCloseBtn');
+          if (closeBtn) closeBtn.focus();
+        } catch (err) {
+          feedbackDialog.style.display = 'block';
+          const closeBtn = feedbackDialog.querySelector('.feedbackCloseBtn');
+          if (closeBtn) closeBtn.focus();
+        }
+      }
+
+      // ensure views are resolved and listeners attached
+      initFeedbackDialogViews();
+      console.log('Swapping modal content to general feedback', {
+        feedbackOptionsViewExists: !!feedbackOptionsView,
+        generalFeedbackViewExists: !!generalFeedbackView,
+      });
+
+      setFeedbackView('generalFeedbackView');
+      if (feedbackDialog) feedbackDialog.dataset.type = 'general';
+    });
+  });
+}
+
 /********************************************Functions *********************************************/
 if (mainApp) {
   mainApp.style.opacity = 0;
@@ -167,10 +432,10 @@ async function initializeStudentMessaging(studentName) {
   try {
     console.log(
       'Attempting to fetch messages from:',
-      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
+      `http://localhost:3000/messages/${studentName}`,
     );
     const response = await fetch(
-      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
+      `http://localhost:3000/messages/${studentName}`,
     );
 
     if (!response.ok) {
@@ -238,7 +503,7 @@ async function openMessageCenter() {
       try {
         // Fetch classmates from the server
         const response = await fetch(
-          `https://tcstudentserver-production.up.railway.app/classmates/${currentProfile.memberName}`,
+          `http://localhost:3000/classmates/${currentProfile.memberName}`,
         );
         if (!response.ok) {
           throw new Error('Failed to fetch classmates');
@@ -308,7 +573,7 @@ async function openMessageCenter() {
   }
   try {
     const response = await fetch(
-      `https://tcstudentserver-production.up.railway.app/messages/${currentProfile.memberName}`,
+      `http://localhost:3000/messages/${currentProfile.memberName}`,
     );
     if (!response.ok) throw new Error('Failed to fetch threads');
     const { threads } = await response.json(); // Expect { threads: [...] }
@@ -585,7 +850,7 @@ function displayConversation(threadId, messages) {
  */
 async function createNewThread(recipientId) {
   try {
-    const response = await fetch('https://tcstudentserver-production.up.railway.app/newThread', {
+    const response = await fetch('http://localhost:3000/newThread', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1085,15 +1350,15 @@ socket.on('unitAssignedToStudent', data => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'https://tcstudentserver-production.up.railway.app/profiles';
+const testServerProfiles = 'http://localhost:3000/profiles';
 
-const loanURL = 'https://tcstudentserver-production.up.railway.app/loans';
+const loanURL = 'http://localhost:3000/loans';
 
-const donationURL = 'https://tcstudentserver-production.up.railway.app/donations';
+const donationURL = 'http://localhost:3000/donations';
 
-const donationSavingsURL = 'https://tcstudentserver-production.up.railway.app/donationsSavings';
+const donationSavingsURL = 'http://localhost:3000/donationsSavings';
 
-const balanceURL = 'https://tcstudentserver-production.up.railway.app/initialBalance';
+const balanceURL = 'http://localhost:3000/initialBalance';
 
 const productivityURL = 'http://localhost:5040/timers';
 
