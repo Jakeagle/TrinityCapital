@@ -12,6 +12,7 @@
     />
     <link rel="stylesheet" href="Frontend/Styles/style.css" />
     <link rel="stylesheet" href="Frontend/Styles/check.css" />
+    <link rel="stylesheet" href="Frontend/Styles/feedback.css" />
     <script
       src="https://kit.fontawesome.com/60a3862749.js"
       crossorigin="anonymous"
@@ -143,6 +144,18 @@
               <p class="transfer bankingText">Accounts</p>
             </div>
           </div>
+
+          <div class="row">
+            <div class="col transferBox">
+              <p class="">
+                <i class="fa-solid fa-message bankingImg feedbackBTN"></i>
+              </p>
+            </div>
+            <div class="col">
+              <p class="transfer bankingText">Feedback/Report an Issue</p>
+            </div>
+          </div>
+
           <div class="row">
             <div class="col transferBox">
               <p class="col">
@@ -302,57 +315,27 @@
                     <div class="transIcon col-4">
                       <i class="fa-solid fa-house transImg"></i>
                     </div>
-                    <div class="transNameAndDate col">
-                      <p class="transName">Rent</p>
-                      <p class="transDate">8/20/2023</p>
-                    </div>
-                    <div class="transAmount col">
-                      <p class="transAmountText negTrans">-$900</p>
-                    </div>
-                  </div>
-                  <div class="transaction row">
-                    <div class="transIcon col-4">
-                      <i class="fa-solid fa-car-burst transImg"></i>
-                    </div>
-                    <div class="transNameAndDate col">
-                      <p class="transName">Car Insurance</p>
-                      <p class="transDate">8/20/2023</p>
-                    </div>
-                    <div class="transAmount col">
-                      <p class="transAmountText negTrans">-$500</p>
-                    </div>
-                  </div>
-                  <div class="transaction row">
-                    <div class="transIcon col-4">
-                      <i class="fa-solid fa-dollar-sign transImg payCheck"></i>
-                    </div>
-                    <div class="transNameAndDate col">
-                      <p class="transName">Paycheck</p>
-                      <p class="transDate">8/17/2023</p>
-                    </div>
-                    <div class="transAmount col">
-                      <p class="transAmountText posTrans">+$1000</p>
-                    </div>
-                  </div>
-                  <div class="transaction row">
-                    <div class="transIcon col-4">
-                      <i class="fa-solid fa-user transImg user"></i>
-                    </div>
-                    <div class="transNameAndDate col">
-                      <p class="transName">Darlene Jones</p>
-                      <p class="transDate">8/21/2023</p>
-                    </div>
-                    <div class="transAmount col">
-                      <p class="transAmountText negTrans">-50</p>
-                    </div>
-                  </div>
-                  <div class="transaction row">
-                    <div class="transIcon col-4">
-                      <i class="fa-solid fa-money-check transImg"></i>
-                    </div>
-                    <div class="transNameAndDate col">
-                      <p class="transName">Check from Robert Moore</p>
-                      <p class="transDate">8/21/2023</p>
+                    <div class="feedback-body">
+                      <div class="feedback-layout container-fluid">
+                        <div class="row">
+                          <div class="col-12 feedback-controls text-center">
+                            <div class="transferBtn feedback-actions">
+                              <button
+                                class="form__btn form__btn--transfer form__btn--feedback feedback-general-btn"
+                                type="button"
+                              >
+                                General feedback
+                              </button>
+                              <button
+                                class="form__btn form__btn--transfer form__btn--bug feedback-bug-btn"
+                                type="button"
+                              >
+                                Report a bug
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                     <div class="transAmount col">
                       <p class="transAmountText posTrans">+$1200</p>
@@ -396,6 +379,7 @@
     <script src="Frontend/Javascript/verseConfig.js"></script>
     <script src="Frontend/Javascript/verseManager.js"></script>
     <script src="Frontend/Javascript/verseManagerTests.js"></script>
+    <script src="Frontend/Javascript/feedback.js" type="module"></script>
   </body>
 
   <dialog class="transferModal baseModal">
@@ -1219,3 +1203,154 @@
   <!-- Modern UI Enhancement Scripts -->
   <script type="module" src="Frontend/Javascript/uiEnhancements.js"></script>
 </html>
+
+<!-- Feedback / Bug Report Dialog -->
+<dialog
+  class="baseModal feedbackDialog"
+  id="feedbackDialog"
+  role="dialog"
+  aria-labelledby="feedbackTitle"
+>
+  <div class="modal-backdrop" data-backdrop></div>
+  <div class="modal-card" role="document">
+    <header class="modal-card__header">
+      <h2 id="feedbackTitle" class="modal-card__title">
+        Feedback & Report an Issue
+      </h2>
+      <button
+        class="modal-card__close feedbackCloseBtn"
+        aria-label="Close feedback dialog"
+      >
+        <i class="fa-solid fa-circle-xmark" aria-hidden="true"></i>
+      </button>
+    </header>
+
+    <main class="modal-card__body">
+      <!-- Options view: choose which form to open -->
+      <section
+        id="feedbackOptionsView"
+        class="feedback-options"
+        aria-label="Feedback options"
+      >
+        <p class="feedback-subtitle">
+          How can we help? Choose an option below.
+        </p>
+        <div class="feedback-actions">
+          <button
+            class="form__btn form__btn--transfer form__btn--feedback feedback-general-btn"
+            type="button"
+          >
+            General feedback
+          </button>
+          <button
+            class="form__btn form__btn--transfer form__btn--bug feedback-bug-btn"
+            type="button"
+          >
+            Report a bug
+          </button>
+        </div>
+      </section>
+
+      <!-- General feedback form (hidden by default) -->
+      <section
+        id="generalFeedbackView"
+        class="feedback-form"
+        style="display: none"
+        aria-hidden="true"
+      >
+        <label for="gfCategory" class="form-label">Feedback type</label>
+        <select id="gfCategory" class="form__input">
+          <option value="feature">New feature idea</option>
+          <option value="improvement">Ideas for improvement</option>
+          <option value="like">What I like</option>
+          <option value="dislike">What I dislike</option>
+          <option value="other">Other</option>
+        </select>
+
+        <label for="gfDetails" class="form-label">Details</label>
+        <textarea
+          id="gfDetails"
+          class="form__input gf-textarea"
+          rows="6"
+          placeholder="Share your ideas, suggestions, or feedback..."
+        ></textarea>
+
+        <div class="form-actions form-actions--right">
+          <button
+            id="gfBackBtn"
+            class="form__btn form__btn--link"
+            type="button"
+          >
+            Back
+          </button>
+          <button
+            id="gfSubmitBtn"
+            class="form__btn form__btn--primary"
+            type="button"
+          >
+            Submit
+          </button>
+        </div>
+      </section>
+
+      <!-- Bug report form (hidden by default) -->
+      <section
+        id="bugReportView"
+        class="feedback-form"
+        style="display: none"
+        aria-hidden="true"
+      >
+        <label for="bugDevice" class="form-label">Device</label>
+        <input
+          id="bugDevice"
+          class="form__input"
+          placeholder="e.g. Windows 10 laptop, iPad"
+        />
+
+        <label for="bugDatetime" class="form-label">Date & Time</label>
+        <input id="bugDatetime" class="form__input" type="datetime-local" />
+
+        <label for="bugSchool" class="form-label">School</label>
+        <input
+          id="bugSchool"
+          class="form__input"
+          placeholder="School name or code"
+        />
+
+        <label for="bugFeatures" class="form-label">Features in use</label>
+        <select id="bugFeatures" class="form__input">
+          <option value="lessons">Lessons</option>
+          <option value="transfers">Transfers</option>
+          <option value="messages">Messages</option>
+          <option value="bills">Bills</option>
+          <option value="other">Other</option>
+        </select>
+
+        <label for="bugDetails" class="form-label">Describe the issue</label>
+        <textarea
+          id="bugDetails"
+          class="form__input gf-textarea"
+          rows="6"
+          placeholder="What happened? Steps to reproduce, expected vs actual..."
+        ></textarea>
+
+        <div class="form-actions form-actions--right">
+          <button
+            id="bugBackBtn"
+            class="form__btn form__btn--link"
+            type="button"
+          >
+            Back
+          </button>
+          <button
+            id="bugSubmitBtn"
+            class="form__btn form__btn--primary"
+            type="button"
+          >
+            Submit
+          </button>
+        </div>
+      </section>
+    </main>
+  </div>
+</dialog>
