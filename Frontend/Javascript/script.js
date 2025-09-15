@@ -53,7 +53,7 @@ function hideLoadingAndShowLogin() {
 }
 
 // Configure socket with reconnection options to handle server disconnects
-const socket = io('http://localhost:3000', {
+const socket = io('https://tcstudentserver-production.up.railway.app', {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
@@ -432,10 +432,10 @@ async function initializeStudentMessaging(studentName) {
   try {
     console.log(
       'Attempting to fetch messages from:',
-      `http://localhost:3000/messages/${studentName}`,
+      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
     );
     const response = await fetch(
-      `http://localhost:3000/messages/${studentName}`,
+      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
     );
 
     if (!response.ok) {
@@ -503,7 +503,7 @@ async function openMessageCenter() {
       try {
         // Fetch classmates from the server
         const response = await fetch(
-          `http://localhost:3000/classmates/${currentProfile.memberName}`,
+          `https://tcstudentserver-production.up.railway.app/classmates/${currentProfile.memberName}`,
         );
         if (!response.ok) {
           throw new Error('Failed to fetch classmates');
@@ -573,7 +573,7 @@ async function openMessageCenter() {
   }
   try {
     const response = await fetch(
-      `http://localhost:3000/messages/${currentProfile.memberName}`,
+      `https://tcstudentserver-production.up.railway.app/messages/${currentProfile.memberName}`,
     );
     if (!response.ok) throw new Error('Failed to fetch threads');
     const { threads } = await response.json(); // Expect { threads: [...] }
@@ -850,7 +850,7 @@ function displayConversation(threadId, messages) {
  */
 async function createNewThread(recipientId) {
   try {
-    const response = await fetch('http://localhost:3000/newThread', {
+    const response = await fetch('https://tcstudentserver-production.up.railway.app/newThread', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -1350,15 +1350,15 @@ socket.on('unitAssignedToStudent', data => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'http://localhost:3000/profiles';
+const testServerProfiles = 'https://tcstudentserver-production.up.railway.app/profiles';
 
-const loanURL = 'http://localhost:3000/loans';
+const loanURL = 'https://tcstudentserver-production.up.railway.app/loans';
 
-const donationURL = 'http://localhost:3000/donations';
+const donationURL = 'https://tcstudentserver-production.up.railway.app/donations';
 
-const donationSavingsURL = 'http://localhost:3000/donationsSavings';
+const donationSavingsURL = 'https://tcstudentserver-production.up.railway.app/donationsSavings';
 
-const balanceURL = 'http://localhost:3000/initialBalance';
+const balanceURL = 'https://tcstudentserver-production.up.railway.app/initialBalance';
 
 const productivityURL = 'http://localhost:5040/timers';
 
