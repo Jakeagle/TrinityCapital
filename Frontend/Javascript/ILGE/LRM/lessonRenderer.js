@@ -1,5 +1,7 @@
 'use strict';
 
+import { conditionInstructionMap } from './conditionInstructionMap.js';
+
 /**
  * Renders the unit header with the unit number and name.
  * @param {object} profile - The student's profile containing assigned units.
@@ -95,9 +97,39 @@ export function renderLessonButtons(lessons) {
 }
 
 /**
- * Opens and populates the new lesson modal.
- * @param {object} lesson - The lesson object to display.
+ * Generates the HTML for the lesson instructions.
+ * @param {Array} conditions - The array of conditions for the lesson.
+ * @returns {string} The HTML string for the instructions.
  */
+function generateInstructionsHtml(conditions) {
+  if (!conditions || conditions.length === 0) {
+    return '<p>No specific instructions for this lesson.</p>';
+  }
+
+  let instructionsHtml = '<ul>';
+  for (const conditionObj of conditions) {
+    const condition = conditionObj.condition_type;
+    const value = conditionObj.condition_value;
+    let found = false;
+    for (const category in conditionInstructionMap) {
+      if (conditionInstructionMap[category][condition]) {
+        let instructionText = conditionInstructionMap[category][condition].instruction;
+        if (instructionText.includes('[value]')) {
+          instructionText = instructionText.replace('[value]', value);
+        }
+        instructionsHtml += `<li>${instructionText}</li>`;
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      instructionsHtml += `<li>Instruction for "${condition}" not found.</li>`;
+    }
+  }
+  instructionsHtml += '</ul>';
+  return instructionsHtml;
+}
+
 /**
  * Generates the HTML for the lesson slides based on the lesson content.
  * @param {object} lesson - The lesson object.
@@ -148,6 +180,7 @@ function generateLessonSlides(lesson) {
  * @param {object} lesson - The lesson object to display.
  */
 function openLessonModal(lesson) {
+  console.log('lesson object:', lesson);
   console.log('Opening lesson modal for:', lesson);
   const modal = document.querySelector('.new-lesson-modal');
   if (!modal) {
@@ -162,10 +195,11 @@ function openLessonModal(lesson) {
 
   const modalContent = modal.querySelector('.new-lesson-modal-content');
   const lessonSlidesHtml = generateLessonSlides(lesson);
+  const instructionsHtml = generateInstructionsHtml(lesson.completion_conditions);
   const instructionsSlideHtml = `
     <div class="new-lesson-slide instructions-slide">
       <h1>Instructions</h1>
-      <p>You have completed the lesson. You may now begin the activities.</p>
+      ${instructionsHtml}
       <button class="begin-activities-btn">Begin Activities</button>
     </div>
   `;
