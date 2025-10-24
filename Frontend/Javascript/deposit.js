@@ -3,14 +3,16 @@
 import { getInfoProfiles } from './script.js';
 import { currentProfile } from './script.js';
 import {
-  showNotification,
   validateAmount,
   validateText,
   validateDate,
   validateSignature,
-  setButtonLoading,
   validateForm,
 } from './validation.js';
+import {
+  setLoadingState,
+  showNotification as showModernNotification,
+} from './uiEnhancements.js';
 
 console.log(currentProfile);
 
@@ -47,13 +49,13 @@ submit.click(function (e) {
   e.preventDefault();
 
   const originalText = submit.text();
-  setButtonLoading(submit[0], true, originalText);
+  setLoadingState(submit[0], true, originalText);
 
   try {
     validateAndProcessDeposit();
   } finally {
     setTimeout(() => {
-      setButtonLoading(submit[0], false, originalText);
+      setLoadingState(submit[0], false, originalText);
     }, 1500);
   }
 });
@@ -103,7 +105,7 @@ const validateAndProcessDeposit = function () {
     : null;
 
   if (!payeeValidation || !payeeValidation.isValid) {
-    showNotification(
+    showModernNotification(
       payeeValidation?.error || 'Please select a valid recipient',
       'error',
     );
@@ -178,7 +180,7 @@ const validateAndProcessDeposit = function () {
   const validation = validateForm(validationRules);
 
   if (!validation.isValid) {
-    showNotification(validation.errors.join(', '), 'error');
+    showModernNotification(validation.errors.join(', '), 'error');
     return;
   }
 
@@ -198,7 +200,7 @@ const processDeposit = function () {
     : null;
 
   if (!payeeInfo) {
-    showNotification('Error: Could not get payee information', 'error');
+    showModernNotification('Error: Could not get payee information', 'error');
     return;
   }
 
@@ -216,7 +218,7 @@ const checkAll = function () {
 };
 export async function sendDeposit(loan, destination, member) {
   try {
-    showNotification('Processing deposit...', 'info');
+    showModernNotification('Processing deposit...', 'info');
 
     const res = await fetch(depositLink, {
       method: 'POST',
@@ -234,7 +236,7 @@ export async function sendDeposit(loan, destination, member) {
 
     const result = await res.json();
 
-    showNotification(
+    showModernNotification(
       `Deposit of $${loan.toFixed(2)} completed successfully!`,
       'success',
     );
@@ -251,7 +253,7 @@ export async function sendDeposit(loan, destination, member) {
 
       console.log(
         '✅ Deposit action recorded for lesson tracking:',
-        `$${loan.toFixed(2)} to ${destination}`,
+        `${loan.toFixed(2)} to ${destination}`,
       );
     } else {
       console.warn(
@@ -273,7 +275,7 @@ export async function sendDeposit(loan, destination, member) {
     return result;
   } catch (error) {
     console.error('Deposit failed:', error);
-    showNotification(`Deposit failed: ${error.message}`, 'error');
+    showModernNotification(`Deposit failed: ${error.message}`, 'error');
     throw error;
   }
 }

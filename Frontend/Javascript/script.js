@@ -1,29 +1,22 @@
-'use strict';
-
-import { renderLessons } from './lessonRenderer.js';
-import {
-  showNotification,
-  validateText,
-  setButtonLoading,
-} from './validation.js';
+"use strict";
+import { validateText } from './validation.js';
+import { initializeLessonEngine } from './ILGE/lessonManager.js';
+import { fetchAssignedLessons } from "./ILGE/LRM/lrm.js";
+import { renderUnitHeader, renderLessonButtons } from "./ILGE/LRM/lessonRenderer.js";
 
 // Import lesson engine functions globally
-try {
-  await import('./lessonEngine.js');
-  console.log('✅ Lesson engine loaded successfully');
-} catch (error) {
-  console.warn('⚠️ Lesson engine not available:', error.message);
-}
+
 import {
   initializeUIEnhancements,
   showNotification as showModernNotification,
-} from './uiEnhancements.js';
+  setLoadingState,
+} from "./uiEnhancements.js";
 
 // Show loading modal immediately
-document.addEventListener('DOMContentLoaded', function () {
-  const loadingModal = document.getElementById('loadingModal');
+document.addEventListener("DOMContentLoaded", function () {
+  const loadingModal = document.getElementById("loadingModal");
   if (loadingModal) {
-    loadingModal.style.display = 'flex';
+    loadingModal.style.display = "flex";
   }
 
   // Initialize modern UI enhancements
@@ -32,11 +25,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // Function to hide loading modal and show login
 function hideLoadingAndShowLogin() {
-  const loadingModal = document.getElementById('loadingModal');
+  const loadingModal = document.getElementById("loadingModal");
   if (loadingModal) {
-    loadingModal.classList.add('fade-out');
+    loadingModal.classList.add("fade-out");
     setTimeout(() => {
-      loadingModal.style.display = 'none';
+      loadingModal.style.display = "none";
       // Show appropriate login modal
       if ((mobileLoginBox, loginBox)) {
         window.screen.width <= 1300
@@ -46,103 +39,103 @@ function hideLoadingAndShowLogin() {
 
       // Show welcome notification with modern styling
       setTimeout(() => {
-        showModernNotification('Welcome to Trinity Capital! 🎉', 'info', 4000);
+        showModernNotification("Welcome to Trinity Capital! 🎉", "info", 4000);
       }, 800);
     }, 500); // Wait for fade animation to complete
   }
 }
 
-const socket = io('http://localhost:3000');
+const socket = io("http://localhost:3000");
 
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
-    navigator.userAgent,
+    navigator.userAgent
   )
 ) {
   // Mobile device detected - redirect disabled
   // window.location.replace('https://trinitycapitalmobile.netlify.app');
-  console.log('Mobile device detected - staying on current app');
+  console.log("Mobile device detected - staying on current app");
 } else {
-  console.log('Were on MOBILE!');
+  console.log("Were on MOBILE!");
 }
 
 /********************************************Modal control*************************************/
 
 //Modals
-const mainApp = document.querySelector('.mainApp');
-const loginBox = document.querySelector('.signOnBox');
-const mobileLoginBox = document.querySelector('.mobileSignOnBox');
-const billsModal = document.querySelector('.billsAndPaymentsModal');
-const transferModal = document.querySelector('.transferModal');
-const accountSwitchModal = document.querySelector('.accountSwitchModal');
-const depositModal = document.querySelector('.depositModal');
-const sendMoneyModal = document.querySelector('.sendMoneyModal');
-const messagesModal = document.querySelector('.messagesModal');
+const mainApp = document.querySelector(".mainApp");
+const loginBox = document.querySelector(".signOnBox");
+const mobileLoginBox = document.querySelector(".mobileSignOnBox");
+const billsModal = document.querySelector(".billsAndPaymentsModal");
+const transferModal = document.querySelector(".transferModal");
+const accountSwitchModal = document.querySelector(".accountSwitchModal");
+const depositModal = document.querySelector(".depositModal");
+const sendMoneyModal = document.querySelector(".sendMoneyModal");
+const messagesModal = document.querySelector(".messagesModal");
 
 //Modal Buttons
-const accountSwitchBTN = document.querySelector('.accountSwitchBTN');
-const transferModalBTN = document.querySelector('.transferBTN');
-const billsModalBTN = document.querySelector('.billsModalBTN');
-const depositModalBTN = document.querySelector('.depositsBTN');
-const sendMoneyBTN = document.querySelector('.sendMoneyBTN');
-const messagesBTN = document.querySelector('.messagesBTN');
+const accountSwitchBTN = document.querySelector(".accountSwitchBTN");
+const transferModalBTN = document.querySelector(".transferBTN");
+const billsModalBTN = document.querySelector(".billsModalBTN");
+const depositModalBTN = document.querySelector(".depositsBTN");
+const sendMoneyBTN = document.querySelector(".sendMoneyBTN");
+const messagesBTN = document.querySelector(".messagesBTN");
 
 //close Modals
-const closeTransferModal = document.querySelector('.transferExitButton');
-const closeBillModal = document.querySelector('.closeBills');
-const closeAccountModal = document.querySelector('.closeAccounts');
-const closeDepositModal = document.querySelector('.closeDeposits');
-const closeSendMoneyModal = document.querySelector('.closeSendMoney');
-const logOutBTN = document.querySelector('.logOutBTN');
+const closeTransferModal = document.querySelector(".transferExitButton");
+const closeBillModal = document.querySelector(".closeBills");
+const closeAccountModal = document.querySelector(".closeAccounts");
+const closeDepositModal = document.querySelector(".closeDeposits");
+const closeSendMoneyModal = document.querySelector(".closeSendMoney");
+const logOutBTN = document.querySelector(".logOutBTN");
 
-logOutBTN.addEventListener('click', function () {
+logOutBTN.addEventListener("click", function () {
   location.reload();
 });
 
-billsModalBTN.addEventListener('click', function () {
+billsModalBTN.addEventListener("click", function () {
   billsModal.showModal();
 
   // Note: We don't record lesson tracking here anymore - only when bills are actually created
   // This prevents premature completion of the account_checked condition
 });
 
-closeBillModal.addEventListener('click', function () {
+closeBillModal.addEventListener("click", function () {
   billsModal.close();
 });
 
-transferModalBTN.addEventListener('click', function () {
+transferModalBTN.addEventListener("click", function () {
   transferModal.showModal();
 });
 
-closeTransferModal.addEventListener('click', function () {
+closeTransferModal.addEventListener("click", function () {
   transferModal.close();
 });
 
-accountSwitchBTN.addEventListener('click', function () {
+accountSwitchBTN.addEventListener("click", function () {
   accountSwitchModal.showModal();
 });
 
-closeAccountModal.addEventListener('click', function () {
+closeAccountModal.addEventListener("click", function () {
   accountSwitchModal.close();
 });
 
-depositModalBTN.addEventListener('click', function () {
+depositModalBTN.addEventListener("click", function () {
   depositModal.showModal();
 });
 
-closeDepositModal.addEventListener('click', function () {
+closeDepositModal.addEventListener("click", function () {
   depositModal.close();
 });
 
-sendMoneyBTN.addEventListener('click', function () {
+sendMoneyBTN.addEventListener("click", function () {
   sendMoneyModal.showModal();
 });
 
-closeSendMoneyModal.addEventListener('click', function () {
+closeSendMoneyModal.addEventListener("click", function () {
   sendMoneyModal.close();
 });
 
-messagesBTN.addEventListener('click', openMessageCenter);
+messagesBTN.addEventListener("click", openMessageCenter);
 
 /********************************************Functions *********************************************/
 if (mainApp) {
@@ -155,49 +148,49 @@ if (mainApp) {
  * @param {string} studentName - The full name of the currently logged-in student.
  */
 async function initializeStudentMessaging(studentName) {
-  console.log('Inside initializeStudentMessaging for:', studentName);
+  console.log("Inside initializeStudentMessaging for:", studentName);
   try {
     console.log(
-      'Attempting to fetch messages from:',
-      `http://localhost:3000/messages/${studentName}`,
+      "Attempting to fetch messages from:",
+      `http://localhost:3000/messages/${studentName}`
     );
     const response = await fetch(
-      `http://localhost:3000/messages/${studentName}`,
+      `http://localhost:3000/messages/${studentName}`
     );
 
     if (!response.ok) {
       console.error(
-        `Fetch response not OK. Status: ${response.status}, StatusText: ${response.statusText}`,
+        `Fetch response not OK. Status: ${response.status}, StatusText: ${response.statusText}`
       );
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    console.log('Fetch response OK. Parsing JSON...');
+    console.log("Fetch response OK. Parsing JSON...");
     let { threads } = await response.json(); // Expect { threads: [...] }
     console.log(
-      'All threads fetched from DB for this student on login:',
-      threads,
+      "All threads fetched from DB for this student on login:",
+      threads
     ); // Log messages here
 
     if (!threads || !Array.isArray(threads)) {
-      console.log('No threads found for student or invalid format.');
+      console.log("No threads found for student or invalid format.");
       threads = []; // Ensure it's an array to prevent errors
     }
 
     // Store the processed threads globally as a Map for easier lookup by threadId
-    currentMessageThreads = new Map(threads.map(t => [t.threadId, t]));
+    currentMessageThreads = new Map(threads.map((t) => [t.threadId, t]));
     console.log(
-      'Student message threads initialized on login:',
-      currentMessageThreads,
+      "Student message threads initialized on login:",
+      currentMessageThreads
     );
   } catch (error) {
-    console.error('Failed to initialize student messaging:', error);
-    console.error('Error details:', error.message, error.stack); // Log full error details
+    console.error("Failed to initialize student messaging:", error);
+    console.error("Error details:", error.message, error.stack); // Log full error details
     // On failure, ensure at least a fallback class thread exists
     const fallbackThreads = new Map();
     fallbackThreads.set(`class-message-${studentName}`, {
       threadId: `class-message-${studentName}`,
-      type: 'class',
+      type: "class",
       messages: [],
       lastMessageTimestamp: new Date().toISOString(),
     });
@@ -211,34 +204,34 @@ let currentMessageThreads = new Map(); // This will now store processed threads 
  */
 async function openMessageCenter() {
   if (!currentProfile) {
-    alert('Please log in to view messages.');
+    alert("Please log in to view messages.");
     return;
   }
 
   messagesModal.showModal();
 
-  const closeBtn = messagesModal.querySelector('.close-messages-modal');
+  const closeBtn = messagesModal.querySelector(".close-messages-modal");
   if (closeBtn) {
     closeBtn.onclick = () => messagesModal.close();
   }
 
   // Get the new thread button and attach listener
-  const newThreadButton = messagesModal.querySelector('.new-thread-button');
+  const newThreadButton = messagesModal.querySelector(".new-thread-button");
   // Ensure the listener is only added once
   if (newThreadButton && !newThreadButton.dataset.listenerAdded) {
-    newThreadButton.addEventListener('click', async () => {
+    newThreadButton.addEventListener("click", async () => {
       try {
         // Fetch classmates from the server
         const response = await fetch(
-          `http://localhost:3000/classmates/${currentProfile.memberName}`,
+          `http://localhost:3000/classmates/${currentProfile.memberName}`
         );
         if (!response.ok) {
-          throw new Error('Failed to fetch classmates');
+          throw new Error("Failed to fetch classmates");
         }
         const classmates = await response.json();
 
         // Add teacher as an option (admin@trinity-capital.net)
-        const availableContacts = ['admin@trinity-capital.net'];
+        const availableContacts = ["admin@trinity-capital.net"];
         if (classmates && classmates.length > 0) {
           availableContacts.push(...classmates);
         }
@@ -246,14 +239,14 @@ async function openMessageCenter() {
         // Display contacts for selection using a simple prompt
         const contactList = availableContacts
           .map((contact, index) => {
-            if (contact === 'admin@trinity-capital.net') {
+            if (contact === "admin@trinity-capital.net") {
               return `${index + 1}. ${contact} (Teacher)`;
             }
             return `${index + 1}. ${contact}`;
           })
-          .join('\n');
+          .join("\n");
         const selectionInput = prompt(
-          `Select a contact to start a new conversation:\n${contactList}`,
+          `Select a contact to start a new conversation:\n${contactList}`
         );
 
         if (selectionInput === null) {
@@ -273,7 +266,7 @@ async function openMessageCenter() {
         } else if (availableContacts.includes(selectionInput)) {
           selectedContact = selectionInput;
         } else {
-          alert('Invalid selection. Please enter a valid number or name.');
+          alert("Invalid selection. Please enter a valid number or name.");
           return;
         }
 
@@ -283,16 +276,16 @@ async function openMessageCenter() {
         // Update the UI with the new thread by re-opening the message center
         await openMessageCenter();
       } catch (error) {
-        console.error('Error creating a new thread:', error);
-        alert('Failed to create a new thread. Please try again.');
+        console.error("Error creating a new thread:", error);
+        alert("Failed to create a new thread. Please try again.");
       }
     });
-    newThreadButton.dataset.listenerAdded = 'true'; // Mark listener as added
+    newThreadButton.dataset.listenerAdded = "true"; // Mark listener as added
   }
 
   // Check if messages are already loaded from login
   if (currentMessageThreads.size > 0) {
-    console.log('Messages already loaded, displaying cached threads.');
+    console.log("Messages already loaded, displaying cached threads.");
     displayMessageThreads(currentMessageThreads, null, {
       autoSelectFirst: true,
     });
@@ -300,20 +293,20 @@ async function openMessageCenter() {
   }
   try {
     const response = await fetch(
-      `http://localhost:3000/messages/${currentProfile.memberName}`,
+      `http://localhost:3000/messages/${currentProfile.memberName}`
     );
-    if (!response.ok) throw new Error('Failed to fetch threads');
+    if (!response.ok) throw new Error("Failed to fetch threads");
     const { threads } = await response.json(); // Expect { threads: [...] }
 
     // Convert array of thread objects to a Map for easier lookup by threadId
-    currentMessageThreads = new Map(threads.map(t => [t.threadId, t]));
+    currentMessageThreads = new Map(threads.map((t) => [t.threadId, t]));
     displayMessageThreads(currentMessageThreads, null, {
       autoSelectFirst: true,
     });
   } catch (error) {
-    console.error('Error opening message center:', error);
-    const threadList = messagesModal.querySelector('.thread-list');
-    threadList.innerHTML = '<li>Error loading messages.</li>';
+    console.error("Error opening message center:", error);
+    const threadList = messagesModal.querySelector(".thread-list");
+    threadList.innerHTML = "<li>Error loading messages.</li>";
   }
 }
 
@@ -326,30 +319,30 @@ async function openMessageCenter() {
 function displayMessageThreads(
   threadsMap,
   activeThreadId = null,
-  options = {},
+  options = {}
 ) {
   const { autoSelectFirst = true } = options;
-  const threadList = messagesModal.querySelector('.thread-list');
-  const conversationBody = messagesModal.querySelector('.conversation-body');
-  const conversationHeader = messagesModal.querySelector('.conversation-with');
+  const threadList = messagesModal.querySelector(".thread-list");
+  const conversationBody = messagesModal.querySelector(".conversation-body");
+  const conversationHeader = messagesModal.querySelector(".conversation-with");
 
   // Before clearing, find out which thread is currently active
   const previouslyActiveThread = threadList.querySelector(
-    '.thread-item.active-thread',
+    ".thread-item.active-thread"
   );
   const currentActiveThreadId =
     previouslyActiveThread?.dataset.threadId || activeThreadId;
 
-  threadList.innerHTML = '';
-  conversationBody.innerHTML = '';
-  conversationHeader.textContent = 'Select a conversation';
+  threadList.innerHTML = "";
+  conversationBody.innerHTML = "";
+  conversationHeader.textContent = "Select a conversation";
 
   // Ensure Class Announcements thread is always present at the top
   const classThreadId = `class-message-${currentProfile.teacher}`;
   if (!threadsMap.has(classThreadId)) {
     threadsMap.set(classThreadId, {
       threadId: classThreadId,
-      type: 'class',
+      type: "class",
       messages: [],
       lastMessageTimestamp: new Date(0).toISOString(), // Epoch for sorting to bottom if no messages
     });
@@ -362,27 +355,27 @@ function displayMessageThreads(
   });
 
   // Separate class thread to always put it at the top
-  const classThread = threads.find(t => t.threadId === classThreadId);
-  const otherThreads = threads.filter(t => t.threadId !== classThreadId);
+  const classThread = threads.find((t) => t.threadId === classThreadId);
+  const otherThreads = threads.filter((t) => t.threadId !== classThreadId);
 
   if (classThread) {
     threadList.appendChild(createThreadElement(classThread));
   }
-  threads.forEach(thread => {
+  threads.forEach((thread) => {
     if (thread.threadId === classThreadId) return; // Skip if already added
     const li = createThreadElement(thread);
     if (thread.threadId === currentActiveThreadId) {
-      li.classList.add('active-thread');
+      li.classList.add("active-thread");
     }
     if (thread.hasUnread) {
       // Assuming hasUnread is a frontend-only flag
-      li.classList.add('has-unread');
+      li.classList.add("has-unread");
     }
     threadList.appendChild(li);
   });
 
   let threadToActivate = threadList.querySelector(
-    `[data-thread-id="${CSS.escape(currentActiveThreadId)}"]`,
+    `[data-thread-id="${CSS.escape(currentActiveThreadId)}"]`
   );
 
   // If no thread is specifically active, but we should auto-select, pick the first one.
@@ -394,8 +387,8 @@ function displayMessageThreads(
     threadToActivate.click();
   } else {
     // Only show this if there are truly no threads to display
-    conversationBody.innerHTML = '<p>You have no messages.</p>';
-    conversationHeader.textContent = 'Select a conversation';
+    conversationBody.innerHTML = "<p>You have no messages.</p>";
+    conversationHeader.textContent = "Select a conversation";
   }
 }
 
@@ -405,26 +398,26 @@ function displayMessageThreads(
  * @returns {HTMLLIElement} The created list item element.
  */
 function createThreadElement(threadData) {
-  const li = document.createElement('li');
-  li.className = 'thread-item';
+  const li = document.createElement("li");
+  li.className = "thread-item";
   li.dataset.threadId = threadData.threadId;
 
   // Determine display name for the thread
   let displayName;
-  if (threadData.type === 'class') {
-    displayName = 'Class Announcements'; // Consistent name for students
+  if (threadData.type === "class") {
+    displayName = "Class Announcements"; // Consistent name for students
   } else {
     // For private messages, find the other participant's name
     const otherParticipant = threadData.participants?.find(
-      p => p !== currentProfile.memberName,
+      (p) => p !== currentProfile.memberName
     );
 
     // Special handling for teacher display name
     if (
-      otherParticipant === 'admin@trinity-capital.net' ||
-      otherParticipant === 'adminTC'
+      otherParticipant === "admin@trinity-capital.net" ||
+      otherParticipant === "adminTC"
     ) {
-      displayName = 'admin@trinity-capital.net';
+      displayName = "admin@trinity-capital.net";
     } else {
       displayName = otherParticipant || threadData.threadId; // Fallback to threadId
     }
@@ -434,7 +427,7 @@ function createThreadElement(threadData) {
   const lastMessage =
     threadData.messages.length > 0
       ? threadData.messages[threadData.messages.length - 1]
-      : { message: 'No messages yet.' };
+      : { message: "No messages yet." };
 
   const lastMessageContent = lastMessage.messageContent || lastMessage.message; // Handle old and new message structure
 
@@ -443,11 +436,11 @@ function createThreadElement(threadData) {
     <p class="thread-preview">${lastMessageContent.substring(0, 25)}...</p>
   `;
 
-  li.addEventListener('click', () => {
+  li.addEventListener("click", () => {
     document
-      .querySelectorAll('.thread-item')
-      .forEach(item => item.classList.remove('active-thread'));
-    li.classList.add('active-thread');
+      .querySelectorAll(".thread-item")
+      .forEach((item) => item.classList.remove("active-thread"));
+    li.classList.add("active-thread");
     displayConversation(threadData.threadId, threadData.messages);
   });
 
@@ -460,38 +453,38 @@ function createThreadElement(threadData) {
  * @param {Array} messages - An array of message objects.
  */
 function displayConversation(threadId, messages) {
-  const conversationView = messagesModal.querySelector('.conversation-view');
-  const conversationBody = messagesModal.querySelector('.conversation-body');
-  const conversationHeader = messagesModal.querySelector('.conversation-with');
+  const conversationView = messagesModal.querySelector(".conversation-view");
+  const conversationBody = messagesModal.querySelector(".conversation-body");
+  const conversationHeader = messagesModal.querySelector(".conversation-with");
 
   const threadData = currentMessageThreads.get(threadId);
   let conversationPartnerName = threadId; // Default
   if (threadData) {
-    if (threadData.type === 'class') {
-      conversationPartnerName = 'Class Announcements';
+    if (threadData.type === "class") {
+      conversationPartnerName = "Class Announcements";
     } else {
       conversationPartnerName =
-        threadData.participants?.find(p => p !== currentProfile.memberName) ||
+        threadData.participants?.find((p) => p !== currentProfile.memberName) ||
         threadId;
     }
   }
   conversationHeader.textContent = `Conversation with ${conversationPartnerName}`;
-  conversationBody.innerHTML = '';
+  conversationBody.innerHTML = "";
 
-  messages.forEach(msg => {
-    const wrapperElement = document.createElement('div');
-    wrapperElement.classList.add('message-wrapper');
+  messages.forEach((msg) => {
+    const wrapperElement = document.createElement("div");
+    wrapperElement.classList.add("message-wrapper");
     wrapperElement.classList.add(
-      msg.senderId === currentProfile.memberName ? 'sent' : 'received',
+      msg.senderId === currentProfile.memberName ? "sent" : "received"
     );
 
     const senderTag =
       msg.isClassMessage && msg.senderId !== currentProfile.memberName
         ? `<strong class="message-sender-name">${msg.senderId}</strong>`
-        : '';
+        : "";
     const formattedTimestamp = new Date(msg.timestamp).toLocaleTimeString([], {
-      hour: '2-digit',
-      minute: '2-digit',
+      hour: "2-digit",
+      minute: "2-digit",
     });
 
     wrapperElement.innerHTML = `
@@ -509,16 +502,16 @@ function displayConversation(threadId, messages) {
   if (conversationView) {
     // Handle reply form
     let conversationFooter = conversationView.querySelector(
-      '.conversation-footer',
+      ".conversation-footer"
     );
     if (conversationFooter) {
       conversationFooter.remove(); // Clean up old one to prevent multiple listeners
     }
 
     // Add reply box, but not for "Class Announcements"
-    if (threadData.type !== 'class') {
-      conversationFooter = document.createElement('div');
-      conversationFooter.className = 'conversation-footer';
+    if (threadData.type !== "class") {
+      conversationFooter = document.createElement("div");
+      conversationFooter.className = "conversation-footer";
       conversationFooter.innerHTML = `
         <div class="reply-form">
           <input type="text" class="reply-input" placeholder="Type your reply..." aria-label="Reply message">
@@ -528,31 +521,31 @@ function displayConversation(threadId, messages) {
       // Append footer to the main conversation view, not inside the scrollable body
       conversationView.appendChild(conversationFooter);
 
-      const sendBtn = conversationFooter.querySelector('.reply-send-btn');
-      const replyInput = conversationFooter.querySelector('.reply-input');
+      const sendBtn = conversationFooter.querySelector(".reply-send-btn");
+      const replyInput = conversationFooter.querySelector(".reply-input");
 
       const handleSend = () => {
         const messageText = replyInput.value.trim();
         if (messageText) {
           // For private messages, extract the actual recipient name from the threadId
           let actualRecipientId = threadId;
-          if (threadData.type === 'private') {
-            const participants = threadId.split('_');
+          if (threadData.type === "private") {
+            const participants = threadId.split("_");
             actualRecipientId = participants.find(
-              p => p !== currentProfile.memberName,
+              (p) => p !== currentProfile.memberName
             );
-          } else if (threadData.type === 'class') {
+          } else if (threadData.type === "class") {
             // Class messages are sent to a specific class thread ID
             actualRecipientId = `class-message-${currentProfile.teacher}`; // Assuming student has a teacher property
           }
           sendMessage(actualRecipientId, messageText);
-          replyInput.value = ''; // Clear input after sending
+          replyInput.value = ""; // Clear input after sending
         }
       };
 
-      sendBtn.addEventListener('click', handleSend);
-      replyInput.addEventListener('keypress', e => {
-        if (e.key === 'Enter') {
+      sendBtn.addEventListener("click", handleSend);
+      replyInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
           e.preventDefault();
           handleSend();
         }
@@ -562,7 +555,7 @@ function displayConversation(threadId, messages) {
   } else {
     // If it's a class message, remove any existing reply form
     const existingFooter = conversationView.querySelector(
-      '.conversation-footer',
+      ".conversation-footer"
     );
     if (existingFooter) existingFooter.remove();
     // No reply form for class messages for students
@@ -577,9 +570,9 @@ function displayConversation(threadId, messages) {
  */
 async function createNewThread(recipientId) {
   try {
-    const response = await fetch('http://localhost:3000/newThread', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const response = await fetch("http://localhost:3000/newThread", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         participants: [currentProfile.memberName, recipientId],
       }),
@@ -588,13 +581,13 @@ async function createNewThread(recipientId) {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to create new thread in the database: ${errorData.error || response.statusText}`,
+        `Failed to create new thread in the database: ${errorData.error || response.statusText}`
       );
     }
     const responseData = await response.json();
     console.log(responseData.message); // Log success message or "Thread already exists"
   } catch (error) {
-    console.error('Error creating new thread:', error);
+    console.error("Error creating new thread:", error);
     throw error; // Re-throw to be caught by the caller
   }
 }
@@ -608,7 +601,7 @@ function sendMessage(recipientIdForServer, messageContent) {
   // Note: Lesson tracking removed - simplified messaging system
 
   // Determine if it's a class message based on the recipient ID
-  const isClassMessage = recipientIdForServer.startsWith('class-message-');
+  const isClassMessage = recipientIdForServer.startsWith("class-message-");
   const teacherNameForClassMessage = currentProfile.teacher; // Get teacher's name for class messages
   const payload = {
     senderId: currentProfile.memberName,
@@ -617,7 +610,7 @@ function sendMessage(recipientIdForServer, messageContent) {
   };
 
   // 1. Emit the message to the server
-  socket.emit('sendMessage', payload);
+  socket.emit("sendMessage", payload);
 
   // --- OPTIMISTIC UPDATE ---
   // Determine the threadId for the frontend's internal Map.
@@ -630,7 +623,7 @@ function sendMessage(recipientIdForServer, messageContent) {
       currentProfile.memberName,
       recipientIdForServer,
     ].sort();
-    threadId = sortedParticipants.join('_');
+    threadId = sortedParticipants.join("_");
   }
 
   // Ensure thread object exists in our local Map
@@ -638,7 +631,7 @@ function sendMessage(recipientIdForServer, messageContent) {
     console.log(`Optimistically creating new thread for ${threadId}`);
     currentMessageThreads.set(threadId, {
       threadId: threadId,
-      type: isClassMessage ? 'class' : 'private',
+      type: isClassMessage ? "class" : "private",
       participants: isClassMessage
         ? [currentProfile.memberName, teacherNameForClassMessage] // Participants for class message
         : [currentProfile.memberName, recipientIdForServer],
@@ -681,17 +674,17 @@ function handleNewMessage(message) {
     threadId = `class-message-${currentProfile.teacher}`; // Canonical threadId for class messages
   } else {
     const sortedParticipants = [senderId, recipientId].sort();
-    threadId = sortedParticipants.join('_');
+    threadId = sortedParticipants.join("_");
   }
 
   // Find or create the thread in our data map
   if (!currentMessageThreads.has(threadId)) {
     console.log(
-      `newMessage received for new threadId: ${threadId}. Creating it.`,
+      `newMessage received for new threadId: ${threadId}. Creating it.`
     );
     currentMessageThreads.set(threadId, {
       threadId: threadId,
-      type: isClassMessage ? 'class' : 'private',
+      type: isClassMessage ? "class" : "private",
       participants: isClassMessage // For class messages, participants should include the teacher
         ? [senderId, currentProfile.teacher]
         : [senderId, recipientId],
@@ -747,7 +740,7 @@ function handleNewMessage(message) {
 }
 
 // Listen for new threads created in real time
-socket.on('threadCreated', thread => {
+socket.on("threadCreated", (thread) => {
   if (!thread || !thread.threadId) return;
   // Add the new thread to the currentMessageThreads map if not present
   if (!currentMessageThreads.has(thread.threadId)) {
@@ -767,8 +760,8 @@ const updateTime = function () {
 
 //Displays Currently Logged in profile's accounts sorted in order of checking first, then in order of most recently created.
 const displayAccounts = function (currentAccount) {
-  const accountContainer = document.querySelector('.accountContainer');
-  accountContainer.innerHTML = '';
+  const accountContainer = document.querySelector(".accountContainer");
+  accountContainer.innerHTML = "";
 
   // Note: Lesson tracking removed - simplified account display
 
@@ -790,15 +783,15 @@ const displayAccounts = function (currentAccount) {
     const checkingDate = new Date(
       currentProfile.checkingAccount.movementsDates[
         currentProfile.checkingAccount.movementsDates.length - 1
-      ],
+      ]
     );
     if (!isNaN(checkingDate.getTime())) {
       lastTransactionDate = checkingDate.toLocaleDateString(
-        currentProfile.locale,
+        currentProfile.locale
       );
     } else {
       lastTransactionDate = new Date().toLocaleDateString(
-        currentProfile.locale,
+        currentProfile.locale
       );
     }
   } else {
@@ -813,20 +806,20 @@ const displayAccounts = function (currentAccount) {
     const savingsDate = new Date(
       currentProfile.savingsAccount.movementsDates[
         currentProfile.savingsAccount.movementsDates.length - 1
-      ],
+      ]
     );
     if (!isNaN(savingsDate.getTime())) {
       lastTransactionDateSavings = savingsDate.toLocaleDateString(
-        currentProfile.locale,
+        currentProfile.locale
       );
     } else {
       lastTransactionDateSavings = new Date().toLocaleDateString(
-        currentProfile.locale,
+        currentProfile.locale
       );
     }
   } else {
     lastTransactionDateSavings = new Date().toLocaleDateString(
-      currentProfile.locale,
+      currentProfile.locale
     );
   }
 
@@ -837,7 +830,7 @@ const displayAccounts = function (currentAccount) {
             currentProfile.checkingAccount.accountType
           }</div>
           <div class="col accountNumber">${currentProfile.checkingAccount.accountNumber.slice(
-            -4,
+            -4
           )}</div>
           <div class="col updateDate">${lastTransactionDate}</div>
         </div>
@@ -847,30 +840,30 @@ const displayAccounts = function (currentAccount) {
           currentProfile.savingsAccount.accountType
         }</div>
         <div class="col accountNumber">${currentProfile.savingsAccount.accountNumber.slice(
-          -4,
+          -4
         )}</div>
         <div class="col updateDate">${lastTransactionDateSavings}</div>
       </div>
       `,
   ];
 
-  accountContainer.insertAdjacentHTML('beforeEnd', html);
+  accountContainer.insertAdjacentHTML("beforeEnd", html);
 };
 
-if (mainApp) mainApp.style.display = 'none';
+if (mainApp) mainApp.style.display = "none";
 
 /***********************************************************Server Listeners**********************************************/
 
 // Emit 'identify' event to associate the client with a user ID
-socket.on('connect', () => {
-  console.log('User connected:', socket.id);
+socket.on("connect", () => {
+  console.log("User connected:", socket.id);
 
   // Emit the 'identify' event with the user ID (replace 'userId' with actual logic)
 });
 
 // Listen for checking account updates
-socket.on('checkingAccountUpdate', updatedChecking => {
-  console.log('Checking account update received:', updatedChecking);
+socket.on("checkingAccountUpdate", (updatedChecking) => {
+  console.log("Checking account update received:", updatedChecking);
 
   // Update the UI with the received checking account data
   displayBalance(updatedChecking);
@@ -878,8 +871,8 @@ socket.on('checkingAccountUpdate', updatedChecking => {
 });
 
 // Listen for donation updates for checking accounts
-socket.on('donationChecking', updatedDonCheck => {
-  console.log('Donation to checking account update received:', updatedDonCheck);
+socket.on("donationChecking", (updatedDonCheck) => {
+  console.log("Donation to checking account update received:", updatedDonCheck);
 
   // Update the UI with the received donation data
   displayBalance(updatedDonCheck);
@@ -887,8 +880,8 @@ socket.on('donationChecking', updatedDonCheck => {
 });
 
 // Listen for donation updates for savings accounts
-socket.on('donationSaving', updatedDonSav => {
-  console.log('Donation to savings account update received:', updatedDonSav);
+socket.on("donationSaving", (updatedDonSav) => {
+  console.log("Donation to savings account update received:", updatedDonSav);
 
   // Update the UI with the received donation data
   displayBalance(updatedDonSav);
@@ -896,14 +889,14 @@ socket.on('donationSaving', updatedDonSav => {
 });
 
 // Handle potential timer modal logic (if used elsewhere)
-const timerModal = document.querySelector('.timerModal');
+const timerModal = document.querySelector(".timerModal");
 if (timerModal) {
-  timerModal.addEventListener('cancel', event => {
+  timerModal.addEventListener("cancel", (event) => {
     event.preventDefault();
   });
 
-  socket.on('timer', active => {
-    console.log('Timer event received:', active);
+  socket.on("timer", (active) => {
+    console.log("Timer event received:", active);
     if (active) {
       timerModal.showModal();
     } else {
@@ -913,22 +906,22 @@ if (timerModal) {
 }
 
 // Listen for new messages (private or class-wide) from the modern messaging system
-socket.on('newMessage', data => {
-  console.log('New message received:', data);
+socket.on("newMessage", (data) => {
+  console.log("New message received:", data);
   handleNewMessage(data);
 });
 
 // Listen for legacy class messages which sends raw HTML
-socket.on('classMessage', dialogHtml => {
-  console.log('Legacy class message received');
-  const messageContainer = document.createElement('div');
+socket.on("classMessage", (dialogHtml) => {
+  console.log("Legacy class message received");
+  const messageContainer = document.createElement("div");
   messageContainer.innerHTML = dialogHtml;
   document.body.appendChild(messageContainer.firstChild);
 });
 
 // Listen for unit assignments
-socket.on('unitAssignedToStudent', data => {
-  console.log('Unit assignment received:', data);
+socket.on("unitAssignedToStudent", (data) => {
+  console.log("Unit assignment received:", data);
 
   const {
     studentId,
@@ -950,7 +943,7 @@ socket.on('unitAssignedToStudent', data => {
       currentProfile._id === studentId)
   ) {
     console.log(
-      `✅ New unit "${unitName}" (${unitValue}) assigned by ${assignedBy} to class period ${classPeriod}`,
+      `✅ New unit "${unitName}" (${unitValue}) assigned by ${assignedBy} to class period ${classPeriod}`
     );
 
     // Update the student's profile with the new unit assignment
@@ -960,58 +953,58 @@ socket.on('unitAssignedToStudent', data => {
 
     // Check if unit is already assigned to prevent duplicates
     const existingUnit = currentProfile.assignedUnitIds.find(
-      unit => unit.unitValue === unitValue || unit.unitId === unitId,
+      (unit) => unit.unitValue === unitValue || unit.unitId === unitId
     );
 
     if (!existingUnit) {
       currentProfile.assignedUnitIds.push(unitAssignment);
       console.log(
-        '✅ Added new unit assignment to student profile:',
-        unitAssignment,
+        "✅ Added new unit assignment to student profile:",
+        unitAssignment
       );
 
       // Re-render lessons to show the new unit - use dynamic import to access the lesson renderer
-      if (typeof renderLessons === 'function') {
-        console.log('🔄 Refreshing lessons display...');
+      if (typeof renderLessons === "function") {
+        console.log("🔄 Refreshing lessons display...");
         console.log(
-          '🔍 DEBUG: currentProfile when calling renderLessons:',
-          currentProfile,
+          "🔍 DEBUG: currentProfile when calling renderLessons:",
+          currentProfile
         );
         renderLessons(currentProfile);
       } else {
         // If renderLessons is not available as a global function, try to import it
-        console.log('🔄 Attempting to refresh lessons via module import...');
-        import('./lessonRenderer.js')
-          .then(module => {
+        console.log("🔄 Attempting to refresh lessons via module import...");
+        import("./lessonRenderer.js")
+          .then((module) => {
             if (module.renderLessons) {
               module.renderLessons(currentProfile);
             } else {
               console.warn(
-                'renderLessons function not found in lesson renderer module',
+                "renderLessons function not found in lesson renderer module"
               );
             }
           })
-          .catch(error => {
-            console.error('Failed to import lesson renderer:', error);
+          .catch((error) => {
+            console.error("Failed to import lesson renderer:", error);
           });
       }
 
       // Show notification to student
-      if (typeof showModernNotification === 'function') {
+      if (typeof showModernNotification === "function") {
         showModernNotification(
           `📚 New lesson unit assigned: "${unitName}" by ${assignedBy}`,
-          'success',
-          7000,
+          "success",
+          7000
         );
-      } else if (typeof showNotification === 'function') {
+      } else if (typeof showNotification === "function") {
         showNotification(
           `New lesson unit assigned: "${unitName}" by ${assignedBy}`,
-          'success',
-          7000,
+          "success",
+          7000
         );
       } else {
         // Fallback notification
-        const notification = document.createElement('div');
+        const notification = document.createElement("div");
         notification.style.cssText = `
           position: fixed;
           top: 20px;
@@ -1042,7 +1035,7 @@ socket.on('unitAssignedToStudent', data => {
         // Auto-remove after 7 seconds
         setTimeout(() => {
           if (notification.parentNode) {
-            notification.style.animation = 'slideOutRight 0.3s ease-out';
+            notification.style.animation = "slideOutRight 0.3s ease-out";
             setTimeout(() => {
               if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
@@ -1052,9 +1045,9 @@ socket.on('unitAssignedToStudent', data => {
         }, 7000);
 
         // Add CSS animations if not already present
-        if (!document.getElementById('notificationAnimations')) {
-          const style = document.createElement('style');
-          style.id = 'notificationAnimations';
+        if (!document.getElementById("notificationAnimations")) {
+          const style = document.createElement("style");
+          style.id = "notificationAnimations";
           style.textContent = `
             @keyframes slideInRight {
               from { transform: translateX(100%); opacity: 0; }
@@ -1069,25 +1062,25 @@ socket.on('unitAssignedToStudent', data => {
         }
       }
     } else {
-      console.log('ℹ️ Unit already assigned, skipping duplicate:', unitValue);
+      console.log("ℹ️ Unit already assigned, skipping duplicate:", unitValue);
     }
   } else {
-    console.log('ℹ️ Unit assignment not for current student, ignoring.');
+    console.log("ℹ️ Unit assignment not for current student, ignoring.");
   }
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = 'http://localhost:3000/profiles';
+const testServerProfiles = "http://localhost:3000/profiles";
 
-const loanURL = 'http://localhost:3000/loans';
+const loanURL = "http://localhost:3000/loans";
 
-const donationURL = 'http://localhost:3000/donations';
+const donationURL = "http://localhost:3000/donations";
 
-const donationSavingsURL = 'http://localhost:3000/donationsSavings';
+const donationSavingsURL = "http://localhost:3000/donationsSavings";
 
-const balanceURL = 'http://localhost:3000/initialBalance';
+const balanceURL = "http://localhost:3000/initialBalance";
 
-const productivityURL = 'http://localhost:5040/timers';
+const productivityURL = "http://localhost:5040/timers";
 
 // Store the received profiles in a global variable or a state variable if you're using a front-end framework
 let Profiles = [];
@@ -1095,64 +1088,64 @@ let Profiles = [];
 export async function getInfoProfiles() {
   try {
     console.log(
-      'Step 1: Starting the process to fetch profiles from the server.',
+      "Step 1: Starting the process to fetch profiles from the server."
     );
 
     const res = await fetch(testServerProfiles, {
-      method: 'GET',
+      method: "GET",
     });
 
-    console.log('Step 2: Received a response from the server.');
+    console.log("Step 2: Received a response from the server.");
 
     if (res.ok) {
       console.log(
-        `Step 3: Server responded successfully with status ${res.status}. Attempting to parse the JSON response.`,
+        `Step 3: Server responded successfully with status ${res.status}. Attempting to parse the JSON response.`
       );
       try {
         const Profiles = await res.json();
-        console.log('Step 4: Successfully parsed JSON response:', Profiles);
+        console.log("Step 4: Successfully parsed JSON response:", Profiles);
 
         // Log the initialization of Socket.IO listener
         console.log(
-          'Step 5: Setting up Socket.IO listener for profile updates.',
+          "Step 5: Setting up Socket.IO listener for profile updates."
         );
-        socket.on('profiles', updatedProfiles => {
+        socket.on("profiles", (updatedProfiles) => {
           console.log(
-            'Step 6: Received updated profiles from the server:',
-            updatedProfiles,
+            "Step 6: Received updated profiles from the server:",
+            updatedProfiles
           );
           // Update the UI or perform any necessary actions with updated profiles
         });
 
-        console.log('Step 7: Returning the fetched and parsed profiles.');
+        console.log("Step 7: Returning the fetched and parsed profiles.");
         return Profiles;
       } catch (jsonError) {
         console.error(
-          'Step 4 Error: Failed to parse JSON response:',
-          jsonError.message,
+          "Step 4 Error: Failed to parse JSON response:",
+          jsonError.message
         );
-        console.error('The server response may not be in the correct format.');
-        throw new Error('Invalid JSON response from server');
+        console.error("The server response may not be in the correct format.");
+        throw new Error("Invalid JSON response from server");
       }
     } else {
       console.error(
-        `Step 3 Error: Server responded with status ${res.status} (${res.statusText}).`,
+        `Step 3 Error: Server responded with status ${res.status} (${res.statusText}).`
       );
       const errorDetails = await res.text(); // Attempt to read error details
       console.error(
-        'Additional details from the server response:',
-        errorDetails,
+        "Additional details from the server response:",
+        errorDetails
       );
       throw new Error(`HTTP error: ${res.status} ${res.statusText}`);
     }
   } catch (error) {
     console.error(
-      'Final Step Error: An unexpected error occurred during the process.',
+      "Final Step Error: An unexpected error occurred during the process."
     );
-    console.error('Error message:', error.message);
+    console.error("Error message:", error.message);
 
     if (error.stack) {
-      console.error('Stack trace:', error.stack);
+      console.error("Stack trace:", error.stack);
     }
 
     // Optionally rethrow the error or return a fallback value
@@ -1162,9 +1155,9 @@ export async function getInfoProfiles() {
 
 export async function initialBalance() {
   const res = await fetch(balanceURL, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       parcel: currentProfile,
@@ -1174,9 +1167,9 @@ export async function initialBalance() {
 
 async function loanPush() {
   const res = await fetch(loanURL, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       parcel: [currentProfile, parseInt(loanAmount.value)],
@@ -1187,9 +1180,9 @@ async function loanPush() {
 
 async function donationPush() {
   const res = await fetch(donationURL, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       parcel: [currentAccount, parseInt(donateAmount.value)],
@@ -1199,9 +1192,9 @@ async function donationPush() {
 
 async function donationPushSavings() {
   const res = await fetch(donationSavingsURL, {
-    method: 'POST',
+    method: "POST",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       parcel: [currentAccount, parseInt(donateAmount.value)],
@@ -1223,47 +1216,47 @@ let accPIN;
 let accUser;
 //Currency codes for formatting
 const currencyCodeMap = {
-  840: 'USD',
-  978: 'EUR',
+  840: "USD",
+  978: "EUR",
   // add more currency codes here as needed
 };
 
-const closeT1 = document.querySelector('.closeBtn');
-const signOnForm = document.querySelector('signOnForm');
-const signOnText = document.querySelector('.signOntext');
-const loginButton = document.querySelector('.login__btn');
-const mobileLoginButton = document.querySelector('.mobileLoginBtn');
+const closeT1 = document.querySelector(".closeBtn");
+const signOnForm = document.querySelector("signOnForm");
+const signOnText = document.querySelector(".signOntext");
+const loginButton = document.querySelector(".login__btn");
+const mobileLoginButton = document.querySelector(".mobileLoginBtn");
 
-const formDiv = document.querySelector('.formDiv');
+const formDiv = document.querySelector(".formDiv");
 export let balance;
 
-const lastUpdated = document.querySelector('.updateDate');
-const transActionsDate = document.querySelector('.transactions__date');
-const balanceValue = document.querySelector('.balance__value');
-const balanceLabel = document.querySelector('.balance__label');
-const accNumSwitch = document.querySelector('.form__input--user--switch');
-const accPinSwitch = document.querySelector('.form__input--pin--switch');
-const accBtnSwitch = document.querySelector('.form__btn--switch');
-const btnClose = document.querySelector('.form__btn--close');
-const userClose = document.querySelector('.form__input--user--close');
-const userClosePin = document.querySelector('.form__input--pin--close');
-const transactionContainer = document.querySelector('.transactions');
-const requestLoanbtn = document.querySelector('.form__btn--loan');
-const loanAmount = document.querySelector('.form__input--loan-amount');
-const donateBtn = document.querySelector('.form__btn--donate');
-const donateAmount = document.querySelector('.form__input--donate--amount');
-const donatePin = document.querySelector('.form__input--pin--donate');
-const accNumHTML = document.querySelector('.accountNumber');
+const lastUpdated = document.querySelector(".updateDate");
+const transActionsDate = document.querySelector(".transactions__date");
+const balanceValue = document.querySelector(".balance__value");
+const balanceLabel = document.querySelector(".balance__label");
+const accNumSwitch = document.querySelector(".form__input--user--switch");
+const accPinSwitch = document.querySelector(".form__input--pin--switch");
+const accBtnSwitch = document.querySelector(".form__btn--switch");
+const btnClose = document.querySelector(".form__btn--close");
+const userClose = document.querySelector(".form__input--user--close");
+const userClosePin = document.querySelector(".form__input--pin--close");
+const transactionContainer = document.querySelector(".transactions");
+const requestLoanbtn = document.querySelector(".form__btn--loan");
+const loanAmount = document.querySelector(".form__input--loan-amount");
+const donateBtn = document.querySelector(".form__btn--donate");
+const donateAmount = document.querySelector(".form__input--donate--amount");
+const donatePin = document.querySelector(".form__input--pin--donate");
+const accNumHTML = document.querySelector(".accountNumber");
 const balanceDate = document.querySelector(`.dateText`);
 const now = new Date();
 
 //Used for formatting dates
 const options = {
-  hour: 'numeric',
-  minute: 'numeric',
-  day: 'numeric',
-  month: 'numeric',
-  year: 'numeric',
+  hour: "numeric",
+  minute: "numeric",
+  day: "numeric",
+  month: "numeric",
+  year: "numeric",
   // weekday: 'long',
 };
 
@@ -1271,40 +1264,40 @@ const options = {
 
 //login event listener (used to login to the app)
 if (loginButton) {
-  loginButton.addEventListener('click', function (event) {
+  loginButton.addEventListener("click", function (event) {
     event.preventDefault();
 
     const originalText = loginButton.textContent;
-    setButtonLoading(loginButton, true, originalText);
+    setLoadingState(loginButton, true, originalText);
 
-    const loginPIN = document.querySelector('.login__input--pin');
-    const loginText = document.querySelector('.login__input--user');
+    const loginPIN = document.querySelector(".login__input--pin");
+    const loginText = document.querySelector(".login__input--user");
 
     setTimeout(async () => {
       await loginFunc(loginPIN, loginText, loginBox);
-      setButtonLoading(loginButton, false, originalText);
+      setLoadingState(loginButton, false, originalText);
     }, 500);
   });
 }
 
 if (mobileLoginButton) {
-  mobileLoginButton.addEventListener('click', function (event) {
+  mobileLoginButton.addEventListener("click", function (event) {
     event.preventDefault();
 
     const originalText = mobileLoginButton.textContent;
-    setButtonLoading(mobileLoginButton, true, originalText);
+    setLoadingState(mobileLoginButton, true, originalText);
 
-    const mobileLoginPIN = document.querySelector('.mobile_login__input--pin');
+    const mobileLoginPIN = document.querySelector(".mobile_login__input--pin");
     const mobileLoginText = document.querySelector(
-      '.mobile_login__input--user',
+      ".mobile_login__input--user"
     );
 
     setTimeout(async () => {
       await loginFunc(mobileLoginPIN, mobileLoginText, mobileLoginBox);
-      setButtonLoading(mobileLoginButton, false, originalText);
+      setLoadingState(mobileLoginButton, false, originalText);
     }, 500);
 
-    console.log('running');
+    console.log("running");
   });
 }
 
@@ -1314,24 +1307,24 @@ const loginFunc = async function (PIN, user, screen) {
     const usernameErrors = validateText(user.value, {
       minLength: 1,
       maxLength: 50,
-      fieldName: 'Username',
+      fieldName: "Username",
       required: true,
     });
 
     if (usernameErrors.length > 0) {
-      showNotification(usernameErrors.join(', '), 'error');
+      showModernNotification(usernameErrors.join(", "), "error");
       return;
     }
 
     const pin = parseInt(PIN.value);
 
-    if (!PIN.value || PIN.value.trim() === '') {
-      showNotification('PIN is required', 'error');
+    if (!PIN.value || PIN.value.trim() === "") {
+      showModernNotification("PIN is required", "error");
       return;
     }
 
     if (isNaN(pin) || pin < 1000 || pin > 9999) {
-      showNotification('PIN must be a 4-digit number', 'error');
+      showModernNotification("PIN must be a 4-digit number", "error");
       return;
     }
 
@@ -1350,31 +1343,31 @@ const loginFunc = async function (PIN, user, screen) {
     }
 
     if (!foundUser) {
-      showNotification('Username not found', 'error');
+      showModernNotification("Username not found", "error");
       return;
     }
 
     if (!correctPin) {
-      showNotification('Incorrect PIN', 'error');
+      showModernNotification("Incorrect PIN", "error");
       return;
     }
 
     // Mock data for demonstration. In a real app, this would come from the database.
     if (currentProfile && !currentProfile.currentUnit) {
-      console.log('Assigning default unit to profile for demo.');
-      currentProfile.currentUnit = 'Unit 1: Introduction to Banking';
+      console.log("Assigning default unit to profile for demo.");
+      currentProfile.currentUnit = "Unit 1: Introduction to Banking";
     }
 
     if (currentProfile) {
-      showNotification(
-        `Welcome back, ${currentProfile.memberName.split(' ')[0]}!`,
-        'success',
+      showModernNotification(
+        `Welcome back, ${currentProfile.memberName.split(" ")[0]}!`,
+        "success"
       );
 
       // Emit the identify event with the logged-in user's memberName
       const userId = currentProfile.memberName;
       console.log(`Emitting identify event for user: ${userId}`);
-      socket.emit('identify', userId);
+      socket.emit("identify", userId);
 
       // Call initial balance
       initialBalance();
@@ -1383,22 +1376,22 @@ const loginFunc = async function (PIN, user, screen) {
       screen.close();
 
       // Hide login section
-      const signOnSection = document.querySelector('.signOnSection');
-      signOnSection.style.display = 'none';
+      const signOnSection = document.querySelector(".signOnSection");
+      signOnSection.style.display = "none";
 
       // Display welcome message
-      const signOnText = document.querySelector('.signOnText');
-      signOnText.textContent = currentProfile.memberName.split(' ')[0];
+      const signOnText = document.querySelector(".signOnText");
+      signOnText.textContent = currentProfile.memberName.split(" ")[0];
 
       // Show the main app
-      const mainApp = document.querySelector('.mainApp');
-      mainApp.style.display = 'flex';
+      const mainApp = document.querySelector(".mainApp");
+      mainApp.style.display = "flex";
       mainApp.style.opacity = 100;
 
       // Update the UI
       currentAccount = currentProfile.checkingAccount;
       if (currentAccount) {
-        console.log('User logged in successfully:', currentAccount);
+        console.log("User logged in successfully:", currentAccount);
         updateUI(currentAccount);
 
         // Update account number display on initial login
@@ -1407,16 +1400,16 @@ const loginFunc = async function (PIN, user, screen) {
         // Initialize all module functions after successful login
         // These functions will now have access to currentProfile
         try {
-          // Initialize lesson engine for the logged-in student
-          if (window.lessonEngine) {
-            await window.lessonEngine.initialize(
-              currentProfile.memberName || currentProfile.userName,
-            );
-            console.log(
-              '✅ Lesson engine initialized for student:',
-              currentProfile.memberName,
-            );
-          }
+          // Initialize our new lesson engine for the logged-in student
+          initializeLessonEngine(currentProfile);
+
+          // Fetch assigned lessons
+          console.log("Calling endpoint to fetch assigned lessons...");
+          fetchAssignedLessons(currentProfile).then(lessons => {
+            console.log("Retrieved lessons in script.js:", lessons);
+            renderUnitHeader(currentProfile);
+            renderLessonButtons(lessons);
+          });
 
           // Call setup functions from other modules
           if (window.incomeSpendingCalc) window.incomeSpendingCalc();
@@ -1425,54 +1418,37 @@ const loginFunc = async function (PIN, user, screen) {
           if (window.initializeDeposit) window.initializeDeposit();
           if (window.initializeSendMoney) window.initializeSendMoney();
         } catch (setupError) {
-          console.warn('Some module setup functions failed:', setupError);
-        }
-
-        // Fetch and render lessons based on the student's teacher
-        if (currentProfile) {
-          console.log(
-            '🔍 DEBUG: Calling renderLessons with currentProfile:',
-            currentProfile,
-          );
-          renderLessons(currentProfile);
-        } else {
-          console.error('Student profile does not have a teacher assigned.');
-          // Optionally, display a message in the lesson block
-          const lessonHeader = document.querySelector('.lessonHeaderText');
-          const lessonContainer = document.querySelector('.lessonRow');
-          lessonHeader.textContent = 'Lessons';
-          lessonContainer.innerHTML =
-            '<p>No teacher assigned. Cannot load lessons.</p>';
+          console.warn("Some module setup functions failed:", setupError);
         }
 
         // Update the displayed time
         updateTime();
         balanceDate.textContent = `As of ${new Intl.DateTimeFormat(
           currentProfile.locale,
-          options,
+          options
         ).format(currentTime)}`;
 
         // Initialize student messaging system
         initializeStudentMessaging(currentProfile.memberName);
       } else {
-        showNotification(
-          'No checking account found. Please contact customer service.',
-          'error',
+        showModernNotification(
+          "No checking account found. Please contact customer service.",
+          "error"
         );
       }
     }
   } catch (error) {
-    console.error('Login error:', error);
-    showNotification(
-      'An error occurred during login. Please try again.',
-      'error',
+    console.error("Login error:", error);
+    showModernNotification(
+      "An error occurred during login. Please try again.",
+      "error"
     );
   }
 };
 
 //Switch accounts
 if (accBtnSwitch) {
-  accBtnSwitch.addEventListener('click', function (e) {
+  accBtnSwitch.addEventListener("click", function (e) {
     e.preventDefault();
 
     try {
@@ -1483,25 +1459,25 @@ if (accBtnSwitch) {
       let pinInput = accPinSwitch.value;
 
       // Validate inputs
-      if (!targetAccount || targetAccount === 'default') {
-        showNotification('Please select an account to switch to', 'error');
+      if (!targetAccount || targetAccount === "default") {
+        showModernNotification("Please select an account to switch to", "error");
         return;
       }
 
-      if (!pinInput || pinInput.trim() === '') {
-        showNotification('PIN is required', 'error');
+      if (!pinInput || pinInput.trim() === "") {
+        showModernNotification("PIN is required", "error");
         return;
       }
 
       let accPIN = parseInt(pinInput);
 
       if (isNaN(accPIN) || accPIN < 1000 || accPIN > 9999) {
-        showNotification('PIN must be a 4-digit number', 'error');
+        showModernNotification("PIN must be a 4-digit number", "error");
         return;
       }
 
       if (accPIN !== currentProfile.pin) {
-        showNotification('Incorrect PIN', 'error');
+        showModernNotification("Incorrect PIN", "error");
         return;
       }
 
@@ -1516,7 +1492,7 @@ if (accBtnSwitch) {
         // Update account number display when switching to checking
         updateAccountNumberDisplay(currentAccount);
 
-        showNotification('Switched to Checking Account', 'success');
+        showModernNotification("Switched to Checking Account", "success");
       } else if (
         targetAccount === currentProfile.savingsAccount.accountNumber.slice(-4)
       ) {
@@ -1527,28 +1503,28 @@ if (accBtnSwitch) {
         // Update account number display when switching to savings
         updateAccountNumberDisplay(currentAccount);
 
-        showNotification('Switched to Savings Account', 'success');
+        showModernNotification("Switched to Savings Account", "success");
       } else {
-        showNotification('Invalid account selection', 'error');
+        showModernNotification("Invalid account selection", "error");
         return;
       }
 
       // Handle loan section visibility
-      const loanBox = document.querySelector('.operation--loan');
+      const loanBox = document.querySelector(".operation--loan");
       if (loanBox) {
-        if (currentAccount.accountType === 'Savings') {
-          loanBox.style.display = 'none';
-        } else if (currentAccount.accountType === 'Checking') {
-          loanBox.style.display = 'inline';
+        if (currentAccount.accountType === "Savings") {
+          loanBox.style.display = "none";
+        } else if (currentAccount.accountType === "Checking") {
+          loanBox.style.display = "inline";
         }
       }
 
       // Clear form
-      accNumSwitch.value = '';
-      accPinSwitch.value = '';
+      accNumSwitch.value = "";
+      accPinSwitch.value = "";
     } catch (error) {
-      console.error('Account switch error:', error);
-      showNotification('An error occurred while switching accounts', 'error');
+      console.error("Account switch error:", error);
+      showModernNotification("An error occurred while switching accounts", "error");
     }
   });
 }
@@ -1557,13 +1533,13 @@ if (accBtnSwitch) {
 
 //checks if button exists
 if (requestLoanbtn) {
-  requestLoanbtn.addEventListener('click', function (e) {
+  requestLoanbtn.addEventListener("click", function (e) {
     //prevents default action
     e.preventDefault();
 
     loanPush();
 
-    loanAmount.value = '';
+    loanAmount.value = "";
 
     //Declares the amount as the user entered amount.
   });
@@ -1571,18 +1547,18 @@ if (requestLoanbtn) {
 
 //Donating money
 if (donateBtn) {
-  donateBtn.addEventListener('click', function (e) {
+  donateBtn.addEventListener("click", function (e) {
     e.preventDefault();
     //How much a user donates
 
-    if (currentAccount.accountType === 'Checking') {
+    if (currentAccount.accountType === "Checking") {
       donationPush();
-    } else if (currentAccount.accountType === 'Savings') {
+    } else if (currentAccount.accountType === "Savings") {
       donationPushSavings();
     }
 
-    donatePin.value = '';
-    donateAmount.value = '';
+    donatePin.value = "";
+    donateAmount.value = "";
   });
 }
 
@@ -1591,8 +1567,8 @@ export const displayTransactions = function (currentAccount) {
   let movs;
 
   //selects the transactions HTML element
-  const transactionContainer = document.querySelector('.transactionsColumn');
-  transactionContainer.innerHTML = '';
+  const transactionContainer = document.querySelector(".transactionsColumn");
+  transactionContainer.innerHTML = "";
 
   //Variable set for the transactions themselves
 
@@ -1614,8 +1590,8 @@ export const displayTransactions = function (currentAccount) {
       if (isNaN(date.getTime())) {
         // Only log if we have invalid date data, not missing data
         console.warn(
-          'Invalid date found, using current date:',
-          currentAccount.movementsDates[i],
+          "Invalid date found, using current date:",
+          currentAccount.movementsDates[i]
         );
         date = new Date();
       }
@@ -1630,74 +1606,74 @@ export const displayTransactions = function (currentAccount) {
     const formattedMov = formatCur(
       mov.amount,
       currentAccount.locale,
-      currentAccount.currency,
+      currentAccount.currency
     );
     let transType;
     let transName = mov.Name;
 
     let movIcon;
 
-    if (mov.Category === 'Money Deposit') {
+    if (mov.Category === "Money Deposit") {
       movIcon = `<i class="fa-solid fa-dollar-sign transImg sndMon"></i>`;
     }
-    if (mov.Category === 'Transfer') {
+    if (mov.Category === "Transfer") {
       movIcon = `<i class="fa-solid fa-money-bill-transfer transImg"></i>`;
     }
 
-    if (mov.Category === 'car-note') {
+    if (mov.Category === "car-note") {
       movIcon = `<i class="fa-solid fa-car transImg"></i>`;
     }
-    if (mov.Category === 'rent') {
+    if (mov.Category === "rent") {
       movIcon = `<i class="fa-solid fa-house transImg"></i>`;
     }
-    if (mov.Category === 'car-insurance') {
+    if (mov.Category === "car-insurance") {
       movIcon = `<i class="fa-solid fa-car-burst transImg"></i>`;
     }
-    if (mov.Category === 'home-insurance') {
+    if (mov.Category === "home-insurance") {
       movIcon = `<i class="fa-solid fa-house-crack transImg"></i>`;
     }
-    if (mov.Category === 'food') {
+    if (mov.Category === "food") {
       movIcon = `<i class="fa-solid fa-utensils transImg"></i>`;
     }
-    if (mov.Category === 'electric') {
+    if (mov.Category === "electric") {
       movIcon = `<i class="fa-solid fa-bolt transImg"></i>`;
     }
 
-    if (mov.Category === 'gas') {
+    if (mov.Category === "gas") {
       movIcon = `<i class="fa-solid fa-fire-flame-simple transImg"></i>`;
     }
 
-    if (mov.Category === 'water') {
+    if (mov.Category === "water") {
       movIcon = `<i class="fa-solid fa-droplet transImg"></i>`;
     }
 
-    if (mov.Category === 'trash-collection') {
+    if (mov.Category === "trash-collection") {
       movIcon = `<i class="fa-solid fa-dumpster transImg"></i>`;
     }
 
-    if (mov.Category === 'phone-bill') {
+    if (mov.Category === "phone-bill") {
       movIcon = `<i class="fa-solid fa-phone transImg"></i>`;
     }
 
-    if (mov.Category === 'internet') {
+    if (mov.Category === "internet") {
       movIcon = `<i class="fa-solid fa-wifi transImg"></i>`;
     }
 
-    if (mov.Category === 'custom-expense') {
+    if (mov.Category === "custom-expense") {
       movIcon = `<i class="fa-solid fa-screwdriver-wrench transImg"></i>`;
     }
 
-    if (mov.Category === 'paycheck') {
+    if (mov.Category === "paycheck") {
       movIcon = `<i class="fa-solid fa-dollar-sign transImg dollarSignImg"></i>`;
     }
-    if (mov.Category === 'Check Deposit') {
+    if (mov.Category === "Check Deposit") {
       movIcon = `<i class="fa-solid fa-money-check transImg"></i>`;
     }
     //HTML for transactions
     if (mov.amount < 0) {
-      transType = 'negTrans';
+      transType = "negTrans";
     } else if (mov.amount > 0) {
-      transType = 'posTrans';
+      transType = "posTrans";
     }
     const html = `<div class="transaction row">
                           <div class="transIcon col-4">
@@ -1712,7 +1688,7 @@ export const displayTransactions = function (currentAccount) {
                           </div>
                         </div>`;
     //Inserts HTML with required data
-    transactionContainer.insertAdjacentHTML('afterbegin', html);
+    transactionContainer.insertAdjacentHTML("afterbegin", html);
     displayBillList(currentAccount);
   });
 };
@@ -1720,14 +1696,14 @@ export const displayBillList = function (currentAccount) {
   let bills;
 
   //selects the transactions HTML element
-  const billListContainer = document.querySelector('.bills');
-  billListContainer.innerHTML = '';
+  const billListContainer = document.querySelector(".bills");
+  billListContainer.innerHTML = "";
 
   // Record that user has viewed their bills for lesson tracking
-  if (typeof recordLessonAction === 'function') {
-    recordLessonAction('account_checked', {
+  if (typeof recordLessonAction === "function") {
+    recordLessonAction("account_checked", {
       accountType: currentAccount.accountType,
-      action: 'viewed_bills',
+      action: "viewed_bills",
       timestamp: new Date().toISOString(),
     });
   }
@@ -1741,7 +1717,7 @@ export const displayBillList = function (currentAccount) {
   //Sets up the date variable for the transactions
 
   //A loop that runs through each transaction in the current account object
-  if (currentAccount.accountType != 'Savings') {
+  if (currentAccount.accountType != "Savings") {
     bills.forEach(function (bill, i) {
       //ternerary to determine whether a transaction is a deposit or withdrawal
 
@@ -1755,83 +1731,83 @@ export const displayBillList = function (currentAccount) {
 
       //currentDate = new Date();
 
-      if (bill.interval === 'weekly') {
+      if (bill.interval === "weekly") {
         advancedDate = currentDate.setUTCDate(currentDate.getUTCDate() + 7);
       }
 
-      if (bill.interval === 'bi-weekly') {
+      if (bill.interval === "bi-weekly") {
         advancedDate = currentDate.setUTCDate(currentDate.getUTCDate() + 14);
       }
 
-      if (bill.interval === 'monthly') {
+      if (bill.interval === "monthly") {
         advancedDate = currentDate.setUTCDate(currentDate.getUTCDate() + 30);
       }
 
-      if (bill.interval === 'yearly') {
+      if (bill.interval === "yearly") {
         advancedDate = currentDate.setUTCDate(currentDate.getUTCDate() + 365);
       }
 
       //displays date next to transactions
       const displayDate = formatMovementDate(
         advancedDate,
-        currentAccount.locale,
+        currentAccount.locale
       );
 
       //Formats transactions for user locale
       const formattedMov = formatCur(
         bill.amount,
         currentAccount.locale,
-        currentAccount.currency,
+        currentAccount.currency
       );
       let transType;
       let transName = bill.Name;
 
       let billIcon;
 
-      if (bill.Category === 'car-note') {
+      if (bill.Category === "car-note") {
         billIcon = `<i class="fa-solid fa-car "></i>`;
       }
-      if (bill.Category === 'rent') {
+      if (bill.Category === "rent") {
         billIcon = `<i class="fa-solid fa-house rentIcon"></i>`;
       }
-      if (bill.Category === 'car-insurance') {
+      if (bill.Category === "car-insurance") {
         billIcon = `<i class="fa-solid fa-car-burst "></i>`;
       }
-      if (bill.Category === 'home-insurance') {
+      if (bill.Category === "home-insurance") {
         billIcon = `<i class="fa-solid fa-house-crack "></i>`;
       }
-      if (bill.Category === 'food') {
+      if (bill.Category === "food") {
         billIcon = `<i class="fa-solid fa-utensils "></i>`;
       }
-      if (bill.Category === 'electric') {
+      if (bill.Category === "electric") {
         billIcon = `<i class="fa-solid fa-bolt "></i>`;
       }
 
-      if (bill.Category === 'gas') {
+      if (bill.Category === "gas") {
         billIcon = `<i class="fa-solid fa-fire-flame-simple "></i>`;
       }
 
-      if (bill.Category === 'water') {
+      if (bill.Category === "water") {
         billIcon = `<i class="fa-solid fa-droplet "></i>`;
       }
 
-      if (bill.Category === 'trash-collection') {
+      if (bill.Category === "trash-collection") {
         billIcon = `<i class="fa-solid fa-dumpster "></i>`;
       }
 
-      if (bill.Category === 'phone-bill') {
+      if (bill.Category === "phone-bill") {
         billIcon = `<i class="fa-solid fa-phone "></i>`;
       }
 
-      if (bill.Category === 'internet') {
+      if (bill.Category === "internet") {
         billIcon = `<i class="fa-solid fa-wifi wifiIcon "></i>`;
       }
 
-      if (bill.Category === 'custom-expense') {
+      if (bill.Category === "custom-expense") {
         billIcon = `<i class="fa-solid fa-screwdriver-wrench billListCustom "></i>`;
       }
 
-      if (bill.Category === 'paycheck') {
+      if (bill.Category === "paycheck") {
         billIcon = `<i class="fa-solid fa-dollar-sign  "></i>`;
       }
       //HTML for transactions
@@ -1848,7 +1824,7 @@ export const displayBillList = function (currentAccount) {
       </div>
     </div>`;
       //Inserts HTML with required data
-      billListContainer.insertAdjacentHTML('afterbegin', html);
+      billListContainer.insertAdjacentHTML("afterbegin", html);
     });
   }
 };
@@ -1861,10 +1837,10 @@ export const formatMovementDate = function (date, locale) {
 //formats currency based on user locale
 function formatCur(value, currency, locale) {
   //Sets currency based on locale currency code. (Defaults to USD if no locale can be found)
-  const currencyCode = currencyCodeMap[currency] || 'USD';
+  const currencyCode = currencyCodeMap[currency] || "USD";
   //Sets style and code, and formats the transaction
   return new Intl.NumberFormat(locale, {
-    style: 'currency',
+    style: "currency",
     currency: currencyCode,
   }).format(value);
 }
@@ -1875,13 +1851,13 @@ function formatCur(value, currency, locale) {
  * @returns {string} - Formatted account number with dashes
  */
 export function formatAccountNumber(accountNumber) {
-  if (!accountNumber) return '';
+  if (!accountNumber) return "";
 
   // Convert to string and remove any existing formatting
-  const cleanNumber = accountNumber.toString().replace(/\D/g, '');
+  const cleanNumber = accountNumber.toString().replace(/\D/g, "");
 
   // Add dashes every 4 digits
-  return cleanNumber.replace(/(\d{4})(?=\d)/g, '$1-');
+  return cleanNumber.replace(/(\d{4})(?=\d)/g, "$1-");
 }
 
 /**
@@ -1891,12 +1867,12 @@ export function formatAccountNumber(accountNumber) {
 export function updateAccountNumberDisplay(account) {
   if (!account || !account.accountNumber) return;
 
-  const accountNumberElement = document.querySelector('.accountNumber');
-  const accountTypeElement = document.querySelector('.accountType');
+  const accountNumberElement = document.querySelector(".accountNumber");
+  const accountTypeElement = document.querySelector(".accountType");
 
   if (accountNumberElement) {
     accountNumberElement.textContent = formatAccountNumber(
-      account.accountNumber,
+      account.accountNumber
     );
   }
 
@@ -1913,7 +1889,7 @@ export const displayBalance = function (acc) {
   balanceValue.textContent = formatCur(
     acc.balanceTotal,
     acc.locale,
-    acc.currency,
+    acc.currency
   );
 };
 
@@ -1926,12 +1902,12 @@ export const updateUI = function (acc) {
   displayBillList(acc);
 
   // Record that user has checked their account for lesson tracking
-  if (typeof recordLessonAction === 'function') {
-    recordLessonAction('account_checked', {
+  if (typeof recordLessonAction === "function") {
+    recordLessonAction("account_checked", {
       accountType: acc.accountType,
       balance: acc.balance,
       timestamp: new Date().toISOString(),
-      action: 'viewed_account_details',
+      action: "viewed_account_details",
     });
   }
 };

@@ -1,11 +1,13 @@
 import { currentProfile } from './script.js';
 import { getInfoProfiles } from './script.js';
 import {
-  showNotification,
   validateAmount,
   validateSelection,
-  setButtonLoading,
 } from './validation.js';
+import {
+  setLoadingState,
+  showNotification as showModernNotification,
+} from './uiEnhancements.js';
 
 /**********************************************Variables****************************************/
 
@@ -53,13 +55,13 @@ inputBTN.addEventListener('click', function (e) {
   e.preventDefault();
 
   const originalText = inputBTN.textContent;
-  setButtonLoading(inputBTN, true, originalText);
+  setLoadingState(inputBTN, true, originalText);
 
   try {
     validateAndSendMoney();
   } finally {
     setTimeout(() => {
-      setButtonLoading(inputBTN, false, originalText);
+      setLoadingState(inputBTN, false, originalText);
     }, 1500);
   }
 });
@@ -102,7 +104,7 @@ function validateAndSendMoney() {
   }
 
   if (errors.length > 0) {
-    showNotification(errors.join(', '), 'error');
+    showModernNotification(errors.join(', '), 'error');
     return;
   }
 
@@ -122,7 +124,7 @@ const accountSetup = function () {
 };
 const sendFunds = async function (recip, sendr, amnt) {
   try {
-    showNotification('Processing money transfer...', 'info');
+    showModernNotification('Processing money transfer...', 'info');
 
     console.log('Sending funds:', { recip, sendr, amnt });
 
@@ -142,7 +144,7 @@ const sendFunds = async function (recip, sendr, amnt) {
 
     const result = await res.json();
 
-    showNotification(
+    showModernNotification(
       `Successfully sent $${amnt.toFixed(2)} to ${recip}!`,
       'success',
     );
@@ -175,7 +177,7 @@ const sendFunds = async function (recip, sendr, amnt) {
     return result;
   } catch (error) {
     console.error('Send money failed:', error);
-    showNotification(`Transfer failed: ${error.message}`, 'error');
+    showModernNotification(`Transfer failed: ${error.message}`, 'error');
     throw error;
   }
 };

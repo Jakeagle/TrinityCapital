@@ -4,11 +4,13 @@
 import { currentProfile } from './script.js';
 import { initialBalance } from './script.js';
 import {
-  showNotification,
   validateAmount,
   validateSelection,
-  setButtonLoading,
 } from './validation.js';
+import {
+  setLoadingState,
+  showNotification as showModernNotification,
+} from './uiEnhancements.js';
 
 /************************************************Variables*************************************************/
 
@@ -136,7 +138,7 @@ const transPush = function (from, to) {
     const errors = validateTransferForm(from, to, amount);
 
     if (errors.length > 0) {
-      showNotification(errors.join(', '), 'error');
+      showModernNotification(errors.join(', '), 'error');
       return;
     }
 
@@ -171,7 +173,7 @@ const transPush = function (from, to) {
     );
   } catch (error) {
     console.error('Transfer error:', error);
-    showNotification('An error occurred during the transfer', 'error');
+    showModernNotification('An error occurred during the transfer', 'error');
   }
 };
 
@@ -183,7 +185,7 @@ const sendTransferData = async function (
   memberName,
 ) {
   try {
-    showNotification('Processing transfer...', 'info');
+    showModernNotification('Processing transfer...', 'info');
 
     const res = await fetch(transferLink, {
       method: 'POST',
@@ -201,7 +203,7 @@ const sendTransferData = async function (
 
     const result = await res.json();
 
-    showNotification(
+    showModernNotification(
       `Transfer of $${amount.toFixed(2)} completed successfully!`,
       'success',
     );
@@ -239,7 +241,7 @@ const sendTransferData = async function (
     initialBalance();
   } catch (error) {
     console.error('Transfer failed:', error);
-    showNotification(`Transfer failed: ${error.message}`, 'error');
+    showModernNotification(`Transfer failed: ${error.message}`, 'error');
   }
 };
 
@@ -268,14 +270,14 @@ btnAmount.addEventListener('click', function (e) {
   e.preventDefault();
 
   const originalText = btnAmount.textContent;
-  setButtonLoading(btnAmount, true, originalText);
+  setLoadingState(btnAmount, true, originalText);
 
   try {
     transPush(accountSend, accountRecieve);
   } finally {
     // Reset button state after a short delay
     setTimeout(() => {
-      setButtonLoading(btnAmount, false, originalText);
+      setLoadingState(btnAmount, false, originalText);
     }, 1000);
   }
 });

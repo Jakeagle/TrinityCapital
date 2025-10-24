@@ -374,7 +374,7 @@
     </div>
 
     <script src="Frontend/Javascript/script.js" type="module"></script>
-    <script src="Frontend/Javascript/lessonEngine.js" type="module"></script>
+
     <!-- <script src="Frontend/Javascript/lessonEngineTest.js" type="module"></script> -->
     <script
       src="Frontend/Javascript/billsAndPayments.js"
@@ -386,7 +386,7 @@
     <script src="Frontend/Javascript/check.js" type="module"></script>
     <script src="Frontend/Javascript/deposit.js" type="module"></script>
     <script src="Frontend/Javascript/sendMoney.js" type="module"></script>
-    <script src="Frontend/Javascript/lessonRenderer.js" type="module"></script>
+
     <script
       src="Frontend/Javascript/checkPayeeManager.js"
       type="module"
@@ -394,6 +394,33 @@
     <script src="Frontend/Javascript/verseConfig.js"></script>
     <script src="Frontend/Javascript/verseManager.js"></script>
     <script src="Frontend/Javascript/verseManagerTests.js"></script>
+
+<dialog class="new-lesson-modal">
+      <div class="new-lesson-modal-gradient-background">
+        <div class="new-lesson-modal-body">
+          <div class="new-lesson-modal-header">
+            <h2 class="new-lesson-modal-title"></h2>
+            <button class="new-lesson-modal-close-btn">&times;</button>
+          </div>
+          <div class="new-lesson-modal-content">
+            <div class="new-lesson-slide lesson-slide active">
+              <!-- Lesson content will go here -->
+              <h1>Lesson</h1>
+            </div>
+            <div class="new-lesson-slide instructions-slide">
+              <!-- Instructions will go here -->
+              <h1>Instructions</h1>
+              <p>You have completed the lesson. You may now begin the activities.</p>
+              <button class="begin-activities-btn">Begin Activities</button>
+            </div>
+          </div>
+          <div class="new-lesson-modal-nav">
+            <button class="new-lesson-modal-back-btn">Back</button>
+            <button class="new-lesson-modal-forward-btn">Forward</button>
+          </div>
+        </div>
+      </div>
+    </dialog>
   </body>
 
   <dialog class="transferModal baseModal">
@@ -1042,132 +1069,6 @@
     </div>
   </dialog>
 
-  <!-- LESSON TEST -->
-
-  <dialog class="baseModal lessonModal">
-    <div class="lesson-modal-header">
-      <h2 id="lesson-modal-title">Lesson Title</h2>
-      <button class="close-btn" onclick="this.closest('dialog').close()">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <line x1="18" y1="6" x2="6" y2="18"></line>
-          <line x1="6" y1="6" x2="18" y2="18"></line>
-        </svg>
-      </button>
-    </div>
-
-    <div
-      id="lessonCarousel"
-      class="carousel slide"
-      data-bs-ride="false"
-      data-bs-wrap="false"
-    >
-      <div class="carousel-inner">
-        <!-- Intro Slide -->
-        <div class="carousel-item active">
-          <div class="lesson-slide intro-slide">
-            <div class="slide-content">
-              <div class="lesson-intro-content">
-                <h3>📚 Lesson Overview</h3>
-                <p id="lesson-description">
-                  Lesson description will appear here.
-                </p>
-                <div class="lesson-objectives" id="lesson-objectives">
-                  <h4>🎯 Learning Objectives:</h4>
-                  <ul id="lesson-objectives-list">
-                    <!-- Objectives will be populated dynamically -->
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div class="slide-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                onclick="this.closest('dialog').close()"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                class="btn btn-primary"
-                data-bs-target="#lessonCarousel"
-                data-bs-slide="next"
-              >
-                Continue
-              </button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Instructions Slide -->
-        <div class="carousel-item">
-          <div class="lesson-slide instructions-slide">
-            <div class="slide-content">
-              <div class="lesson-instructions">
-                <h3>📝 Instructions</h3>
-                <div id="lesson-blocks">
-                  <!-- Lesson blocks will be dynamically inserted here -->
-                </div>
-                <div class="lesson-conditions" id="lesson-conditions">
-                  <h4>📋 What you'll need to do:</h4>
-                  <ul id="lesson-conditions-list">
-                    <!-- Lesson conditions will be dynamically inserted here -->
-                  </ul>
-                </div>
-              </div>
-            </div>
-            <div class="slide-footer">
-              <button
-                type="button"
-                class="btn btn-secondary"
-                data-bs-target="#lessonCarousel"
-                data-bs-slide="prev"
-              >
-                Back
-              </button>
-              <button
-                type="button"
-                class="btn btn-success"
-                id="begin-activities-btn"
-              >
-                Begin Activities
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Carousel Controls -->
-      <button
-        class="carousel-control-prev"
-        type="button"
-        data-bs-target="#lessonCarousel"
-        data-bs-slide="prev"
-      >
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Previous</span>
-      </button>
-      <button
-        class="carousel-control-next"
-        type="button"
-        data-bs-target="#lessonCarousel"
-        data-bs-slide="next"
-      >
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Next</span>
-      </button>
-    </div>
-  </dialog>
-
   <dialog class="baseModal activityModal">
     <div
       id="carouselExampleControls"
@@ -1208,7 +1109,6 @@
         data-bs-target="#carouselExampleControls"
         data-bs-slide="next"
       >
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
         <span class="visually-hidden">Next</span>
       </button>
     </div>

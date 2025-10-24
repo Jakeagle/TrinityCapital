@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@200;300;400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@200;300;400;500;600;700;800&display=swap");
 
 /* Modern CSS Variables for Consistent Theming */
 :root {
@@ -148,7 +148,7 @@
 .loading-content {
   text-align: center;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   animation: fadeInUp 0.8s ease-out;
 }
 
@@ -165,7 +165,7 @@
 }
 
 .loading-spinner::before {
-  content: '';
+  content: "";
   position: absolute;
   top: -6px;
   left: -6px;
@@ -282,7 +282,7 @@
 }
 
 .back1::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -353,7 +353,7 @@
 }
 
 .sec1::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -386,7 +386,7 @@
   display: inline-block;
   cursor: pointer;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 16px;
   font-weight: 600;
   padding: 18px 40px;
@@ -402,7 +402,7 @@
 }
 
 .signUpBtn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -434,7 +434,7 @@
   display: inline-block;
   cursor: pointer;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 16px;
   font-weight: 600;
   padding: 18px 40px;
@@ -450,7 +450,7 @@
 }
 
 .signInBtn::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -482,7 +482,7 @@
 .SignUpText {
   margin: auto;
   text-align: center;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   font-weight: 400;
   letter-spacing: 0.3px;
@@ -531,7 +531,7 @@
 }
 
 .loginBox::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -575,7 +575,7 @@
   padding-left: 4rem;
   color: white;
   font-weight: 400;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 16px;
   transition: all var(--transition-medium);
   backdrop-filter: blur(10px);
@@ -600,7 +600,7 @@
   position: relative;
   color: rgba(255, 255, 255, 0.7);
   left: 4rem;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 300;
   transition: all var(--transition-medium);
 }
@@ -656,7 +656,7 @@
 
 /******************************Main app*********************************/
 body {
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   color: var(--text-primary);
   background: var(--bg-primary);
   margin: 0;
@@ -665,7 +665,7 @@ body {
 }
 
 body::before {
-  content: '';
+  content: "";
   position: fixed;
   top: 0;
   left: 0;
@@ -705,7 +705,7 @@ body::before {
 }
 
 .section1::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   right: 0;
@@ -791,7 +791,7 @@ body::before {
 }
 
 .budgetClass::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 4rem;
   left: 50%;
@@ -991,7 +991,7 @@ body::before {
 }
 
 .balanceBlock::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1086,7 +1086,7 @@ body::before {
 }
 
 .incomeBlock::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1121,7 +1121,7 @@ body::before {
 }
 
 .spendingBlock::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1156,7 +1156,7 @@ body::before {
 }
 
 .billsBlock::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1400,7 +1400,7 @@ body::before {
 }
 
 .transactionBlock::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1568,7 +1568,7 @@ body::before {
 }
 
 .lessonDiv::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1791,7 +1791,7 @@ body::before {
 }
 
 .lessonDiv::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1871,7 +1871,7 @@ body::before {
   padding: 20px 25px;
   border-radius: 15px;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 500;
   box-shadow: var(--shadow-strong);
   backdrop-filter: blur(20px);
@@ -1906,7 +1906,7 @@ body::before {
 }
 
 .notification::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -1951,7 +1951,7 @@ body::before {
   border: none;
   border-radius: 50px;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-weight: 600;
   padding: 15px 30px;
   cursor: pointer;
@@ -1964,7 +1964,7 @@ body::before {
 }
 
 .btn-modern::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -2013,7 +2013,7 @@ body::before {
 }
 
 .loading-state::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -2064,7 +2064,7 @@ body::before {
 }
 
 .card-modern::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -2134,7 +2134,7 @@ body::before {
 }
 
 .baseModal::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: 0;
@@ -2193,7 +2193,7 @@ body::before {
   padding: 15px;
   backdrop-filter: blur(10px);
   transition: all var(--transition-medium);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 .form__input--amount--transfer:focus {
@@ -2242,7 +2242,7 @@ input {
   padding: 12px 20px;
   font-size: 16px;
   transition: all var(--transition-medium);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
 }
 
 input:focus {
@@ -2265,7 +2265,7 @@ input::placeholder {
   display: inline-block;
   cursor: pointer;
   color: white;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 16px;
   font-weight: 600;
   padding: 15px 30px;
@@ -2279,7 +2279,7 @@ input::placeholder {
 }
 
 .form__btn--transfer::before {
-  content: '';
+  content: "";
   position: absolute;
   top: 0;
   left: -100%;
@@ -2406,7 +2406,7 @@ input::placeholder {
   margin-top: 10px;
   border-radius: 15px;
   font-weight: 600;
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   border: none;
   box-shadow: var(--shadow-soft);
   transition: all var(--transition-medium);
@@ -2573,7 +2573,7 @@ input::placeholder {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   color: var(--text-primary);
-  font-family: 'Inter', sans-serif;
+  font-family: "Inter", sans-serif;
   font-size: 14px;
   transition: all var(--transition-medium);
 }
@@ -3388,3 +3388,172 @@ input::placeholder {
     font-size: 0.75rem;
   }
 }
+
+/* New Lesson Modal */
+.new-lesson-modal {
+  border: none;
+  border-radius: 15px;
+  padding: 0;
+  width: 40vw; /* wide vertical rectangle */
+  height: 80vh;
+  overflow: hidden;
+}
+
+.new-lesson-modal::backdrop {
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+}
+
+.new-lesson-modal-gradient-background {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+  padding: 10px;
+  height: 100%;
+}
+
+.new-lesson-modal-body {
+  background-color: white;
+  height: 100%;
+  border-radius: 10px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.new-lesson-modal-close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #333;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.new-lesson-modal-content {
+  flex-grow: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.new-lesson-slide {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  animation-duration: 0.5s;
+  animation-fill-mode: forwards;
+}
+
+.new-lesson-slide.active {
+  display: flex; /* Show active slide */
+}
+
+/* Animations */
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out-to-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-100%); }
+}
+
+@keyframes slide-in-from-left {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slide-out-to-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+.new-lesson-slide.slide-in-right { animation-name: slide-in-from-right; }
+.new-lesson-slide.slide-out-left { animation-name: slide-out-to-left; }
+.new-lesson-slide.slide-in-left { animation-name: slide-in-from-left; }
+.new-lesson-slide.slide-out-right { animation-name: slide-out-to-right; }
+
+
+.new-lesson-slide h1 {
+  text-align: center;
+  color: #333;
+  animation: text-fade-in-up 0.5s ease-out 0.4s both;
+}
+
+.new-lesson-slide p {
+  font-size: 1.5rem; /* Increased font size */
+  text-align: center;
+  color: #333;
+  animation: text-fade-in-up 0.5s ease-out 0.6s both;
+}
+
+@keyframes text-fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.new-lesson-modal-nav {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 15px;
+  border-top: 1px solid #eee;
+  z-index: 2;
+}
+
+.new-lesson-modal-back-btn,
+.new-lesson-modal-forward-btn,
+.begin-activities-btn {
+  background: var(--primary-gradient);
+  border: none;
+  border-radius: 50px;
+  color: white;
+  font-family: "Inter", sans-serif;
+  font-weight: 600;
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: all var(--transition-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: var(--shadow-soft);
+}
+
+.new-lesson-modal-back-btn:hover,
+.new-lesson-modal-forward-btn:hover,
+.begin-activities-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-medium);
+}
+
+.instructions-slide {
+  text-align: center;
+}
+
+.instructions-slide h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.begin-activities-btn {
+  background: var(--success-gradient);
+  font-size: 1.2rem;
+  padding: 15px 30px;
+}
+
