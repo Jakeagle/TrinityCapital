@@ -1,8 +1,11 @@
 "use strict";
-import { validateText } from './validation.js';
-import { initializeLessonEngine } from './ILGE/lessonManager.js';
+import { validateText } from "./validation.js";
+import { initializeLessonEngine } from "./ILGE/lessonManager.js";
 import { fetchAssignedLessons } from "./ILGE/LRM/lrm.js";
-import { renderUnitHeader, renderLessonButtons } from "./ILGE/LRM/lessonRenderer.js";
+import {
+  renderUnitHeader,
+  renderLessonButtons,
+} from "./ILGE/LRM/lessonRenderer.js";
 
 // Import lesson engine functions globally
 
@@ -570,13 +573,16 @@ function displayConversation(threadId, messages) {
  */
 async function createNewThread(recipientId) {
   try {
-    const response = await fetch("https://tcstudentserver-production.up.railway.app/newThread", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        participants: [currentProfile.memberName, recipientId],
-      }),
-    });
+    const response = await fetch(
+      "https://tcstudentserver-production.up.railway.app/newThread",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          participants: [currentProfile.memberName, recipientId],
+        }),
+      }
+    );
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -1070,15 +1076,19 @@ socket.on("unitAssignedToStudent", (data) => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles = "https://tcstudentserver-production.up.railway.app/profiles";
+const testServerProfiles =
+  "https://tcstudentserver-production.up.railway.app/profiles";
 
 const loanURL = "https://tcstudentserver-production.up.railway.app/loans";
 
-const donationURL = "https://tcstudentserver-production.up.railway.app/donations";
+const donationURL =
+  "https://tcstudentserver-production.up.railway.app/donations";
 
-const donationSavingsURL = "https://tcstudentserver-production.up.railway.app/donationsSavings";
+const donationSavingsURL =
+  "https://tcstudentserver-production.up.railway.app/donationsSavings";
 
-const balanceURL = "https://tcstudentserver-production.up.railway.app/initialBalance";
+const balanceURL =
+  "https://tcstudentserver-production.up.railway.app/initialBalance";
 
 const productivityURL = "http://localhost:5040/timers";
 
@@ -1405,7 +1415,7 @@ const loginFunc = async function (PIN, user, screen) {
 
           // Fetch assigned lessons
           console.log("Calling endpoint to fetch assigned lessons...");
-          fetchAssignedLessons(currentProfile).then(lessons => {
+          fetchAssignedLessons(currentProfile).then((lessons) => {
             console.log("Retrieved lessons in script.js:", lessons);
             renderUnitHeader(currentProfile);
             renderLessonButtons(lessons);
@@ -1460,7 +1470,10 @@ if (accBtnSwitch) {
 
       // Validate inputs
       if (!targetAccount || targetAccount === "default") {
-        showModernNotification("Please select an account to switch to", "error");
+        showModernNotification(
+          "Please select an account to switch to",
+          "error"
+        );
         return;
       }
 
@@ -1524,7 +1537,10 @@ if (accBtnSwitch) {
       accPinSwitch.value = "";
     } catch (error) {
       console.error("Account switch error:", error);
-      showModernNotification("An error occurred while switching accounts", "error");
+      showModernNotification(
+        "An error occurred while switching accounts",
+        "error"
+      );
     }
   });
 }
