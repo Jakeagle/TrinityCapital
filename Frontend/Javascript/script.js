@@ -48,7 +48,7 @@ function hideLoadingAndShowLogin() {
   }
 }
 
-const socket = io("https://tcstudentserver-production.up.railway.app");
+const socket = io("http://localhost:3000");
 
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
@@ -155,10 +155,10 @@ async function initializeStudentMessaging(studentName) {
   try {
     console.log(
       "Attempting to fetch messages from:",
-      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`
+      `http://localhost:3000/messages/${studentName}`
     );
     const response = await fetch(
-      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`
+      `http://localhost:3000/messages/${studentName}`
     );
 
     if (!response.ok) {
@@ -226,7 +226,7 @@ async function openMessageCenter() {
       try {
         // Fetch classmates from the server
         const response = await fetch(
-          `https://tcstudentserver-production.up.railway.app/classmates/${currentProfile.memberName}`
+          `http://localhost:3000/classmates/${currentProfile.memberName}`
         );
         if (!response.ok) {
           throw new Error("Failed to fetch classmates");
@@ -296,7 +296,7 @@ async function openMessageCenter() {
   }
   try {
     const response = await fetch(
-      `https://tcstudentserver-production.up.railway.app/messages/${currentProfile.memberName}`
+      `http://localhost:3000/messages/${currentProfile.memberName}`
     );
     if (!response.ok) throw new Error("Failed to fetch threads");
     const { threads } = await response.json(); // Expect { threads: [...] }
@@ -574,7 +574,7 @@ function displayConversation(threadId, messages) {
 async function createNewThread(recipientId) {
   try {
     const response = await fetch(
-      "https://tcstudentserver-production.up.railway.app/newThread",
+      "http://localhost:3000/newThread",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1077,18 +1077,18 @@ socket.on("unitAssignedToStudent", (data) => {
 
 /***********************************************************Server Functions**********************************************/
 const testServerProfiles =
-  "https://tcstudentserver-production.up.railway.app/profiles";
+  "http://localhost:3000/profiles";
 
-const loanURL = "https://tcstudentserver-production.up.railway.app/loans";
+const loanURL = "http://localhost:3000/loans";
 
 const donationURL =
-  "https://tcstudentserver-production.up.railway.app/donations";
+  "http://localhost:3000/donations";
 
 const donationSavingsURL =
-  "https://tcstudentserver-production.up.railway.app/donationsSavings";
+  "http://localhost:3000/donationsSavings";
 
 const balanceURL =
-  "https://tcstudentserver-production.up.railway.app/initialBalance";
+  "http://localhost:3000/initialBalance";
 
 const productivityURL = "http://localhost:5040/timers";
 

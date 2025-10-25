@@ -36,7 +36,7 @@ const backBTN = $('.backBtn');
 
 const loginBTN = document.querySelector('.login__btn');
 
-const depositLink = 'https://tcstudentserver-production.up.railway.app/deposits';
+const depositLink = 'http://localhost:3000/deposits';
 
 mainApp.css('display', 'none');
 
