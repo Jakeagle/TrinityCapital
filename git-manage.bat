@@ -37,6 +37,15 @@ goto :end
 
 :push_server
 echo 🔧 Pushing Server Files to TCStudentServer...
+echo.
+echo ❗ This command now automatically replaces URLs for production before pushing
+echo and reverts them to local after.
+echo.
+
+set /p commit_message="📝 Enter commit message for server changes: "
+
+echo 🚀 Switching to Production URLs...
+powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "production"
 
 REM Backup current .gitignore
 if exist ".gitignore" copy ".gitignore" ".gitignore.backup" >nul
@@ -67,8 +76,6 @@ if exist "frontend_backup" (
 )
 git reset HEAD Frontend/ 2>nul
 
-set /p commit_message="📝 Enter commit message for server changes: "
-
 git commit -m "SERVER: %commit_message%"
 
 REM Push to server repo
@@ -77,11 +84,23 @@ git push server master
 REM Restore original .gitignore
 if exist ".gitignore.backup" move ".gitignore.backup" ".gitignore" >nul
 
+echo 🔄 Reverting to Local URLs...
+powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "local"
+
 echo ✅ Server files pushed to TCStudentServer
 goto :end
 
 :push_frontend
 echo 🎨 Pushing Frontend Files to TrinityCapital...
+echo.
+echo ❗ This command now automatically replaces URLs for production before pushing
+echo and reverts them to local after.
+echo.
+
+set /p commit_message="📝 Enter commit message for frontend changes: "
+
+echo 🚀 Switching to Production URLs...
+powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "production"
 
 REM Backup current .gitignore
 if exist ".gitignore" copy ".gitignore" ".gitignore.backup" >nul
@@ -92,8 +111,6 @@ copy "frontend.gitignore" ".gitignore" >nul
 REM Add only Frontend files
 git add Frontend/
 
-set /p commit_message="📝 Enter commit message for frontend changes: "
-
 git commit -m "FRONTEND: %commit_message%"
 
 REM Push to main repo (TrinityCapital)
@@ -101,6 +118,9 @@ git push origin master
 
 REM Restore original .gitignore
 if exist ".gitignore.backup" move ".gitignore.backup" ".gitignore" >nul
+
+echo 🔄 Reverting to Local URLs...
+powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "local"
 
 echo ✅ Frontend files pushed to TrinityCapital
 goto :end

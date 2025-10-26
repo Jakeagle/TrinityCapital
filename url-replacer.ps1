@@ -18,14 +18,15 @@ $filesToProcess = @(
     "Frontend\Javascript\sendMoney.js",
     "Frontend\Javascript\accountSwitch.js",
     "Frontend\Javascript\checkPayeeManager.js",
+    "Frontend\Javascript\billsAndPayments.js",
     "server.js"
 )
 
-Write-Host "🔄 URL Replacement Mode: $Mode" -ForegroundColor Yellow
+Write-Host "URL Replacement Mode: $Mode" -ForegroundColor Yellow
 
 foreach ($file in $filesToProcess) {
     if (Test-Path $file) {
-        Write-Host "📝 Processing: $file" -ForegroundColor Cyan
+        Write-Host "Processing: $file" -ForegroundColor Cyan
         
         $content = Get-Content $file -Raw
         
@@ -42,10 +43,10 @@ foreach ($file in $filesToProcess) {
         }
         
         Set-Content $file $content -NoNewline
-        Write-Host "   ✅ Updated: $file" -ForegroundColor Green
+        Write-Host "   Updated: $file" -ForegroundColor Green
     } else {
-        Write-Host "   ⚠️  File not found: $file" -ForegroundColor Yellow
+        Write-Host "   File not found: $file" -ForegroundColor Yellow
     }
 }
 
-Write-Host "🎉 URL replacement complete!" -ForegroundColor Green
+Write-Host "URL replacement complete!" -ForegroundColor Green
