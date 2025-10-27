@@ -99,6 +99,93 @@ function handleBillsModal() {
     }
 }
 
+function handleDepositModal() {
+    // This function is for TRACKING, not for performing the deposit.
+    const depositModal = document.querySelector('.check-container');
+    if (!depositModal) {
+        console.log('UITM_INFO: Deposit modal not found. The .check-container element is missing.');
+        return;
+    }
+
+    // The deposit submit button is currently not inside the .check-container element.
+    // For this reason, we are selecting it from the document root.
+    // This is not ideal. For a more robust solution, the submit button should be moved inside the .check-container in the HTML.
+    // Also, the button has conflicting classes 'form__btn--transfer' and 'form__btn--payments' which should be removed.
+    const submitButton = document.querySelector('.submitBtn');
+    if (!submitButton) {
+        console.log('UITM_INFO: Deposit submit button with class .submitBtn not found in the document.');
+        return;
+    }
+
+    // Prevent adding listener multiple times
+    if (submitButton.dataset.uitmListener) {
+        return;
+    }
+    submitButton.dataset.uitmListener = 'true';
+
+    submitButton.addEventListener('click', () => {
+        const nameInput = document.getElementById('name-input');
+        const addressInput = document.getElementById('address-input');
+        const dateInput = document.getElementById('date-input');
+        const payToSelect = document.getElementById('name-payto');
+        const amountInput = document.getElementById('dollar');
+        const memoInput = document.getElementById('memo');
+        const signatureInput = document.getElementById('signature');
+
+        const name = nameInput ? nameInput.value : 'not found';
+        const address = addressInput ? addressInput.value : 'not found';
+        const date = dateInput ? dateInput.value : 'not found';
+        const payTo = payToSelect ? payToSelect.value : 'not found';
+        const amount = amountInput ? amountInput.value : 'not found';
+        const memo = memoInput ? memoInput.value : 'not found';
+        const signature = signatureInput ? signatureInput.value : 'not found';
+
+        console.log('--- UITM: Deposit Modal Submitted ---');
+        console.log(`Name: ${name}`);
+        console.log(`Address: ${address}`);
+        console.log(`Date: ${date}`);
+        console.log(`Pay To: ${payTo}`);
+        console.log(`Amount: ${amount}`);
+        console.log(`Memo: ${memo}`);
+        console.log(`Signature: ${signature}`);
+        console.log('------------------------------------');
+    });
+}
+
+function handleSendMoneyModal() {
+    // This function is for TRACKING, not for performing the action.
+    const sendMoneyModal = document.querySelector('.sendMoneyModal'); // Assuming this is the modal class
+    if (!sendMoneyModal) {
+        console.log('UITM_INFO: Send Money modal not found.');
+        return;
+    }
+
+    const submitButton = sendMoneyModal.querySelector('.sendBtn'); 
+    if (!submitButton) {
+        console.log('UITM_INFO: Send Money submit button not found.');
+        return;
+    }
+
+    // Prevent adding listener multiple times
+    if (submitButton.dataset.uitmListener) {
+        return;
+    }
+    submitButton.dataset.uitmListener = 'true';
+
+    submitButton.addEventListener('click', () => {
+        const recipientSelect = sendMoneyModal.querySelector('.recipients');
+        const amountInput = sendMoneyModal.querySelector('.form__input--amount--sendMoney');
+
+        const recipient = recipientSelect ? recipientSelect.value : 'not found';
+        const amount = amountInput ? amountInput.value : 'not found';
+
+        console.log('--- UITM: Send Money Modal Submitted ---');
+        console.log(`Recipient: ${recipient}`);
+        console.log(`Amount: ${amount}`);
+        console.log('------------------------------------');
+    });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('UITM: buttonTracker.js loaded and running.');
 
@@ -111,8 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('UITM: billsModalBTN clicked.');
             handleBillsModal();
         },
-        'depositsBTN': () => console.log('UITM: depositsBTN clicked.'),
-        'sendMoneyBTN': () => console.log('UITM: sendMoneyBTN clicked.'),
+        'depositsBTN': () => {
+            console.log('UITM: depositsBTN clicked.');
+            handleDepositModal();
+        },
+        'sendMoneyBTN': () => {
+            console.log('UITM: sendMoneyBTN clicked.');
+            handleSendMoneyModal();
+        },
         'messagesBTN': () => console.log('UITM: messagesBTN clicked.'),
         'accountSwitchBTN': () => console.log('UITM: accountSwitchBTN clicked.'),
         'logOutBTN': () => console.log('UITM: logOutBTN clicked.')
