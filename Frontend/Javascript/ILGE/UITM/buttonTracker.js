@@ -1,3 +1,38 @@
+function handleAccountSwitchModal() {
+  const accountSwitchModal = document.querySelector(".accountSwitchModal");
+  if (!accountSwitchModal) {
+    console.log("UITM_INFO: Account Switch modal not found.");
+    return;
+  }
+
+  // Prevent adding listener multiple times
+  if (accountSwitchModal.dataset.uitmListener) {
+    return;
+  }
+  accountSwitchModal.dataset.uitmListener = "true";
+
+  accountSwitchModal.addEventListener("click", (e) => {
+    if (e.target.classList.contains("form__btn--accountSwitch")) {
+      const button = e.target;
+      // The account type is the class that is not one of the generic button classes.
+      const accountType = Array.from(button.classList).find(
+        (cls) =>
+          cls !== "form__btn" &&
+          cls !== "form__btn--transfer" &&
+          cls !== "form__btn--accountSwitch"
+      );
+
+      console.log("--- UITM: Account Switch Submitted ---");
+      if (accountType) {
+        console.log(`Switched to account: ${accountType}`);
+      } else {
+        console.log("Switched to account: type not found");
+      }
+      console.log("------------------------------------");
+    }
+  });
+}
+
 function handleTransferModal() {
   // This function is for TRACKING, not for performing the transfer.
   const transferModal = document.querySelector(".transferModal");
@@ -324,7 +359,10 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("UITM: messagesBTN clicked.");
       handleMessagesModal();
     },
-    accountSwitchBTN: () => console.log("UITM: accountSwitchBTN clicked."),
+    accountSwitchBTN: () => {
+      console.log("UITM: accountSwitchBTN clicked.");
+      handleAccountSwitchModal();
+    },
     logOutBTN: () => console.log("UITM: logOutBTN clicked."),
   };
 
