@@ -3,8 +3,8 @@
  * Handles teacher-student messaging - simplified version
  */
 
-import { currentProfile } from './script.js';
-import { showNotification } from './validation.js';
+import { currentProfile } from "./script.js";
+import { showNotification } from "./validation.js";
 
 // Note: Lesson tracking import removed - simplified messaging system
 
@@ -17,40 +17,40 @@ let messagesState = {
 
 // Initialize messages system
 export function initializeMessages() {
-  console.log('🔧 Initializing Messages system...');
+  console.log("🔧 Initializing Messages system...");
 
   // Add event listener for messages button
-  const messagesBTN = document.querySelector('.messagesBTN');
+  const messagesBTN = document.querySelector(".messagesBTN");
   if (messagesBTN) {
-    messagesBTN.addEventListener('click', openMessagesModal);
-    console.log('✅ Messages button listener added');
+    messagesBTN.addEventListener("click", openMessagesModal);
+    console.log("✅ Messages button listener added");
   }
 
   // Add event listener for close button
-  const closeBtn = document.querySelector('.close-messages-modal');
+  const closeBtn = document.querySelector(".close-messages-modal");
   if (closeBtn) {
-    closeBtn.addEventListener('click', closeMessagesModal);
+    closeBtn.addEventListener("click", closeMessagesModal);
   }
 
   // Add event listener for new conversation button
-  const newThreadBtn = document.querySelector('.new-thread-button');
+  const newThreadBtn = document.querySelector(".new-thread-button");
   if (newThreadBtn) {
-    newThreadBtn.addEventListener('click', startNewConversation);
+    newThreadBtn.addEventListener("click", startNewConversation);
   }
 
   // Initialize with teacher conversation
   initializeTeacherConversation();
 
-  console.log('✅ Messages system initialized');
+  console.log("✅ Messages system initialized");
 }
 
 // Open the messages modal
 function openMessagesModal() {
-  console.log('📧 Opening messages modal...');
+  console.log("📧 Opening messages modal...");
 
-  const modal = document.querySelector('.messagesModal');
+  const modal = document.querySelector(".messagesModal");
   if (!modal) {
-    console.error('❌ Messages modal not found');
+    console.error("❌ Messages modal not found");
     return;
   }
 
@@ -68,9 +68,9 @@ function openMessagesModal() {
 
 // Close the messages modal
 function closeMessagesModal() {
-  console.log('📧 Closing messages modal...');
+  console.log("📧 Closing messages modal...");
 
-  const modal = document.querySelector('.messagesModal');
+  const modal = document.querySelector(".messagesModal");
   if (modal) {
     modal.close();
     messagesState.isModalOpen = false;
@@ -80,13 +80,13 @@ function closeMessagesModal() {
 // Initialize teacher conversation
 function initializeTeacherConversation() {
   const teacherConversation = {
-    id: 'teacher',
-    name: 'admin@trinity-capital.net',
-    type: 'teacher',
+    id: "teacher",
+    name: "admin@trinity-capital.net",
+    type: "teacher",
     messages: [
       {
         id: 1,
-        sender: 'teacher',
+        sender: "teacher",
         content:
           "Welcome to Trinity Capital! I'm here to help you with your lessons. Feel free to send me your answers and questions.",
         timestamp: new Date(),
@@ -101,14 +101,14 @@ function initializeTeacherConversation() {
 
 // Load conversations into the UI
 function loadConversations() {
-  const threadList = document.querySelector('.thread-list');
+  const threadList = document.querySelector(".thread-list");
   if (!threadList) return;
 
-  threadList.innerHTML = '';
+  threadList.innerHTML = "";
 
-  messagesState.conversations.forEach(conversation => {
-    const threadItem = document.createElement('li');
-    threadItem.className = 'thread-item';
+  messagesState.conversations.forEach((conversation) => {
+    const threadItem = document.createElement("li");
+    threadItem.className = "thread-item";
     threadItem.innerHTML = `
       <div class="thread-info">
         <h4 class="thread-name">${conversation.name}</h4>
@@ -117,8 +117,8 @@ function loadConversations() {
       </div>
     `;
 
-    threadItem.addEventListener('click', () =>
-      selectConversation(conversation),
+    threadItem.addEventListener("click", () =>
+      selectConversation(conversation)
     );
     threadList.appendChild(threadItem);
   });
@@ -126,11 +126,11 @@ function loadConversations() {
 
 // Get preview of last message
 function getLastMessagePreview(conversation) {
-  if (conversation.messages.length === 0) return 'No messages';
+  if (conversation.messages.length === 0) return "No messages";
 
   const lastMessage = conversation.messages[conversation.messages.length - 1];
   return lastMessage.content.length > 50
-    ? lastMessage.content.substring(0, 50) + '...'
+    ? lastMessage.content.substring(0, 50) + "..."
     : lastMessage.content;
 }
 
@@ -139,21 +139,21 @@ function formatTime(timestamp) {
   const now = new Date();
   const diff = now - timestamp;
 
-  if (diff < 60000) return 'Just now';
-  if (diff < 3600000) return Math.floor(diff / 60000) + 'm ago';
-  if (diff < 86400000) return Math.floor(diff / 3600000) + 'h ago';
+  if (diff < 60000) return "Just now";
+  if (diff < 3600000) return Math.floor(diff / 60000) + "m ago";
+  if (diff < 86400000) return Math.floor(diff / 3600000) + "h ago";
 
   return timestamp.toLocaleDateString();
 }
 
 // Select a conversation
 function selectConversation(conversation) {
-  console.log('📧 Selecting conversation:', conversation.name);
+  console.log("📧 Selecting conversation:", conversation.name);
 
   messagesState.currentConversation = conversation;
 
   // Update header
-  const header = document.querySelector('.conversation-with');
+  const header = document.querySelector(".conversation-with");
   if (header) {
     header.textContent = `Conversation with ${conversation.name}`;
   }
@@ -167,14 +167,14 @@ function selectConversation(conversation) {
 
 // Load messages for a conversation
 function loadMessages(conversation) {
-  const conversationBody = document.querySelector('.conversation-body');
+  const conversationBody = document.querySelector(".conversation-body");
   if (!conversationBody) return;
 
   // Clear existing messages
-  conversationBody.innerHTML = '';
+  conversationBody.innerHTML = "";
 
   // Add messages
-  conversation.messages.forEach(message => {
+  conversation.messages.forEach((message) => {
     const messageElement = createMessageElement(message);
     conversationBody.appendChild(messageElement);
   });
@@ -189,8 +189,8 @@ function loadMessages(conversation) {
 
 // Create message element
 function createMessageElement(message) {
-  const messageDiv = document.createElement('div');
-  messageDiv.className = `message ${message.sender === 'student' ? 'message-sent' : 'message-received'}`;
+  const messageDiv = document.createElement("div");
+  messageDiv.className = `message ${message.sender === "student" ? "message-sent" : "message-received"}`;
 
   messageDiv.innerHTML = `
     <div class="message-content">
@@ -204,8 +204,8 @@ function createMessageElement(message) {
 
 // Create compose area
 function createComposeArea() {
-  const composeDiv = document.createElement('div');
-  composeDiv.className = 'compose-area';
+  const composeDiv = document.createElement("div");
+  composeDiv.className = "compose-area";
 
   composeDiv.innerHTML = `
     <div class="compose-container">
@@ -224,12 +224,12 @@ function createComposeArea() {
   `;
 
   // Add send functionality
-  const sendBtn = composeDiv.querySelector('.compose-send');
-  const textarea = composeDiv.querySelector('.compose-input');
+  const sendBtn = composeDiv.querySelector(".compose-send");
+  const textarea = composeDiv.querySelector(".compose-input");
 
-  sendBtn.addEventListener('click', () => sendMessage(textarea));
-  textarea.addEventListener('keypress', e => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+  sendBtn.addEventListener("click", () => sendMessage(textarea));
+  textarea.addEventListener("keypress", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage(textarea);
     }
@@ -244,16 +244,16 @@ function sendMessage(textarea) {
   if (!content) return;
 
   if (!messagesState.currentConversation) {
-    showNotification('Please select a conversation first', 'error');
+    showNotification("Please select a conversation first", "error");
     return;
   }
 
-  console.log('📧 Sending message:', content);
+  console.log("📧 Sending message:", content);
 
   // Create message object
   const message = {
     id: Date.now(),
-    sender: 'student',
+    sender: "student",
     content: content,
     timestamp: new Date(),
     isRead: false,
@@ -264,71 +264,36 @@ function sendMessage(textarea) {
   messagesState.currentConversation.lastActivity = new Date();
 
   // Clear textarea
-  textarea.value = '';
+  textarea.value = "";
 
   // Reload messages
   loadMessages(messagesState.currentConversation);
 
   // Show success notification
-  showNotification('Message sent to teacher!', 'success');
+  showNotification("Message sent to teacher!", "success");
 
   // Note: Lesson tracking removed - simplified messaging
 
   // Simulate teacher response after a short delay
   setTimeout(() => {
-    simulateTeacherResponse(content);
+    simulateTeacherResponse();
   }, 2000);
 }
 
 // Simulate teacher response
-function simulateTeacherResponse(studentMessage) {
+function simulateTeacherResponse() {
   if (
     !messagesState.currentConversation ||
-    messagesState.currentConversation.id !== 'teacher'
+    messagesState.currentConversation.id !== "teacher"
   )
     return;
 
-  // Generate appropriate response based on student message
-  let response = 'Thank you for your message! ';
-
-  if (
-    studentMessage.toLowerCase().includes('spending') ||
-    studentMessage.toLowerCase().includes('categories')
-  ) {
-    response +=
-      'Great work on setting up your spending categories! This will help you track your expenses effectively.';
-  } else if (
-    studentMessage.toLowerCase().includes('goal') ||
-    studentMessage.toLowerCase().includes('save')
-  ) {
-    response +=
-      'Excellent SMART goal! Setting specific savings targets is a key financial skill.';
-  } else if (
-    studentMessage.toLowerCase().includes('assets') ||
-    studentMessage.toLowerCase().includes('liabilities')
-  ) {
-    response +=
-      'Well done identifying your assets and liabilities! Understanding your net worth is fundamental to financial planning.';
-  } else if (
-    studentMessage.toLowerCase().includes('transaction') ||
-    studentMessage.toLowerCase().includes('balance')
-  ) {
-    response +=
-      'Perfect! Reconciling transactions is an important skill for managing your finances.';
-  } else if (
-    studentMessage.toLowerCase().includes('budget') ||
-    studentMessage.toLowerCase().includes('income')
-  ) {
-    response +=
-      'Outstanding work on your budget! The 50/30/20 rule is a great framework for financial success.';
-  } else {
-    response +=
-      "I can see you're working hard on the lesson activities. Keep up the great work!";
-  }
+  // Generate a generic response
+  const response = "Thank you for your message! I will review it shortly.";
 
   const teacherMessage = {
     id: Date.now() + 1,
-    sender: 'teacher',
+    sender: "teacher",
     content: response,
     timestamp: new Date(),
     isRead: true,
@@ -354,9 +319,9 @@ function startNewConversation() {
 
 // Show conversation view
 function showConversationView() {
-  const conversationView = document.querySelector('.conversation-view');
+  const conversationView = document.querySelector(".conversation-view");
   if (conversationView) {
-    conversationView.style.display = 'block';
+    conversationView.style.display = "block";
   }
 }
 
