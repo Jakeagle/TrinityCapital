@@ -1,6 +1,6 @@
 "use strict";
 
-const lessonServerUrl = "http://localhost:4000";
+const lessonServerUrl = "https://tclessonserver-production.up.railway.app";
 
 /**
  * Fetches the lessons assigned to a specific student.
