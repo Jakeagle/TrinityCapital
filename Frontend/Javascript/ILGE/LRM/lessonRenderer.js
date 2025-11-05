@@ -1,6 +1,7 @@
 'use strict';
 
 import { conditionInstructionMap } from './conditionInstructionMap.js';
+import { handleLessonModal } from '../UITM/buttonTracker.js';
 
 /**
  * Renders the unit header with the unit number and name.
@@ -209,6 +210,7 @@ function openLessonModal(lesson) {
   const backBtn = modal.querySelector('.new-lesson-modal-back-btn');
   const forwardBtn = modal.querySelector('.new-lesson-modal-forward-btn');
   const beginActivitiesBtn = modal.querySelector('.begin-activities-btn');
+  handleLessonModal(lesson);
   const slides = modal.querySelectorAll('.new-lesson-slide');
   let currentSlide = 0;
 
@@ -264,10 +266,6 @@ function openLessonModal(lesson) {
     if (currentSlide < slides.length - 1) {
       changeSlide(currentSlide + 1);
     }
-  };
-  beginActivitiesBtn.onclick = () => {
-    modal.close();
-    // Later, this will trigger the activities
   };
 
   modal.showModal();

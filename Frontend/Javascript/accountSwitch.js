@@ -77,7 +77,7 @@ function initializeAccountSwitch() {
 
     // Record account switch action using lesson engine
     if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('account_switch', {
+      await window.lessonEngine.onAppAction('account_switched', {
         fromAccount: currentAccount?.accountType || 'unknown',
         toAccount: 'Checking',
         accountNumber: newProfile.checkingAccount.accountNumber,
@@ -110,7 +110,7 @@ function initializeAccountSwitch() {
 
     // Record account switch action using lesson engine
     if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('account_switch', {
+      await window.lessonEngine.onAppAction('account_switched', {
         fromAccount: currentAccount?.accountType || 'unknown',
         toAccount: 'Savings',
         accountNumber: newProfile.savingsAccount.accountNumber,

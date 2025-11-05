@@ -1,3 +1,5 @@
+import { activateLesson, processAction } from '../lessonManager.js';
+
 function handleAccountSwitchModal() {
   const accountSwitchModal = document.querySelector(".accountSwitchModal");
   if (!accountSwitchModal) {
@@ -25,6 +27,7 @@ function handleAccountSwitchModal() {
       console.log("--- UITM: Account Switch Submitted ---");
       if (accountType) {
         console.log(`Switched to account: ${accountType}`);
+        processAction("account_switched", { accountType: accountType });
       } else {
         console.log("Switched to account: type not found");
       }
@@ -71,6 +74,12 @@ function handleTransferModal() {
     console.log(`To Account Value: ${toAccount}`);
     console.log(`Amount Value: ${amount}`);
     console.log("------------------------------------");
+
+    processAction("transfer_money", {
+      fromAccount: fromAccount,
+      toAccount: toAccount,
+      amount: amount,
+    });
   });
 }
 
@@ -331,6 +340,35 @@ function handleMessagesModal() {
           }, 100); // Small delay to ensure DOM is updated
         });
       }
+    });
+  }
+}
+
+export function handleLessonModal(lesson) {
+  const modal = document.querySelector(".new-lesson-modal");
+  if (!modal) {
+    console.error("New lesson modal not found.");
+    return;
+  }
+
+  const beginActivitiesBtn = modal.querySelector(".begin-activities-btn");
+  if (beginActivitiesBtn) {
+    // Prevent adding listener multiple times
+    if (beginActivitiesBtn.dataset.uitmListener) {
+      return;
+    }
+    beginActivitiesBtn.dataset.uitmListener = "true";
+
+    beginActivitiesBtn.addEventListener("click", () => {
+      console.log(`${lesson.lesson_title} active`);
+
+      // Set the active lesson
+      activateLesson(lesson);
+
+      // Process the 'begin_activities' action
+      processAction("begin_activities", { lessonTitle: lesson.lesson_title });
+
+      modal.close();
     });
   }
 }
