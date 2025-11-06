@@ -366,7 +366,7 @@ export function handleLessonModal(lesson) {
       activateLesson(lesson);
 
       // Process the 'begin_activities' action
-      processAction("begin_activities", { lessonTitle: lesson.lesson_title });
+      processAction("begin_activities", { lessonTitle: lesson.lesson_title, lessonId: lesson._id });
 
       modal.close();
     });

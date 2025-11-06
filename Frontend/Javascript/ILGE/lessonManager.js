@@ -31,6 +31,60 @@ export function deactivateLesson(lessonId) {
 }
 
 
+let timerInterval = null;
+
+/**
+ * Starts a timer for a given lesson.
+ * @param {string} lessonId - The ID of the lesson to start the timer for.
+ */
+export function startLessonTimer(lessonId) {
+  if (!lessonId) {
+    console.error("Cannot start timer without a lesson ID.");
+    return;
+  }
+  const timerKey = `lesson_timer_${lessonId}`;
+  const startTime = Date.now();
+  sessionStorage.setItem(timerKey, startTime);
+  console.log(`Timer started for lesson ${lessonId} at ${startTime}.`);
+
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+
+  // Check for time-based conditions every second
+  timerInterval = setInterval(() => {
+    const storedStartTime = sessionStorage.getItem(timerKey);
+    if (storedStartTime) {
+      const elapsedTime = Date.now() - storedStartTime;
+      const elapsedSeconds = Math.floor(elapsedTime / 1000);
+      console.log(`Elapsed time for lesson ${lessonId}: ${elapsedSeconds} seconds.`);
+
+      // Check for time-based conditions
+      const lesson = activeLessons.get(lessonId);
+      if (lesson && lesson.completion_conditions) {
+        const timeConditions = lesson.completion_conditions.filter(
+          (cond) => cond.condition_type === 'elapsed_time' && !cond.isMet
+        );
+
+        timeConditions.forEach((condition) => {
+          if (elapsedSeconds >= condition.condition_value) {
+            console.log(`Condition met for action: elapsed_time`);
+            const actionToExecute = actions[condition.action_type];
+            if (actionToExecute) {
+              console.log(`Executing reaction: ${condition.action_type}`);
+              actionToExecute(condition.action_details);
+              condition.isMet = true; // Mark as met
+            } else {
+              console.warn(`Action to take "${condition.action_type}" not found in CRM library.`);
+            }
+          }
+        });
+      }
+    }
+  }, 1000);
+}
+
+
 /**
  * Processes an action, checks it against all active lessons' conditions,
  * and triggers the appropriate reactions from the CRM.
@@ -39,6 +93,14 @@ export function deactivateLesson(lessonId) {
  */
 export function processAction(actionType, actionParams) {
   console.log(`Processing action: ${actionType}`, actionParams);
+
+  if (actionType === 'begin_activities') {
+    if (actionParams.lessonId) {
+      startLessonTimer(actionParams.lessonId);
+    } else {
+      console.error("Action 'begin_activities' requires a lessonId.", actionParams);
+    }
+  }
 
   if (activeLessons.size === 0) {
     console.log('No active lessons to check.');
