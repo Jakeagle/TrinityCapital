@@ -397,6 +397,54 @@ function handleMessagesModal() {
   }
 }
 
+export function handleLogout() {
+  console.log("--- UITM: Collecting Student Data for Storage ---");
+
+  // Get all lesson timers from sessionStorage
+  const lessonTimers = {};
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i);
+    if (key.startsWith("lesson_timer_")) {
+      const lessonId = key.replace("lesson_timer_", "");
+      const startTime = parseInt(sessionStorage.getItem(key));
+      const elapsedTime = Date.now() - startTime;
+      lessonTimers[lessonId] = {
+        startTime: startTime,
+        elapsedTime: elapsedTime,
+        elapsedMinutes: Math.floor(elapsedTime / 60000), // Convert to minutes
+      };
+    }
+  }
+
+  // Get active lessons
+  const activeIds = Array.from(activeLessons.keys());
+  const activeLessonDetails = Array.from(activeLessons.values()).map(
+    (lesson) => ({
+      id: lesson._id,
+      title: lesson.lesson_title,
+      elapsedTime: lessonTimers[lesson._id]
+        ? lessonTimers[lesson._id].elapsedMinutes
+        : 0,
+    })
+  );
+
+  // Get student name from the DOM (assuming there's an element with student's name)
+  const studentNameElement = document.querySelector(".student-name"); // Update selector as needed
+  const studentName = studentNameElement
+    ? studentNameElement.textContent
+    : "Unknown Student";
+
+  console.log("=== Student Session Data ===");
+  console.log(`Student Name: ${studentName}`);
+  console.log("\nActive Lessons:");
+  activeLessonDetails.forEach((lesson) => {
+    console.log(`- ${lesson.title}`);
+    console.log(`  ID: ${lesson.id}`);
+    console.log(`  Time Spent: ${lesson.elapsedTime} minutes`);
+  });
+  console.log("==========================");
+}
+
 export function handleLessonModal(lesson) {
   const modal = document.querySelector(".new-lesson-modal");
   if (!modal) {
@@ -428,6 +476,11 @@ export function handleLessonModal(lesson) {
     });
   }
 }
+
+// Handle page refresh and close
+window.addEventListener("beforeunload", (event) => {
+  handleLogout();
+});
 
 document.addEventListener("DOMContentLoaded", () => {
   console.log("UITM: buttonTracker.js loaded and running.");
@@ -472,7 +525,10 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("UITM: accountSwitchBTN clicked.");
       handleAccountSwitchModal();
     },
-    logOutBTN: () => console.log("UITM: logOutBTN clicked."),
+    logOutBTN: () => {
+      console.log("UITM: logOutBTN clicked.");
+      handleLogout();
+    },
   };
 
   for (const className in buttonHandlers) {
