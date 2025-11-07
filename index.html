@@ -12,6 +12,7 @@
     />
     <link rel="stylesheet" href="Frontend/Styles/style.css" />
     <link rel="stylesheet" href="Frontend/Styles/check.css" />
+    <link rel="stylesheet" href="Frontend/Styles/messageModal.css" />
     <script
       src="https://kit.fontawesome.com/60a3862749.js"
       crossorigin="anonymous"
@@ -394,7 +395,7 @@
     <script src="Frontend/Javascript/verseConfig.js"></script>
     <script src="Frontend/Javascript/verseManager.js"></script>
     <script src="Frontend/Javascript/verseManagerTests.js"></script>
-    <script src="Frontend/Javascript/UITM/buttonTracker.js" type="module"></script>
+    <script src="Frontend/Javascript/ILGE/UITM/buttonTracker.js" type="module"></script>
 
 <dialog class="new-lesson-modal">
       <div class="new-lesson-modal-gradient-background">
@@ -419,6 +420,18 @@
             <button class="new-lesson-modal-back-btn">Back</button>
             <button class="new-lesson-modal-forward-btn">Forward</button>
           </div>
+        </div>
+      </div>
+    </dialog>
+
+    <dialog class="baseModal messageModal">
+      <div class="message-modal-body">
+        <div class="message-modal-header">
+          <h2 class="message-modal-title">A message from your lesson</h2>
+          <button class="message-modal-close-btn">&times;</button>
+        </div>
+        <div class="message-modal-content">
+          <p class="message-modal-text"></p>
         </div>
       </div>
     </dialog>
