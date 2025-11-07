@@ -1,4 +1,4 @@
-import { activateLesson, processAction } from '../lessonManager.js';
+import { activateLesson, processAction } from "../lessonManager.js";
 
 function handleAccountSwitchModal() {
   const accountSwitchModal = document.querySelector(".accountSwitchModal");
@@ -27,6 +27,7 @@ function handleAccountSwitchModal() {
       console.log("--- UITM: Account Switch Submitted ---");
       if (accountType) {
         console.log(`Switched to account: ${accountType}`);
+        console.log("Checking for matching conditions in active lesson...");
         processAction("account_switched", { accountType: accountType });
       } else {
         console.log("Switched to account: type not found");
@@ -80,6 +81,12 @@ function handleTransferModal() {
       toAccount: toAccount,
       amount: amount,
     });
+
+    processAction("transfer_money", {
+      fromAccount: fromAccount,
+      toAccount: toAccount,
+      amount: amount,
+    });
   });
 }
 
@@ -117,7 +124,15 @@ function handleBillsModal() {
         console.log(`Bill Name: ${billName}`);
         console.log(`Bill Amount: ${billAmount}`);
         console.log(`Bill Frequency: ${billFrequency}`);
+        console.log("Checking for matching conditions in active lesson...");
         console.log("----------------------------------");
+
+        processAction("bill_submitted", {
+          billType: billType,
+          billName: billName,
+          billAmount: billAmount,
+          billFrequency: billFrequency,
+        });
       });
     }
   } else {
@@ -156,7 +171,15 @@ function handleBillsModal() {
         console.log(`Payment Name: ${paymentName}`);
         console.log(`Payment Amount: ${paymentAmount}`);
         console.log(`Payment Frequency: ${paymentFrequency}`);
+        console.log("Checking for matching conditions in active lesson...");
         console.log("-------------------------------------");
+
+        processAction("payment_submitted", {
+          paymentType: paymentType,
+          paymentName: paymentName,
+          paymentAmount: paymentAmount,
+          paymentFrequency: paymentFrequency,
+        });
       });
     }
   } else {
@@ -217,7 +240,18 @@ function handleDepositModal() {
     console.log(`Amount: ${amount}`);
     console.log(`Memo: ${memo}`);
     console.log(`Signature: ${signature}`);
+    console.log("Checking for matching conditions in active lesson...");
     console.log("------------------------------------");
+
+    processAction("deposit_submitted", {
+      name: name,
+      address: address,
+      date: date,
+      payTo: payTo,
+      amount: amount,
+      memo: memo,
+      signature: signature,
+    });
   });
 }
 
@@ -253,7 +287,13 @@ function handleSendMoneyModal() {
     console.log("--- UITM: Send Money Modal Submitted ---");
     console.log(`Recipient: ${recipient}`);
     console.log(`Amount: ${amount}`);
+    console.log("Checking for matching conditions in active lesson...");
     console.log("------------------------------------");
+
+    processAction("send_money", {
+      recipient: recipient,
+      amount: amount,
+    });
   });
 }
 
@@ -315,7 +355,15 @@ function handleMessagesModal() {
       console.log(`Sender: ${sender}`);
       console.log(`Recipient: ${recipient}`);
       console.log(`Date/Time: ${messageDateTime}`);
-      console.log("--------------------------");
+      console.log("Checking for matching conditions in active lesson...");
+      console.log("------------------------------------");
+
+      processAction("message_sent", {
+        threadId: activeThreadId,
+        sender: sender,
+        recipient: recipient,
+        timestamp: messageDateTime,
+      });
     });
   }
 
@@ -333,6 +381,11 @@ function handleMessagesModal() {
             thread.querySelector(".thread-name")?.textContent || "not found";
           console.log(`Thread Name: ${threadName}`);
           console.log("--------------------------");
+
+          processAction("thread_selected", {
+            threadId: thread.dataset.threadId,
+            threadName: threadName,
+          });
 
           // Initialize send button after thread selection
           setTimeout(() => {
@@ -366,7 +419,10 @@ export function handleLessonModal(lesson) {
       activateLesson(lesson);
 
       // Process the 'begin_activities' action
-      processAction("begin_activities", { lessonTitle: lesson.lesson_title, lessonId: lesson._id });
+      processAction("begin_activities", {
+        lessonTitle: lesson.lesson_title,
+        lessonId: lesson._id,
+      });
 
       modal.close();
     });
@@ -378,23 +434,38 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const buttonHandlers = {
     transferBTN: () => {
-      console.log("UITM: transferBTN clicked.");
+      console.log(
+        "--- UITM: Checking for transfer conditions in active lesson ---"
+      );
+      processAction("transfer_button_clicked", {});
       handleTransferModal();
     },
     billsModalBTN: () => {
-      console.log("UITM: billsModalBTN clicked.");
+      console.log(
+        "--- UITM: Checking for bills/payments conditions in active lesson ---"
+      );
+      processAction("bills_button_clicked", {});
       handleBillsModal();
     },
     depositsBTN: () => {
-      console.log("UITM: depositsBTN clicked.");
+      console.log(
+        "--- UITM: Checking for deposit conditions in active lesson ---"
+      );
+      processAction("deposit_button_clicked", {});
       handleDepositModal();
     },
     sendMoneyBTN: () => {
-      console.log("UITM: sendMoneyBTN clicked.");
+      console.log(
+        "--- UITM: Checking for send money conditions in active lesson ---"
+      );
+      processAction("send_money_button_clicked", {});
       handleSendMoneyModal();
     },
     messagesBTN: () => {
-      console.log("UITM: messagesBTN clicked.");
+      console.log(
+        "--- UITM: Checking for message conditions in active lesson ---"
+      );
+      processAction("messages_button_clicked", {});
       handleMessagesModal();
     },
     accountSwitchBTN: () => {
