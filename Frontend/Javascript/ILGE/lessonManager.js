@@ -4,7 +4,7 @@ import { fetchAssignedLessons } from "./LRM/lrm.js";
 import { actions } from "./CRM/condition-rendering-library.js";
 
 // Use a Map to store active lessons, with lesson_id as the key.
-const activeLessons = new Map();
+export const activeLessons = new Map();
 
 /**
  * Activates a lesson, adding it to the list of lessons to check for conditions.

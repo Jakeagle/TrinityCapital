@@ -1,4 +1,5 @@
-import { activateLesson, processAction } from "../lessonManager.js";
+import { activateLesson, processAction, activeLessons } from "../lessonManager.js";
+import { sendStudentSessionData } from "../SDSM/sdsm.js";
 
 function handleAccountSwitchModal() {
   const accountSwitchModal = document.querySelector(".accountSwitchModal");
@@ -395,38 +396,6 @@ function handleMessagesModal() {
       }
     });
   }
-}
-
-export function handleLogout() {
-  console.log("--- UITM: Collecting Student Data for Storage ---");
-
-  // Get all lesson timers from sessionStorage
-  const lessonTimers = {};
-  for (let i = 0; i < sessionStorage.length; i++) {
-    const key = sessionStorage.key(i);
-    if (key.startsWith("lesson_timer_")) {
-      const lessonId = key.replace("lesson_timer_", "");
-      const startTime = parseInt(sessionStorage.getItem(key));
-      const elapsedTime = Date.now() - startTime;
-      lessonTimers[lessonId] = {
-        startTime: startTime,
-        elapsedTime: elapsedTime,
-        elapsedMinutes: Math.floor(elapsedTime / 60000), // Convert to minutes
-      };
-    }
-  }
-
-  // Get active lessons
-  const activeIds = Array.from(activeLessons.keys());
-  const activeLessonDetails = Array.from(activeLessons.values()).map(
-    (lesson) => ({
-      id: lesson._id,
-      title: lesson.lesson_title,
-      elapsedTime: lessonTimers[lesson._id]
-        ? lessonTimers[lesson._id].elapsedMinutes
-        : 0,
-    })
-  );
 
   // Get student name from the DOM (assuming there's an element with student's name)
   const studentNameElement = document.querySelector(".student-name"); // Update selector as needed
@@ -443,6 +412,105 @@ export function handleLogout() {
     console.log(`  Time Spent: ${lesson.elapsedTime} minutes`);
   });
   console.log("==========================");
+
+  // Prepare payload for SDSM (student data storage module)
+  const payload = {
+    studentName,
+    activeLessons: activeLessonDetails,
+    lessonTimers,
+    timestamp: Date.now(),
+  };
+
+  // Send to backend SDSM endpoint (http://localhost:4000) and log result
+  try {
+    sendStudentSessionData(payload)
+      .then((result) => {
+        if (result && result.ok) {
+          console.log("SDSM: session data stored successfully", result.data);
+        } else {
+          console.warn("SDSM: failed to store session data", result);
+        }
+      })
+      .catch((err) => {
+        console.error("SDSM: unexpected error while sending session data", err);
+      });
+  } catch (err) {
+    console.error("SDSM: error invoking sendStudentSessionData", err);
+  }
+}
+
+// Build the same payload for use with sendBeacon on unload
+export function buildSessionPayload() {
+  // Get lesson timers from sessionStorage
+  const lessonTimers = {};
+  for (let i = 0; i < sessionStorage.length; i++) {
+    const key = sessionStorage.key(i);
+    if (key.startsWith("lesson_timer_")) {
+      const lessonId = key.replace("lesson_timer_", "");
+      const startTime = parseInt(sessionStorage.getItem(key));
+      const elapsedTime = Date.now() - startTime;
+      lessonTimers[lessonId] = {
+        startTime: startTime,
+        elapsedTime: elapsedTime,
+        elapsedMinutes: Math.floor(elapsedTime / 60000),
+      };
+    }
+  }
+
+  const activeLessonDetails = Array.from(activeLessons.values()).map(
+    (lesson) => ({
+      id: lesson._id,
+      title: lesson.lesson_title,
+      elapsedTime: lessonTimers[lesson._id]
+        ? lessonTimers[lesson._id].elapsedMinutes
+        : 0,
+    })
+  );
+
+  const studentNameElement = document.querySelector(".student-name");
+  const studentName = studentNameElement
+    ? studentNameElement.textContent
+    : "Unknown Student";
+
+  return {
+    studentName,
+    activeLessons: activeLessonDetails,
+    lessonTimers,
+    timestamp: Date.now(),
+  };
+}
+
+// Use navigator.sendBeacon during unload to reliably send a small payload
+function sendSessionWithBeacon() {
+  try {
+    if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+      const payload = buildSessionPayload();
+      const url = "http://localhost:4000/api/sdsm/session";
+      const blob = new Blob([JSON.stringify(payload)], {
+        type: "application/json",
+      });
+      const ok = navigator.sendBeacon(url, blob);
+      console.log("SDSM: sendBeacon invoked, queued:", ok, payload);
+      return ok;
+    } else {
+      // Fallback: attempt a synchronous XHR (not ideal) — try best-effort
+      const payload = buildSessionPayload();
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "http://localhost:4000/api/sdsm/session", false); // synchronous
+      xhr.setRequestHeader("Content-Type", "application/json");
+      try {
+        xhr.send(JSON.stringify(payload));
+        console.log("SDSM: synchronous XHR send on unload, status", xhr.status);
+        return xhr.status >= 200 && xhr.status < 300;
+      } catch (err) {
+        console.warn("SDSM: synchronous XHR failed on unload", err);
+        return false;
+      }
+    }
+  } catch (err) {
+    console.error("SDSM: error in sendSessionWithBeacon", err);
+    return false;
+  }
 }
 
 export function handleLessonModal(lesson) {
@@ -477,9 +545,9 @@ export function handleLessonModal(lesson) {
   }
 }
 
-// Handle page refresh and close
+// Handle page refresh and close — use sendBeacon for reliable background send
 window.addEventListener("beforeunload", (event) => {
-  handleLogout();
+  sendSessionWithBeacon();
 });
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -525,9 +593,9 @@ document.addEventListener("DOMContentLoaded", () => {
       console.log("UITM: accountSwitchBTN clicked.");
       handleAccountSwitchModal();
     },
-    logOutBTN: () => {
-      console.log("UITM: logOutBTN clicked.");
-      handleLogout();
+    logOutBTN: (e) => {
+      console.log("UITM: logOutBTN clicked. Reloading page to log out.");
+      location.reload();
     },
   };
 
