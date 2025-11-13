@@ -398,7 +398,7 @@ function handleMessagesModal() {
   }
 
   // Get student name from the DOM (assuming there's an element with student's name)
-  const studentNameElement = document.querySelector(".student-name"); // Update selector as needed
+  const studentNameElement = document.querySelector(".signOnText"); // Update selector as needed
   const studentName = studentNameElement
     ? studentNameElement.textContent
     : "Unknown Student";
@@ -451,7 +451,7 @@ export function buildSessionPayload() {
       const elapsedTime = Date.now() - startTime;
       lessonTimers[lessonId] = {
         startTime: startTime,
-        elapsedTime: elapsedTime,
+        elapsedTime: Math.floor(elapsedTime / 1000),
         elapsedMinutes: Math.floor(elapsedTime / 60000),
       };
     }
@@ -467,7 +467,7 @@ export function buildSessionPayload() {
     })
   );
 
-  const studentNameElement = document.querySelector(".student-name");
+  const studentNameElement = document.querySelector(".signOnText");
   const studentName = studentNameElement
     ? studentNameElement.textContent
     : "Unknown Student";
