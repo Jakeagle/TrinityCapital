@@ -471,9 +471,11 @@ export function buildSessionPayload(currentProfile) {
     })
   );
 
-  const studentName = currentProfile
-    ? currentProfile.memberName
-    : "Unknown Student";
+  // Prioritize name from sessionStorage for reliability on unload events.
+  // Fallback to currentProfile if available (e.g., from logout button).
+  const studentName =
+    sessionStorage.getItem("current_student_name") ||
+    (currentProfile ? currentProfile.memberName : "Unknown Student");
 
   return {
     studentName,
@@ -598,10 +600,6 @@ document.addEventListener("DOMContentLoaded", () => {
     accountSwitchBTN: () => {
       console.log("UITM: accountSwitchBTN clicked.");
       handleAccountSwitchModal();
-    },
-    logOutBTN: (e) => {
-      console.log("UITM: logOutBTN clicked. Reloading page to log out.");
-      location.reload();
     },
   };
 

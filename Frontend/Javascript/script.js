@@ -116,6 +116,7 @@ if (logOutBTN) {
       // Build full session payload using centralized builder
       let payload = null;
       try {
+        payload = buildSessionPayload(currentProfile);
       } catch (err) {
         console.error("Logout: failed to build session payload", err);
       }
@@ -1476,6 +1477,9 @@ const loginFunc = async function (PIN, user, screen) {
       // Display welcome message
       const signOnText = document.querySelector(".signOnText");
       signOnText.textContent = currentProfile.memberName.split(" ")[0];
+
+      // Store student name in sessionStorage for reliable retrieval on unload
+      sessionStorage.setItem("current_student_name", currentProfile.memberName);
 
       // Show the main app
       const mainApp = document.querySelector(".mainApp");
