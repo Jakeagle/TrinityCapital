@@ -116,7 +116,6 @@ if (logOutBTN) {
       // Build full session payload using centralized builder
       let payload = null;
       try {
-        payload = buildSessionPayload();
       } catch (err) {
         console.error("Logout: failed to build session payload", err);
       }

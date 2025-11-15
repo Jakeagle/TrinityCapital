@@ -1,4 +1,8 @@
-import { activateLesson, processAction, activeLessons } from "../lessonManager.js";
+import {
+  activateLesson,
+  processAction,
+  activeLessons,
+} from "../lessonManager.js";
 import { sendStudentSessionData } from "../SDSM/sdsm.js";
 
 function handleAccountSwitchModal() {
@@ -440,7 +444,7 @@ function handleMessagesModal() {
 }
 
 // Build the same payload for use with sendBeacon on unload
-export function buildSessionPayload() {
+export function buildSessionPayload(currentProfile) {
   // Get lesson timers from sessionStorage
   const lessonTimers = {};
   for (let i = 0; i < sessionStorage.length; i++) {
@@ -467,9 +471,8 @@ export function buildSessionPayload() {
     })
   );
 
-  const studentNameElement = document.querySelector(".signOnText");
-  const studentName = studentNameElement
-    ? studentNameElement.textContent
+  const studentName = currentProfile
+    ? currentProfile.memberName
     : "Unknown Student";
 
   return {
@@ -481,10 +484,9 @@ export function buildSessionPayload() {
 }
 
 // Use navigator.sendBeacon during unload to reliably send a small payload
-function sendSessionWithBeacon() {
+function sendSessionWithBeacon(payload) {
   try {
     if (typeof navigator !== "undefined" && navigator.sendBeacon) {
-      const payload = buildSessionPayload();
       const url = "http://localhost:4000/api/sdsm/session";
       const blob = new Blob([JSON.stringify(payload)], {
         type: "application/json",
@@ -494,7 +496,6 @@ function sendSessionWithBeacon() {
       return ok;
     } else {
       // Fallback: attempt a synchronous XHR (not ideal) — try best-effort
-      const payload = buildSessionPayload();
       const xhr = new XMLHttpRequest();
       xhr.open("POST", "http://localhost:4000/api/sdsm/session", false); // synchronous
       xhr.setRequestHeader("Content-Type", "application/json");
@@ -547,7 +548,12 @@ export function handleLessonModal(lesson) {
 
 // Handle page refresh and close — use sendBeacon for reliable background send
 window.addEventListener("beforeunload", (event) => {
-  sendSessionWithBeacon();
+  // This is a best-effort attempt for page refresh/close.
+  // We can't get currentProfile reliably here without async, which is not allowed.
+  // The primary path for saving session data is the explicit logout button.
+  // We pass `null` for currentProfile, so it will log as "Unknown Student".
+  const payload = buildSessionPayload(null);
+  sendSessionWithBeacon(payload);
 });
 
 document.addEventListener("DOMContentLoaded", () => {
