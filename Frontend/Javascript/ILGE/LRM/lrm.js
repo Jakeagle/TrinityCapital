@@ -30,4 +30,33 @@ async function fetchAssignedLessons(studentProfile) {
   }
 }
 
-export { fetchAssignedLessons };
+async function fetchLessonTimer(studentId, lessonId) {
+  if (!studentId || !lessonId) {
+    console.error(
+      "Student ID and Lesson ID are required to fetch a lesson timer."
+    );
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `${lessonServerUrl}/api/timers?studentId=${studentId}&lessonId=${lessonId}`
+    );
+    if (!response.ok) {
+      if (response.status === 404) {
+        console.log(
+          `No existing timer found for lesson ${lessonId}. A new one will be created.`
+        );
+        return null; // It's not an error if the timer doesn't exist yet
+      }
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const timerData = await response.json();
+    return timerData;
+  } catch (error) {
+    console.error("Could not fetch lesson timer:", error);
+    return null; // Return null in case of an error
+  }
+}
+
+export { fetchAssignedLessons, fetchLessonTimer };

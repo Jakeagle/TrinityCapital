@@ -516,7 +516,7 @@ function sendSessionWithBeacon(payload) {
   }
 }
 
-export function handleLessonModal(lesson) {
+export function handleLessonModal(lesson, studentProfile) {
   const modal = document.querySelector(".new-lesson-modal");
   if (!modal) {
     console.error("New lesson modal not found.");
@@ -531,16 +531,23 @@ export function handleLessonModal(lesson) {
     }
     beginActivitiesBtn.dataset.uitmListener = "true";
 
-    beginActivitiesBtn.addEventListener("click", () => {
+    beginActivitiesBtn.addEventListener("click", async () => {
       console.log(`${lesson.lesson_title} active`);
+
+      // Fetch existing timer data before starting the lesson
+      const studentId = studentProfile.memberName;
+      const lessonId = lesson._id;
+      const timerData = await fetchLessonTimer(studentId, lessonId);
+      const elapsedTime = timerData ? timerData.elapsedTime : 0;
 
       // Set the active lesson
       activateLesson(lesson);
 
-      // Process the 'begin_activities' action
+      // Process the 'begin_activities' action with the elapsed time
       processAction("begin_activities", {
         lessonTitle: lesson.lesson_title,
         lessonId: lesson._id,
+        elapsedTime: elapsedTime,
       });
 
       modal.close();

@@ -1,7 +1,9 @@
 "use strict";
 
-import { fetchAssignedLessons } from "./LRM/lrm.js";
+import { fetchAssignedLessons, fetchLessonTimer } from "./LRM/lrm.js";
 import { actions } from "./CRM/condition-rendering-library.js";
+
+let currentStudentProfile = null;
 
 // Use a Map to store active lessons, with lesson_id as the key.
 export const activeLessons = new Map();
@@ -36,15 +38,39 @@ let timerInterval = null;
  * Starts a timer for a given lesson.
  * @param {string} lessonId - The ID of the lesson to start the timer for.
  */
-export function startLessonTimer(lessonId) {
+export async function startLessonTimer(lessonId) {
   if (!lessonId) {
     console.error("Cannot start timer without a lesson ID.");
     return;
   }
+
+  const studentId = currentStudentProfile
+    ? currentStudentProfile.memberName
+    : null;
+  if (!studentId) {
+    console.error("Cannot start timer without a student ID.");
+    return;
+  }
+
   const timerKey = `lesson_timer_${lessonId}`;
-  const startTime = Date.now();
+  let startTime;
+
+  // Fetch the lesson timer from the server
+  const timerData = await fetchLessonTimer(studentId, lessonId);
+
+  if (timerData && timerData.elapsedTime) {
+    const existingElapsedTime = timerData.elapsedTime; // in seconds
+    startTime = Date.now() - existingElapsedTime * 1000;
+    console.log(
+      `Resuming timer for lesson ${lessonId}. Existing elapsed time: ${existingElapsedTime} seconds.`
+    );
+  } else {
+    startTime = Date.now();
+    console.log(`Starting new timer for lesson ${lessonId}.`);
+  }
+
   sessionStorage.setItem(timerKey, startTime);
-  console.log(`Timer started for lesson ${lessonId} at ${startTime}.`);
+  console.log(`Timer for lesson ${lessonId} set with start time ${startTime}.`);
 
   if (timerInterval) {
     clearInterval(timerInterval);
@@ -93,12 +119,12 @@ export function startLessonTimer(lessonId) {
  * @param {string} actionType - The type of action that occurred.
  * @param {object} actionParams - The parameters associated with the action.
  */
-export function processAction(actionType, actionParams) {
+export async function processAction(actionType, actionParams) {
   console.log(`Processing action: ${actionType}`, actionParams);
 
   if (actionType === "begin_activities") {
     if (actionParams.lessonId) {
-      startLessonTimer(actionParams.lessonId);
+      await startLessonTimer(actionParams.lessonId);
     } else {
       console.error(
         "Action 'begin_activities' requires a lessonId.",
@@ -184,6 +210,7 @@ export function processAction(actionType, actionParams) {
  */
 export async function initializeLessonEngine(studentProfile) {
   console.log("Initializing Lesson Engine...");
+  currentStudentProfile = studentProfile;
   const lessons = await fetchAssignedLessons(studentProfile);
   console.log("Lesson Engine Initialized.");
 }
