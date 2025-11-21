@@ -3,6 +3,7 @@ import {
   processAction,
   activeLessons,
 } from "../lessonManager.js";
+import { fetchLessonTimer } from "../LRM/lrm.js";
 import { sendStudentSessionData } from "../SDSM/sdsm.js";
 
 function handleAccountSwitchModal() {

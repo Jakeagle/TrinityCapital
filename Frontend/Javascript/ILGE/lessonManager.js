@@ -38,7 +38,7 @@ let timerInterval = null;
  * Starts a timer for a given lesson.
  * @param {string} lessonId - The ID of the lesson to start the timer for.
  */
-export async function startLessonTimer(lessonId) {
+export async function startLessonTimer(lessonId, initialElapsedTime = null) {
   if (!lessonId) {
     console.error("Cannot start timer without a lesson ID.");
     return;
@@ -54,16 +54,27 @@ export async function startLessonTimer(lessonId) {
 
   const timerKey = `lesson_timer_${lessonId}`;
   let startTime;
+  let existingElapsedTime = 0;
 
-  // Fetch the lesson timer from the server
-  const timerData = await fetchLessonTimer(studentId, lessonId);
-
-  if (timerData && timerData.elapsedTime) {
-    const existingElapsedTime = timerData.elapsedTime; // in seconds
-    startTime = Date.now() - existingElapsedTime * 1000;
+  // Determine the starting elapsed time
+  if (initialElapsedTime !== null && initialElapsedTime > 0) {
+    existingElapsedTime = initialElapsedTime;
     console.log(
-      `Resuming timer for lesson ${lessonId}. Existing elapsed time: ${existingElapsedTime} seconds.`
+      `Using pre-fetched elapsed time for lesson ${lessonId}: ${existingElapsedTime} seconds.`
     );
+  } else {
+    // Fetch the lesson timer from the server if not provided or zero
+    const timerData = await fetchLessonTimer(studentId, lessonId);
+    if (timerData && timerData.elapsedTime) {
+      existingElapsedTime = timerData.elapsedTime; // in seconds
+      console.log(
+        `Resuming timer for lesson ${lessonId}. Fetched elapsed time: ${existingElapsedTime} seconds.`
+      );
+    }
+  }
+
+  if (existingElapsedTime > 0) {
+    startTime = Date.now() - existingElapsedTime * 1000;
   } else {
     startTime = Date.now();
     console.log(`Starting new timer for lesson ${lessonId}.`);
@@ -82,6 +93,12 @@ export async function startLessonTimer(lessonId) {
     if (storedStartTime) {
       const elapsedTime = Date.now() - storedStartTime;
       const elapsedSeconds = Math.floor(elapsedTime / 1000);
+      const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+
+      console.log("Timer Number:", timerInterval);
+      console.log("Time in seconds:", elapsedSeconds);
+      console.log("Time in minutes:", elapsedMinutes);
+
       console.log(
         `Elapsed time for lesson ${lessonId}: ${elapsedSeconds} seconds.`
       );
@@ -124,7 +141,8 @@ export async function processAction(actionType, actionParams) {
 
   if (actionType === "begin_activities") {
     if (actionParams.lessonId) {
-      await startLessonTimer(actionParams.lessonId);
+      // Pass the elapsed time to the timer function
+      await startLessonTimer(actionParams.lessonId, actionParams.elapsedTime);
     } else {
       console.error(
         "Action 'begin_activities' requires a lessonId.",

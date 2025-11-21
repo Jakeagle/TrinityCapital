@@ -60,7 +60,7 @@ function getIconForLesson(lessonName) {
  * Renders the lesson buttons in the lesson row.
  * @param {Array} lessons - An array of lesson objects.
  */
-export function renderLessonButtons(lessons) {
+export function renderLessonButtons(lessons, studentProfile) {
   const lessonRow = document.querySelector(".lessonRow");
   if (!lessonRow) {
     console.error("lessonRow element not found.");
@@ -86,7 +86,7 @@ export function renderLessonButtons(lessons) {
     // Display the name, fallback to 'Unnamed Lesson'
     title.textContent = lesson.lesson_title || 'Unnamed Lesson';
 
-    wrapper.addEventListener('click', () => openLessonModal(lesson));
+    wrapper.addEventListener('click', () => openLessonModal(lesson, studentProfile));
 
     button.appendChild(icon);
     wrapper.appendChild(button);
@@ -180,7 +180,7 @@ function generateLessonSlides(lesson) {
  * Opens and populates the new lesson modal.
  * @param {object} lesson - The lesson object to display.
  */
-function openLessonModal(lesson) {
+function openLessonModal(lesson, studentProfile) {
   console.log('lesson object:', lesson);
   console.log('Opening lesson modal for:', lesson);
   const modal = document.querySelector('.new-lesson-modal');
@@ -210,7 +210,7 @@ function openLessonModal(lesson) {
   const backBtn = modal.querySelector('.new-lesson-modal-back-btn');
   const forwardBtn = modal.querySelector('.new-lesson-modal-forward-btn');
   const beginActivitiesBtn = modal.querySelector('.begin-activities-btn');
-  handleLessonModal(lesson);
+  handleLessonModal(lesson, studentProfile);
   const slides = modal.querySelectorAll('.new-lesson-slide');
   let currentSlide = 0;
 

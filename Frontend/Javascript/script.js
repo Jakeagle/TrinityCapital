@@ -1506,7 +1506,7 @@ const loginFunc = async function (PIN, user, screen) {
           fetchAssignedLessons(currentProfile).then((lessons) => {
             console.log("Retrieved lessons in script.js:", lessons);
             renderUnitHeader(currentProfile);
-            renderLessonButtons(lessons);
+            renderLessonButtons(lessons, currentProfile);
           });
 
           // Call setup functions from other modules
