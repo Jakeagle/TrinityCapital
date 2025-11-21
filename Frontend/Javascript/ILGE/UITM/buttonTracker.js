@@ -539,7 +539,15 @@ export function handleLessonModal(lesson, studentProfile) {
       const studentId = studentProfile.memberName;
       const lessonId = lesson._id;
       const timerData = await fetchLessonTimer(studentId, lessonId);
-      const elapsedTime = timerData ? timerData.elapsedTime : 0;
+      
+      let elapsedTime = 0;
+      if (timerData) {
+        if (Array.isArray(timerData) && timerData.length > 0) {
+          elapsedTime = timerData[0].elapsedTime || 0;
+        } else if (timerData.elapsedTime) {
+          elapsedTime = timerData.elapsedTime;
+        }
+      }
 
       // Set the active lesson
       activateLesson(lesson);

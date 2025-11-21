@@ -65,8 +65,15 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
   } else {
     // Fetch the lesson timer from the server if not provided or zero
     const timerData = await fetchLessonTimer(studentId, lessonId);
-    if (timerData && timerData.elapsedTime) {
-      existingElapsedTime = timerData.elapsedTime; // in seconds
+    if (timerData) {
+      if (Array.isArray(timerData) && timerData.length > 0) {
+        existingElapsedTime = timerData[0].elapsedTime || 0;
+      } else if (timerData.elapsedTime) {
+        existingElapsedTime = timerData.elapsedTime;
+      }
+    }
+    
+    if (existingElapsedTime > 0) {
       console.log(
         `Resuming timer for lesson ${lessonId}. Fetched elapsed time: ${existingElapsedTime} seconds.`
       );
