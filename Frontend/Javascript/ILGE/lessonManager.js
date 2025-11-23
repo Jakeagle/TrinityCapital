@@ -53,6 +53,7 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
   }
 
   const timerKey = `lesson_timer_${lessonId}`;
+  const initialElapsedTimeKey = `initial_elapsed_time_${lessonId}`;
   let startTime;
   let existingElapsedTime = 0;
 

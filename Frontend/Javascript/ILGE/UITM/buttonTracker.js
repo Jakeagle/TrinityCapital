@@ -539,6 +539,7 @@ export function handleLessonModal(lesson, studentProfile) {
       const studentId = studentProfile.memberName;
       const lessonId = lesson._id;
       const timerData = await fetchLessonTimer(studentId, lessonId);
+      console.log("Existing timer data:", timerData);
       
       let elapsedTime = 0;
       if (timerData) {
