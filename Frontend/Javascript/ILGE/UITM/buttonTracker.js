@@ -452,13 +452,22 @@ export function buildSessionPayload(currentProfile) {
     const key = sessionStorage.key(i);
     if (key.startsWith("lesson_timer_")) {
       const lessonId = key.replace("lesson_timer_", "");
-      const startTime = parseInt(sessionStorage.getItem(key));
-      const elapsedTime = Date.now() - startTime;
-      lessonTimers[lessonId] = {
-        startTime: startTime,
-        elapsedTime: Math.floor(elapsedTime / 1000),
-        elapsedMinutes: Math.floor(elapsedTime / 60000),
-      };
+      const timerDataJSON = sessionStorage.getItem(key);
+      if (timerDataJSON) {
+        const timerData = JSON.parse(timerDataJSON);
+        const newStartTime = timerData.startTime;
+        const initialElapsedTime = timerData.initialElapsedTime || 0; // in seconds
+
+        const currentSessionTime = Date.now() - newStartTime; // in ms
+        const totalElapsedTime =
+          initialElapsedTime * 1000 + currentSessionTime; // in ms
+
+        lessonTimers[lessonId] = {
+          startTime: newStartTime,
+          elapsedTime: Math.floor(totalElapsedTime / 1000), // total in seconds
+          elapsedMinutes: Math.floor(totalElapsedTime / 60000),
+        };
+      }
     }
   }
 

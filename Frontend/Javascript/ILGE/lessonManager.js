@@ -33,12 +33,18 @@ export function deactivateLesson(lessonId) {
 }
 
 let timerInterval = null;
+let activeTimerLessonId = null;
 
 /**
  * Starts a timer for a given lesson.
  * @param {string} lessonId - The ID of the lesson to start the timer for.
  */
 export async function startLessonTimer(lessonId, initialElapsedTime = null) {
+  if (timerInterval && activeTimerLessonId === lessonId) {
+    console.log(`Timer for lesson ${lessonId} is already running.`);
+    return;
+  }
+
   if (!lessonId) {
     console.error("Cannot start timer without a lesson ID.");
     return;
@@ -53,18 +59,11 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
   }
 
   const timerKey = `lesson_timer_${lessonId}`;
-  const initialElapsedTimeKey = `initial_elapsed_time_${lessonId}`;
-  let startTime;
-  let existingElapsedTime = 0;
+  let existingElapsedTime = 0; // in seconds
 
-  // Determine the starting elapsed time
   if (initialElapsedTime !== null && initialElapsedTime > 0) {
     existingElapsedTime = initialElapsedTime;
-    console.log(
-      `Using pre-fetched elapsed time for lesson ${lessonId}: ${existingElapsedTime} seconds.`
-    );
   } else {
-    // Fetch the lesson timer from the server if not provided or zero
     const timerData = await fetchLessonTimer(studentId, lessonId);
     if (timerData) {
       if (Array.isArray(timerData) && timerData.length > 0) {
@@ -73,34 +72,39 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
         existingElapsedTime = timerData.elapsedTime;
       }
     }
-    
-    if (existingElapsedTime > 0) {
-      console.log(
-        `Resuming timer for lesson ${lessonId}. Fetched elapsed time: ${existingElapsedTime} seconds.`
-      );
-    }
   }
 
   if (existingElapsedTime > 0) {
-    startTime = Date.now() - existingElapsedTime * 1000;
+    console.log(
+      `Resuming timer for lesson ${lessonId}. Fetched elapsed time: ${existingElapsedTime} seconds.`
+    );
   } else {
-    startTime = Date.now();
     console.log(`Starting new timer for lesson ${lessonId}.`);
   }
 
-  sessionStorage.setItem(timerKey, startTime);
-  console.log(`Timer for lesson ${lessonId} set with start time ${startTime}.`);
+  const timerDataToStore = {
+    startTime: Date.now(),
+    initialElapsedTime: existingElapsedTime, // in seconds
+  };
+  sessionStorage.setItem(timerKey, JSON.stringify(timerDataToStore));
+  console.log(`Timer for lesson ${lessonId} set with data:`, timerDataToStore);
+
 
   if (timerInterval) {
     clearInterval(timerInterval);
   }
 
-  // Check for time-based conditions every second
+  activeTimerLessonId = lessonId;
+
   timerInterval = setInterval(() => {
-    const storedStartTime = sessionStorage.getItem(timerKey);
-    if (storedStartTime) {
-      const elapsedTime = Date.now() - storedStartTime;
-      const elapsedSeconds = Math.floor(elapsedTime / 1000);
+    const storedTimerDataJSON = sessionStorage.getItem(timerKey);
+    if (storedTimerDataJSON) {
+      const storedTimerData = JSON.parse(storedTimerDataJSON);
+      const currentSessionTime = Date.now() - storedTimerData.startTime; // in ms
+      const totalElapsedTime =
+        storedTimerData.initialElapsedTime * 1000 + currentSessionTime; // in ms
+
+      const elapsedSeconds = Math.floor(totalElapsedTime / 1000);
       const elapsedMinutes = Math.floor(elapsedSeconds / 60);
 
       console.log("Timer Number:", timerInterval);
@@ -111,7 +115,6 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
         `Elapsed time for lesson ${lessonId}: ${elapsedSeconds} seconds.`
       );
 
-      // Check for time-based conditions
       const lesson = activeLessons.get(lessonId);
       if (lesson && lesson.completion_conditions) {
         const timeConditions = lesson.completion_conditions.filter(
@@ -125,7 +128,7 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
             if (actionToExecute) {
               console.log(`Executing reaction: ${condition.action_type}`);
               actionToExecute(condition.action_details);
-              condition.isMet = true; // Mark as met
+              condition.isMet = true; 
             } else {
               console.warn(
                 `Action to take "${condition.action_type}" not found in CRM library.`
