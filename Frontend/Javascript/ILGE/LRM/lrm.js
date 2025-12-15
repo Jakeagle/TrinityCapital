@@ -38,6 +38,15 @@ async function fetchLessonTimer(studentId, lessonId) {
     return null;
   }
 
+  // Try to get from localStorage first for persistence
+  const key = `lesson_timer_${studentId}_${lessonId}`;
+  const savedElapsedTime = localStorage.getItem(key);
+  if (savedElapsedTime) {
+    console.log(`Fetched elapsed time from localStorage for lesson ${lessonId}: ${savedElapsedTime} seconds`);
+    return { elapsedTime: parseInt(savedElapsedTime, 10) };
+  }
+
+  // Fallback to server if not in localStorage
   try {
     const response = await fetch(
       `${lessonServerUrl}/api/timers?studentId=${studentId}&lessonId=${lessonId}`
@@ -59,4 +68,89 @@ async function fetchLessonTimer(studentId, lessonId) {
   }
 }
 
-export { fetchAssignedLessons, fetchLessonTimer };
+async function saveLessonTimer(studentId, lessonId, elapsedTime) {
+  if (!studentId || !lessonId || elapsedTime === undefined) {
+    console.error(
+      "Student ID, Lesson ID, and elapsedTime are required to save a lesson timer."
+    );
+    return false;
+  }
+
+  // Save to localStorage for persistence
+  const key = `lesson_timer_${studentId}_${lessonId}`;
+  localStorage.setItem(key, elapsedTime.toString());
+  console.log(`Saved elapsed time to localStorage for lesson ${lessonId}: ${elapsedTime} seconds`);
+
+  // Also try to save to server
+  try {
+    const response = await fetch(`${lessonServerUrl}/api/timers`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        studentId,
+        lessonId,
+        elapsedTime,
+      }),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const result = await response.json();
+    console.log("Timer saved successfully to server:", result);
+    return true;
+  } catch (error) {
+    console.error("Could not save lesson timer to server:", error);
+    return false; // Still return true since localStorage worked
+  }
+}
+
+function saveLessonTimerSync(studentId, lessonId, elapsedTime) {
+  if (!studentId || !lessonId || elapsedTime === undefined) {
+    console.error(
+      "Student ID, Lesson ID, and elapsedTime are required to save a lesson timer."
+    );
+    return false;
+  }
+
+  // Save to localStorage for persistence
+  const key = `lesson_timer_${studentId}_${lessonId}`;
+  localStorage.setItem(key, elapsedTime.toString());
+  console.log(`Saved elapsed time to localStorage synchronously for lesson ${lessonId}: ${elapsedTime} seconds`);
+
+  // Also try to save to server synchronously
+  try {
+    const xhr = new XMLHttpRequest();
+    xhr.open("POST", `${lessonServerUrl}/api/timers`, false); // synchronous
+    xhr.setRequestHeader("Content-Type", "application/json");
+    xhr.send(
+      JSON.stringify({
+        studentId,
+        lessonId,
+        elapsedTime,
+      })
+    );
+    if (xhr.status >= 200 && xhr.status < 300) {
+      console.log("Timer saved synchronously to server:", xhr.responseText);
+      return true;
+    } else {
+      console.error(
+        "Failed to save timer synchronously to server:",
+        xhr.status,
+        xhr.responseText
+      );
+      return false;
+    }
+  } catch (error) {
+    console.error("Could not save lesson timer synchronously to server:", error);
+    return false;
+  }
+}
+
+export {
+  fetchAssignedLessons,
+  fetchLessonTimer,
+  saveLessonTimer,
+  saveLessonTimerSync,
+};

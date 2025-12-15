@@ -17,6 +17,7 @@ import {
 
 // SDSM / session payload builder
 import { buildSessionPayload } from "./ILGE/UITM/buttonTracker.js";
+import { saveLessonTimer } from "./ILGE/LRM/lrm.js";
 import { sendStudentSessionData } from "./ILGE/SDSM/sdsm.js";
 
 // Show loading modal immediately
@@ -124,6 +125,23 @@ if (logOutBTN) {
       if (!payload) {
         console.warn("Logout: no payload available, performing default reload");
         return window.location.reload();
+      }
+
+      // Save lesson timers to the lesson server
+      if (payload.lessonTimers && currentProfile && currentProfile.memberName) {
+        const studentId = currentProfile.memberName;
+        const savePromises = Object.keys(payload.lessonTimers).map(
+          (lessonId) => {
+            const elapsedTime = payload.lessonTimers[lessonId].elapsedTime;
+            return saveLessonTimer(studentId, lessonId, elapsedTime);
+          }
+        );
+        try {
+          await Promise.all(savePromises);
+          console.log("Logout: lesson timers saved to server");
+        } catch (err) {
+          console.error("Logout: failed to save some lesson timers", err);
+        }
       }
 
       // Wait for server response, but don't hang forever (8s timeout)

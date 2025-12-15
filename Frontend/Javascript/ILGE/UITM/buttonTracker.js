@@ -3,7 +3,11 @@ import {
   processAction,
   activeLessons,
 } from "../lessonManager.js";
-import { fetchLessonTimer } from "../LRM/lrm.js";
+import {
+  fetchLessonTimer,
+  saveLessonTimer,
+  saveLessonTimerSync,
+} from "../LRM/lrm.js";
 import { sendStudentSessionData } from "../SDSM/sdsm.js";
 
 function handleAccountSwitchModal() {
@@ -459,8 +463,7 @@ export function buildSessionPayload(currentProfile) {
         const initialElapsedTime = timerData.initialElapsedTime || 0; // in seconds
 
         const currentSessionTime = Date.now() - newStartTime; // in ms
-        const totalElapsedTime =
-          initialElapsedTime * 1000 + currentSessionTime; // in ms
+        const totalElapsedTime = initialElapsedTime * 1000 + currentSessionTime; // in ms
 
         lessonTimers[lessonId] = {
           startTime: newStartTime,
@@ -549,7 +552,7 @@ export function handleLessonModal(lesson, studentProfile) {
       const lessonId = lesson._id;
       const timerData = await fetchLessonTimer(studentId, lessonId);
       console.log("Existing timer data:", timerData);
-      
+
       let elapsedTime = 0;
       if (timerData) {
         if (Array.isArray(timerData) && timerData.length > 0) {
@@ -581,6 +584,16 @@ window.addEventListener("beforeunload", (event) => {
   // The primary path for saving session data is the explicit logout button.
   // We pass `null` for currentProfile, so it will log as "Unknown Student".
   const payload = buildSessionPayload(null);
+
+  // Save lesson timers synchronously before sending beacon
+  const studentId = sessionStorage.getItem("current_student_name");
+  if (payload.lessonTimers && studentId) {
+    Object.keys(payload.lessonTimers).forEach((lessonId) => {
+      const elapsedTime = payload.lessonTimers[lessonId].elapsedTime;
+      saveLessonTimerSync(studentId, lessonId, elapsedTime);
+    });
+  }
+
   sendSessionWithBeacon(payload);
 });
 
