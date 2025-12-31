@@ -15,6 +15,11 @@ import {
   setLoadingState,
 } from "./uiEnhancements.js";
 
+// SDSM / session payload builder
+import { buildSessionPayload } from "./ILGE/UITM/buttonTracker.js";
+import { saveLessonTimer } from "./ILGE/LRM/lrm.js";
+import { sendStudentSessionData } from "./ILGE/SDSM/sdsm.js";
+
 // Show loading modal immediately
 document.addEventListener("DOMContentLoaded", function () {
   const loadingModal = document.getElementById("loadingModal");
@@ -91,9 +96,97 @@ const closeDepositModal = document.querySelector(".closeDeposits");
 const closeSendMoneyModal = document.querySelector(".closeSendMoney");
 const logOutBTN = document.querySelector(".logOutBTN");
 
-logOutBTN.addEventListener("click", function () {
-  location.reload();
-});
+if (logOutBTN) {
+  logOutBTN.addEventListener("click", async function (e) {
+    e.preventDefault();
+    // Prevent any other click handlers (including legacy handlers that trigger navigation)
+    // from running after this handler — we want to control the logout navigation flow.
+    try {
+      e.stopImmediatePropagation();
+    } catch (err) {
+      // Older browsers may not support stopImmediatePropagation; it's non-fatal.
+    }
+
+    // Disable button and show temporary state
+    const originalDisabled = logOutBTN.disabled;
+    const originalText = logOutBTN.textContent;
+    try {
+      logOutBTN.disabled = true;
+      logOutBTN.textContent = "Signing out...";
+
+      // Build full session payload using centralized builder
+      let payload = null;
+      try {
+        payload = buildSessionPayload(currentProfile);
+      } catch (err) {
+        console.error("Logout: failed to build session payload", err);
+      }
+
+      if (!payload) {
+        console.warn("Logout: no payload available, performing default reload");
+        return window.location.reload();
+      }
+
+      // Wait for server response, but don't hang forever (8s timeout)
+      const sendPromise = sendStudentSessionData(payload);
+      const timeoutMs = 8000;
+      const timeoutPromise = new Promise((resolve) =>
+        setTimeout(() => resolve({ ok: false, timeout: true }), timeoutMs)
+      );
+
+      const result = await Promise.race([sendPromise, timeoutPromise]);
+
+      if (result && result.ok) {
+        console.log(
+          "Logout: session data confirmed by server, reloading.",
+          result.data
+        );
+        window.location.reload();
+      } else if (result && result.timeout) {
+        console.warn(
+          "Logout: send timed out after",
+          timeoutMs,
+          "ms; reloading anyway."
+        );
+        // Optionally show notification to user
+        try {
+          showModernNotification(
+            "Could not confirm server save — reloading",
+            "warning",
+            4000
+          );
+        } catch (e) {}
+        window.location.reload();
+      } else {
+        console.warn(
+          "Logout: server returned failure; reloading anyway.",
+          result
+        );
+        try {
+          showModernNotification(
+            "Server rejected session save — reloading",
+            "warning",
+            4000
+          );
+        } catch (e) {}
+        window.location.reload();
+      }
+    } catch (err) {
+      console.error("Logout: unexpected error", err);
+      try {
+        window.location.reload();
+      } catch (e) {}
+    } finally {
+      // Restore button state if page didn't navigate
+      try {
+        logOutBTN.disabled = originalDisabled;
+        logOutBTN.textContent = originalText;
+      } catch (e) {}
+    }
+  });
+} else {
+  console.warn("Logout button (.logOutBTN) not found in DOM.");
+}
 
 billsModalBTN.addEventListener("click", function () {
   billsModal.showModal();
@@ -573,16 +666,13 @@ function displayConversation(threadId, messages) {
  */
 async function createNewThread(recipientId) {
   try {
-    const response = await fetch(
-      "https://tcstudentserver-production.up.railway.app/newThread",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          participants: [currentProfile.memberName, recipientId],
-        }),
-      }
-    );
+    const response = await fetch("https://tcstudentserver-production.up.railway.app/newThread", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        participants: [currentProfile.memberName, recipientId],
+      }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -1076,19 +1166,15 @@ socket.on("unitAssignedToStudent", (data) => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles =
-  "https://tcstudentserver-production.up.railway.app/profiles";
+const testServerProfiles = "https://tcstudentserver-production.up.railway.app/profiles";
 
 const loanURL = "https://tcstudentserver-production.up.railway.app/loans";
 
-const donationURL =
-  "https://tcstudentserver-production.up.railway.app/donations";
+const donationURL = "https://tcstudentserver-production.up.railway.app/donations";
 
-const donationSavingsURL =
-  "https://tcstudentserver-production.up.railway.app/donationsSavings";
+const donationSavingsURL = "https://tcstudentserver-production.up.railway.app/donationsSavings";
 
-const balanceURL =
-  "https://tcstudentserver-production.up.railway.app/initialBalance";
+const balanceURL = "https://tcstudentserver-production.up.railway.app/initialBalance";
 
 const productivityURL = "http://localhost:5040/timers";
 
@@ -1393,6 +1479,9 @@ const loginFunc = async function (PIN, user, screen) {
       const signOnText = document.querySelector(".signOnText");
       signOnText.textContent = currentProfile.memberName.split(" ")[0];
 
+      // Store student name in sessionStorage for reliable retrieval on unload
+      sessionStorage.setItem("current_student_name", currentProfile.memberName);
+
       // Show the main app
       const mainApp = document.querySelector(".mainApp");
       mainApp.style.display = "flex";
@@ -1418,7 +1507,7 @@ const loginFunc = async function (PIN, user, screen) {
           fetchAssignedLessons(currentProfile).then((lessons) => {
             console.log("Retrieved lessons in script.js:", lessons);
             renderUnitHeader(currentProfile);
-            renderLessonButtons(lessons);
+            renderLessonButtons(lessons, currentProfile);
           });
 
           // Call setup functions from other modules

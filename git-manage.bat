@@ -110,6 +110,8 @@ copy "frontend.gitignore" ".gitignore" >nul
 
 REM Add only Frontend files
 git add Frontend/
+git add index.html
+git add public/
 
 git commit -m "FRONTEND: %commit_message%"
 

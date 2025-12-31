@@ -160,25 +160,14 @@ class CheckPayeeManager {
    */
   async loadBillVendors() {
     try {
-      if (!currentProfile?.memberName) {
-        console.warn('No user profile available for loading bills');
+      if (!currentProfile?.checkingAccount?.bills) {
+        console.warn('No bills found in user profile');
         return;
       }
 
-      // Encode the member name to handle spaces and special characters
-      const encodedMemberName = encodeURIComponent(currentProfile.memberName);
-      const response = await fetch(
-        `https://tcstudentserver-production.up.railway.app/getBillInfo/${encodedMemberName}`,
-      );
+      const billData = currentProfile.checkingAccount.bills;
 
-      if (!response.ok) {
-        console.warn('Could not fetch bill information');
-        return;
-      }
-
-      const billData = await response.json();
-
-      if (!billData || !Array.isArray(billData)) {
+      if (!Array.isArray(billData)) {
         console.warn('Invalid bill data format');
         return;
       }
@@ -227,16 +216,14 @@ class CheckPayeeManager {
         return;
       }
 
-      const classmates = await response.json();
+      const data = await response.json();
 
-      if (
-        !classmates ||
-        !Array.isArray(classmates) ||
-        classmates.length === 0
-      ) {
+      if (!data.success || !Array.isArray(data.classmates) || data.classmates.length === 0) {
         console.warn('No classmates found');
         return;
       }
+
+      const classmates = data.classmates;
 
       // Add classmates to dropdown
       classmates.forEach(classmate => {

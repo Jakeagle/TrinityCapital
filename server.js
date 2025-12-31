@@ -9,6 +9,7 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 const SchedulerManager = require("./schedulerManager");
+const { setupGitHubWebhook } = require("./githubWebhookHandler");
 
 // Add fetch for Node.js versions that don't have it built-in
 let fetch;
@@ -369,7 +370,7 @@ io.on("connection", (socket) => {
 // Listen for 'studentCreated' event from another server (localhost:5000)
 const { io: ClientIO } = require("socket.io-client");
 const EXTERNAL_SOCKET_URL =
-  process.env.EXTERNAL_SOCKET_URL || "http://localhost:5000";
+  process.env.EXTERNAL_SOCKET_URL || "https://tcregistrationserver-production.up.railway.app";
 const externalSocket = ClientIO(EXTERNAL_SOCKET_URL);
 
 externalSocket.on("connect", () => {
@@ -421,6 +422,11 @@ async function run() {
     // Initialize scheduler manager after MongoDB connection
     schedulerManager = new SchedulerManager(client, io, userSockets);
     await schedulerManager.initializeScheduler();
+
+    // Setup GitHub webhook handler
+    const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET || "";
+    const serverUrl = process.env.SERVER_URL || "https://tcstudentserver-production.up.railway.app";
+    setupGitHubWebhook(app, webhookSecret, serverUrl);
   } finally {
     // // Ensures that the client will close when you finish/error
     // await client.close();
@@ -1619,6 +1625,73 @@ app.post("/submit-feedback", async (req, res) => {
   }
 });
 
+/**************************************************TIMER ENDPOINTS*********************************************/
+
+// POST /api/timers - Save lesson timer
+app.post("/api/timers", async (req, res) => {
+  try {
+    const { studentId, lessonId, elapsedTime } = req.body;
+
+    if (!studentId || !lessonId || elapsedTime === undefined) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Upsert the timer document
+    const result = await client
+      .db("TrinityCapital")
+      .collection("LessonTimers")
+      .updateOne(
+        { studentId, lessonId },
+        {
+          $set: {
+            elapsedTime: elapsedTime,
+            lastUpdated: new Date(),
+          },
+        },
+        { upsert: true }
+      );
+
+    console.log(
+      `Timer saved for student ${studentId}, lesson ${lessonId}: ${elapsedTime} seconds`
+    );
+    res.json({ success: true, message: "Timer saved" });
+  } catch (error) {
+    console.error("Error saving timer:", error);
+    res.status(500).json({ error: "Failed to save timer" });
+  }
+});
+
+// GET /api/timers - Fetch lesson timer
+app.get("/api/timers", async (req, res) => {
+  try {
+    const { studentId, lessonId } = req.query;
+
+    if (!studentId || !lessonId) {
+      return res.status(400).json({ error: "Missing studentId or lessonId" });
+    }
+
+    const timerDoc = await client
+      .db("TrinityCapital")
+      .collection("LessonTimers")
+      .findOne({ studentId, lessonId });
+
+    if (timerDoc) {
+      console.log(
+        `Timer fetched for student ${studentId}, lesson ${lessonId}: ${timerDoc.elapsedTime} seconds`
+      );
+      res.json({ elapsedTime: timerDoc.elapsedTime });
+    } else {
+      console.log(
+        `No timer found for student ${studentId}, lesson ${lessonId}`
+      );
+      res.status(404).json({ error: "Timer not found" });
+    }
+  } catch (error) {
+    console.error("Error fetching timer:", error);
+    res.status(500).json({ error: "Failed to fetch timer" });
+  }
+});
+
 /**************************************************LESSON SERVER FUNCTIONS*********************************************/
 
 // Helper function to calculate student health metrics
@@ -2229,7 +2302,7 @@ app.get("/api/student-current-lesson/:studentId", async (req, res) => {
           const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
           
           const lessonServerResponse = await fetch(
-            'http://localhost:4000/get-lessons-by-ids',
+            'https://tclessonserver-production.up.railway.app/get-lessons-by-ids',
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -3849,7 +3922,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
       try {
         // Fetch fresh lesson content from the lesson server
         const lessonServerResponse = await fetch(
-          `http://localhost:4000/lessons/${unit.assignedBy}`
+          `https://tclessonserver-production.up.railway.app/lessons/${unit.assignedBy}`
         );
 
         if (lessonServerResponse.ok) {
@@ -4144,7 +4217,7 @@ app.get("/student-lessons-by-ids/:studentId", async (req, res) => {
     try {
       console.log(`🔗 Requesting lesson content from lesson server...`);
       const lessonServerResponse = await fetch(
-        "http://localhost:4000/get-lessons-by-ids",
+        "https://tclessonserver-production.up.railway.app/get-lessons-by-ids",
         {
           method: "POST",
           headers: {
@@ -4234,7 +4307,7 @@ app.post("/assignUnitToStudent", async (req, res) => {
         `🔍 Fetching unit structure from lesson server for unit ${unitId}...`
       );
       const lessonServerResponse = await fetch(
-        `http://localhost:4000/lessons/${assignedBy}`
+        `https://tclessonserver-production.up.railway.app/lessons/${assignedBy}`
       );
       if (lessonServerResponse.ok) {
         const lessonData = await lessonServerResponse.json();
@@ -4499,6 +4572,187 @@ app.get("/health", (req, res) => {
     version: "1.0.0",
   });
 });
+
+/*****************************************UPDATE MANAGEMENT***************************************************/
+
+// Track update status globally
+let updateStatus = {
+  isUpdating: false,
+  progress: 0,
+  message: "Idle",
+  startTime: null,
+};
+
+// Connected clients for update notifications
+const updateClients = new Set();
+
+// Endpoint to show update screen
+app.get("/update-screen", (req, res) => {
+  res.sendFile(__dirname + "/Frontend/updateScreen.html");
+});
+
+// Endpoint to trigger an update (can be called by GitHub webhook or admin panel)
+app.post("/trigger-update", async (req, res) => {
+  try {
+    const { progress, message } = req.body;
+
+    if (updateStatus.isUpdating && progress === 0) {
+      // Update already in progress
+      return res.status(409).json({
+        error: "Update already in progress",
+        currentProgress: updateStatus.progress,
+      });
+    }
+
+    // Start update
+    if (!updateStatus.isUpdating) {
+      updateStatus.isUpdating = true;
+      updateStatus.startTime = new Date();
+      console.log(
+        "🔄 UPDATE TRIGGERED: Starting Trinity Capital update process"
+      );
+
+      // Notify all connected clients
+      io.emit("update-start", {
+        message: "Update initiated",
+        timestamp: new Date().toISOString(),
+      });
+
+      // Simulate update process if no progress provided
+      if (!progress) {
+        simulateUpdate();
+      }
+    }
+
+    // Update progress if provided
+    if (progress !== undefined) {
+      updateStatus.progress = Math.min(progress, 99); // Cap at 99 until completion
+      if (message) {
+        updateStatus.message = message;
+      }
+
+      // Notify clients of progress
+      io.emit("update-progress", {
+        progress: updateStatus.progress,
+        message: updateStatus.message,
+      });
+    }
+
+    res.json({
+      success: true,
+      message: "Update triggered",
+      status: updateStatus,
+    });
+  } catch (error) {
+    console.error("Error triggering update:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint to complete update
+app.post("/complete-update", (req, res) => {
+  try {
+    if (!updateStatus.isUpdating) {
+      return res.status(400).json({ error: "No update in progress" });
+    }
+
+    updateStatus.progress = 100;
+    updateStatus.message = "Update complete";
+
+    console.log("✅ UPDATE COMPLETE: Trinity Capital successfully updated");
+
+    // Notify all clients
+    io.emit("update-complete", {
+      message: "Update completed successfully",
+      duration: Date.now() - updateStatus.startTime,
+    });
+
+    // Reset update status
+    setTimeout(() => {
+      updateStatus.isUpdating = false;
+      updateStatus.progress = 0;
+      updateStatus.message = "Idle";
+      updateStatus.startTime = null;
+    }, 2000);
+
+    res.json({
+      success: true,
+      message: "Update completed",
+      duration: Date.now() - updateStatus.startTime,
+    });
+  } catch (error) {
+    console.error("Error completing update:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Endpoint to get current update status
+app.get("/update-status", (req, res) => {
+  res.json({
+    isUpdating: updateStatus.isUpdating,
+    progress: updateStatus.progress,
+    message: updateStatus.message,
+    startTime: updateStatus.startTime,
+  });
+});
+
+// Middleware to redirect all requests to update screen if updating
+app.use((req, res, next) => {
+  // Don't redirect these routes
+  const bypassRoutes = [
+    "/update-screen",
+    "/update-status",
+    "/trigger-update",
+    "/complete-update",
+    "/health",
+    "/api/",
+  ];
+
+  const shouldBypass = bypassRoutes.some((route) => req.path.startsWith(route));
+
+  if (updateStatus.isUpdating && !shouldBypass && req.method === "GET") {
+    return res.redirect("/update-screen");
+  }
+
+  next();
+});
+
+// Simulate update process (for demo/testing)
+function simulateUpdate() {
+  const stages = [
+    { delay: 1000, progress: 15, message: "Downloading latest version" },
+    { delay: 2000, progress: 35, message: "Extracting files" },
+    { delay: 2000, progress: 55, message: "Installing dependencies" },
+    { delay: 1500, progress: 75, message: "Finalizing update" },
+    { delay: 1500, progress: 90, message: "Restarting server" },
+    { delay: 2000, progress: 100, message: "Update complete" },
+  ];
+
+  let currentDelay = 0;
+
+  stages.forEach((stage) => {
+    currentDelay += stage.delay;
+    setTimeout(() => {
+      updateStatus.progress = stage.progress;
+      updateStatus.message = stage.message;
+
+      io.emit("update-progress", {
+        progress: updateStatus.progress,
+        message: updateStatus.message,
+      });
+
+      if (stage.progress === 100) {
+        setTimeout(() => {
+          updateStatus.isUpdating = false;
+          io.emit("update-complete", {
+            message: "Update completed successfully",
+            duration: Date.now() - updateStatus.startTime,
+          });
+        }, 1000);
+      }
+    }, currentDelay);
+  });
+}
 
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);

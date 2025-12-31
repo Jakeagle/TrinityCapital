@@ -1,5 +1,6 @@
 "use strict";
 import { currentProfile } from "./script.js";
+import { processAction } from "./ILGE/lessonManager.js";
 import {
   showNotification,
   validateAmount,
@@ -226,6 +227,11 @@ paymentFrequency.addEventListener("change", function (event) {
 
 // Handle bill submission with validation
 billsBTN.addEventListener("click", async function (event) {
+  processAction("bill_added", {
+    amount: parseInt(-Math.abs(billInput.value)),
+    name: billName.value.trim(),
+    category: billType,
+  });
   event.preventDefault();
 
   const originalText = billsBTN.textContent;
