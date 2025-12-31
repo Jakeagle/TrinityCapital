@@ -263,15 +263,37 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
 
         timeConditions.forEach((condition) => {
           if (elapsedSeconds >= condition.condition_value) {
-            console.log(`Condition met for action: elapsed_time`);
-            const actionToExecute = actions[condition.action_type];
+            const actionName = condition.action_type;
+            if (lesson.firedActions.has(actionName)) {
+              // Action has already fired for this lesson, so we just ensure the condition is marked as met.
+              if (!condition.isMet) {
+                console.log(
+                  `Action '${actionName}' has already been fired for lesson '${lesson.lesson_title}'. Marking condition as met.`
+                );
+                condition.isMet = true;
+              }
+              return; // Skip to the next condition.
+            }
+
+            console.log(
+              `Condition met for elapsed_time. Executing action: ${actionName}`
+            );
+            const actionToExecute = actions[actionName];
             if (actionToExecute) {
-              console.log(`Executing reaction: ${condition.action_type}`);
               actionToExecute(condition.action_details);
-              condition.isMet = true;
+              lesson.firedActions.add(actionName); // Record that the action has been fired.
+              condition.isMet = true; // Mark the condition as met.
+
+              // After executing an action, check if the lesson is now complete.
+              if (isLessonComplete(lesson)) {
+                console.log(
+                  `All conditions met for lesson: ${lesson.lesson_title}`
+                );
+                markLessonComplete(lesson);
+              }
             } else {
               console.warn(
-                `Action to take "${condition.action_type}" not found in CRM library.`
+                `Action to take "${actionName}" not found in CRM library.`
               );
             }
           }
