@@ -2,6 +2,7 @@ import {
   activateLesson,
   processAction,
   activeLessons,
+  completedLessons,
 } from "../lessonManager.js";
 import {
   fetchLessonTimer,
@@ -450,37 +451,14 @@ function handleMessagesModal() {
 
 // Build the same payload for use with sendBeacon on unload
 export function buildSessionPayload(currentProfile) {
-  // Get lesson timers from sessionStorage
+  // Timers are now fetched from server on demand, not stored locally
   const lessonTimers = {};
-  for (let i = 0; i < sessionStorage.length; i++) {
-    const key = sessionStorage.key(i);
-    if (key.startsWith("lesson_timer_")) {
-      const lessonId = key.replace("lesson_timer_", "");
-      const timerDataJSON = sessionStorage.getItem(key);
-      if (timerDataJSON) {
-        const timerData = JSON.parse(timerDataJSON);
-        const newStartTime = timerData.startTime;
-        const initialElapsedTime = timerData.initialElapsedTime || 0; // in seconds
-
-        const currentSessionTime = Date.now() - newStartTime; // in ms
-        const totalElapsedTime = initialElapsedTime * 1000 + currentSessionTime; // in ms
-
-        lessonTimers[lessonId] = {
-          startTime: newStartTime,
-          elapsedTime: Math.floor(totalElapsedTime / 1000), // total in seconds
-          elapsedMinutes: Math.floor(totalElapsedTime / 60000),
-        };
-      }
-    }
-  }
 
   const activeLessonDetails = Array.from(activeLessons.values()).map(
     (lesson) => ({
       id: lesson._id,
       title: lesson.lesson_title,
-      elapsedTime: lessonTimers[lesson._id]
-        ? lessonTimers[lesson._id].elapsedMinutes
-        : 0,
+      elapsedTime: lesson.elapsedTime || 0,
     })
   );
 
@@ -490,9 +468,12 @@ export function buildSessionPayload(currentProfile) {
     sessionStorage.getItem("current_student_name") ||
     (currentProfile ? currentProfile.memberName : "Unknown Student");
 
+  const completedLessonDetails = Array.from(completedLessons.values());
+
   return {
     studentName,
     activeLessons: activeLessonDetails,
+    completedLessons: completedLessonDetails,
     lessonTimers,
     timestamp: Date.now(),
   };
@@ -547,20 +528,30 @@ export function handleLessonModal(lesson, studentProfile) {
     beginActivitiesBtn.addEventListener("click", async () => {
       console.log(`${lesson.lesson_title} active`);
 
-      // Fetch existing timer data before starting the lesson
+      // Fetch existing timer data from the student profile
       const studentId = studentProfile.memberName;
       const lessonId = lesson._id;
-      const timerData = await fetchLessonTimer(studentId, lessonId);
-      console.log("Existing timer data:", timerData);
 
       let elapsedTime = 0;
-      if (timerData) {
-        if (Array.isArray(timerData) && timerData.length > 0) {
-          elapsedTime = timerData[0].elapsedTime || 0;
-        } else if (timerData.elapsedTime) {
-          elapsedTime = timerData.elapsedTime;
+      if (
+        studentProfile["Lesson Data"] &&
+        studentProfile["Lesson Data"].length > 0
+      ) {
+        const lastSession =
+          studentProfile["Lesson Data"][
+            studentProfile["Lesson Data"].length - 1
+          ];
+        if (lastSession.activeLessons) {
+          const activeLessonData = lastSession.activeLessons.find(
+            (al) => al.id === lessonId
+          );
+          if (activeLessonData && activeLessonData.elapsedTime) {
+            elapsedTime = activeLessonData.elapsedTime;
+          }
         }
       }
+
+      console.log("Existing timer data from profile:", elapsedTime);
 
       // Set the active lesson
       activateLesson(lesson);
@@ -584,15 +575,6 @@ window.addEventListener("beforeunload", (event) => {
   // The primary path for saving session data is the explicit logout button.
   // We pass `null` for currentProfile, so it will log as "Unknown Student".
   const payload = buildSessionPayload(null);
-
-  // Save lesson timers synchronously before sending beacon
-  const studentId = sessionStorage.getItem("current_student_name");
-  if (payload.lessonTimers && studentId) {
-    Object.keys(payload.lessonTimers).forEach((lessonId) => {
-      const elapsedTime = payload.lessonTimers[lessonId].elapsedTime;
-      saveLessonTimerSync(studentId, lessonId, elapsedTime);
-    });
-  }
 
   sendSessionWithBeacon(payload);
 });

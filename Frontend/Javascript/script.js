@@ -127,23 +127,6 @@ if (logOutBTN) {
         return window.location.reload();
       }
 
-      // Save lesson timers to the lesson server
-      if (payload.lessonTimers && currentProfile && currentProfile.memberName) {
-        const studentId = currentProfile.memberName;
-        const savePromises = Object.keys(payload.lessonTimers).map(
-          (lessonId) => {
-            const elapsedTime = payload.lessonTimers[lessonId].elapsedTime;
-            return saveLessonTimer(studentId, lessonId, elapsedTime);
-          }
-        );
-        try {
-          await Promise.all(savePromises);
-          console.log("Logout: lesson timers saved to server");
-        } catch (err) {
-          console.error("Logout: failed to save some lesson timers", err);
-        }
-      }
-
       // Wait for server response, but don't hang forever (8s timeout)
       const sendPromise = sendStudentSessionData(payload);
       const timeoutMs = 8000;

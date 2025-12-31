@@ -38,15 +38,6 @@ async function fetchLessonTimer(studentId, lessonId) {
     return null;
   }
 
-  // Try to get from localStorage first for persistence
-  const key = `lesson_timer_${studentId}_${lessonId}`;
-  const savedElapsedTime = localStorage.getItem(key);
-  if (savedElapsedTime) {
-    console.log(`Fetched elapsed time from localStorage for lesson ${lessonId}: ${savedElapsedTime} seconds`);
-    return { elapsedTime: parseInt(savedElapsedTime, 10) };
-  }
-
-  // Fallback to server if not in localStorage
   try {
     const response = await fetch(
       `${lessonServerUrl}/api/timers?studentId=${studentId}&lessonId=${lessonId}`
@@ -76,12 +67,6 @@ async function saveLessonTimer(studentId, lessonId, elapsedTime) {
     return false;
   }
 
-  // Save to localStorage for persistence
-  const key = `lesson_timer_${studentId}_${lessonId}`;
-  localStorage.setItem(key, elapsedTime.toString());
-  console.log(`Saved elapsed time to localStorage for lesson ${lessonId}: ${elapsedTime} seconds`);
-
-  // Also try to save to server
   try {
     const response = await fetch(`${lessonServerUrl}/api/timers`, {
       method: "POST",
@@ -98,11 +83,11 @@ async function saveLessonTimer(studentId, lessonId, elapsedTime) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const result = await response.json();
-    console.log("Timer saved successfully to server:", result);
+    console.log("Timer saved successfully:", result);
     return true;
   } catch (error) {
-    console.error("Could not save lesson timer to server:", error);
-    return false; // Still return true since localStorage worked
+    console.error("Could not save lesson timer:", error);
+    return false;
   }
 }
 
@@ -114,12 +99,6 @@ function saveLessonTimerSync(studentId, lessonId, elapsedTime) {
     return false;
   }
 
-  // Save to localStorage for persistence
-  const key = `lesson_timer_${studentId}_${lessonId}`;
-  localStorage.setItem(key, elapsedTime.toString());
-  console.log(`Saved elapsed time to localStorage synchronously for lesson ${lessonId}: ${elapsedTime} seconds`);
-
-  // Also try to save to server synchronously
   try {
     const xhr = new XMLHttpRequest();
     xhr.open("POST", `${lessonServerUrl}/api/timers`, false); // synchronous
@@ -132,18 +111,18 @@ function saveLessonTimerSync(studentId, lessonId, elapsedTime) {
       })
     );
     if (xhr.status >= 200 && xhr.status < 300) {
-      console.log("Timer saved synchronously to server:", xhr.responseText);
+      console.log("Timer saved synchronously:", xhr.responseText);
       return true;
     } else {
       console.error(
-        "Failed to save timer synchronously to server:",
+        "Failed to save timer synchronously:",
         xhr.status,
         xhr.responseText
       );
       return false;
     }
   } catch (error) {
-    console.error("Could not save lesson timer synchronously to server:", error);
+    console.error("Could not save lesson timer synchronously:", error);
     return false;
   }
 }

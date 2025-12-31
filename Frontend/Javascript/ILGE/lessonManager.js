@@ -8,6 +8,156 @@ let currentStudentProfile = null;
 // Use a Map to store active lessons, with lesson_id as the key.
 export const activeLessons = new Map();
 
+// Use a Map to store completed lessons with snapshots
+export const completedLessons = new Map();
+
+/**
+ * Collects a snapshot of the student's current in-app data for grading purposes.
+ * @returns {object} Snapshot containing bills, balances, income/spending data, etc.
+ */
+function getStudentDataSnapshot() {
+  const snapshot = {
+    timestamp: new Date().toISOString(),
+    bills: [],
+    paychecks: [],
+    checkingBalance: 0,
+    savingsBalance: 0,
+    incomeSpendingRatio: 0,
+    monthlyBudget: 0,
+    totalBalance: 0,
+  };
+
+  try {
+    // Get checking balance
+    const checkingBalanceEl = document.querySelector(
+      '.checking-balance, .checkingBalance, [data-balance="checking"]'
+    );
+    if (checkingBalanceEl) {
+      snapshot.checkingBalance =
+        parseFloat(checkingBalanceEl.textContent.replace(/[^0-9.-]/g, "")) || 0;
+    }
+
+    // Get savings balance
+    const savingsBalanceEl = document.querySelector(
+      '.savings-balance, .savingsBalance, [data-balance="savings"]'
+    );
+    if (savingsBalanceEl) {
+      snapshot.savingsBalance =
+        parseFloat(savingsBalanceEl.textContent.replace(/[^0-9.-]/g, "")) || 0;
+    }
+
+    // Calculate total balance
+    snapshot.totalBalance = snapshot.checkingBalance + snapshot.savingsBalance;
+
+    // Get monthly budget
+    const budgetEl = document.querySelector(
+      ".monthly-budget, .budget-amount, [data-budget]"
+    );
+    if (budgetEl) {
+      snapshot.monthlyBudget =
+        parseFloat(budgetEl.textContent.replace(/[^0-9.-]/g, "")) || 0;
+    }
+
+    // Get income/spending ratio
+    const ratioEl = document.querySelector(
+      ".income-ratio, .spending-ratio, [data-ratio]"
+    );
+    if (ratioEl) {
+      snapshot.incomeSpendingRatio =
+        parseFloat(ratioEl.textContent.replace(/[^0-9.-]/g, "")) || 0;
+    }
+
+    // Get bills from current profile or DOM
+    if (currentStudentProfile && currentStudentProfile.bills) {
+      snapshot.bills = currentStudentProfile.bills;
+    } else {
+      // Try to collect from DOM
+      const billElements = document.querySelectorAll(".bill-item, .bill-entry");
+      billElements.forEach((bill) => {
+        const name =
+          bill.querySelector(".bill-name, .vendor")?.textContent || "Unknown";
+        const amount =
+          parseFloat(
+            bill
+              .querySelector(".bill-amount, .amount")
+              ?.textContent.replace(/[^0-9.-]/g, "")
+          ) || 0;
+        const dueDate = bill.querySelector(".due-date")?.textContent || "";
+        snapshot.bills.push({ name, amount, dueDate });
+      });
+    }
+
+    // Get paychecks from current profile or DOM
+    if (currentStudentProfile && currentStudentProfile.paychecks) {
+      snapshot.paychecks = currentStudentProfile.paychecks;
+    } else {
+      // Try to collect from DOM
+      const paycheckElements = document.querySelectorAll(
+        ".paycheck-item, .income-entry"
+      );
+      paycheckElements.forEach((paycheck) => {
+        const amount =
+          parseFloat(
+            paycheck
+              .querySelector(".paycheck-amount, .amount")
+              ?.textContent.replace(/[^0-9.-]/g, "")
+          ) || 0;
+        const date =
+          paycheck.querySelector(".paycheck-date, .date")?.textContent || "";
+        snapshot.paychecks.push({ amount, date });
+      });
+    }
+
+    console.log("Collected student data snapshot:", snapshot);
+  } catch (error) {
+    console.error("Error collecting student data snapshot:", error);
+  }
+
+  return snapshot;
+}
+
+/**
+ * Checks if a lesson is complete based on its completion conditions.
+ * @param {object} lesson - The lesson object to check.
+ * @returns {boolean} True if all conditions are met.
+ */
+function isLessonComplete(lesson) {
+  if (!lesson || !lesson.completion_conditions) {
+    return false;
+  }
+
+  return lesson.completion_conditions.every(
+    (condition) => condition.isMet === true
+  );
+}
+
+/**
+ * Marks a lesson as complete and stores the completion data with snapshot.
+ * @param {object} lesson - The completed lesson object.
+ */
+function markLessonComplete(lesson) {
+  if (!lesson || !lesson._id) {
+    console.error("Cannot mark lesson complete without valid lesson object");
+    return;
+  }
+
+  const snapshot = getStudentDataSnapshot();
+  const completionData = {
+    lessonId: lesson._id,
+    lessonTitle: lesson.lesson_title,
+    completedAt: new Date().toISOString(),
+    snapshot: snapshot,
+  };
+
+  completedLessons.set(lesson._id, completionData);
+  console.log(
+    `Lesson "${lesson.lesson_title}" marked as complete with snapshot`
+  );
+
+  // Optionally deactivate the lesson since it's complete
+  deactivateLesson(lesson._id);
+}
+
 /**
  * Activates a lesson, adding it to the list of lessons to check for conditions.
  * @param {object} lesson - The lesson object to activate.
@@ -18,6 +168,7 @@ export function activateLesson(lesson) {
     return;
   }
   console.log("Activating lesson:", lesson.lesson_title);
+  lesson.firedActions = new Set();
   activeLessons.set(lesson._id, lesson);
 }
 
@@ -82,13 +233,11 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
     console.log(`Starting new timer for lesson ${lessonId}.`);
   }
 
-  const timerDataToStore = {
+  const timerData = {
     startTime: Date.now(),
     initialElapsedTime: existingElapsedTime, // in seconds
   };
-  sessionStorage.setItem(timerKey, JSON.stringify(timerDataToStore));
-  console.log(`Timer for lesson ${lessonId} set with data:`, timerDataToStore);
-
+  console.log(`Timer for lesson ${lessonId} set with data:`, timerData);
 
   if (timerInterval) {
     clearInterval(timerInterval);
@@ -97,26 +246,17 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
   activeTimerLessonId = lessonId;
 
   timerInterval = setInterval(() => {
-    const storedTimerDataJSON = sessionStorage.getItem(timerKey);
-    if (storedTimerDataJSON) {
-      const storedTimerData = JSON.parse(storedTimerDataJSON);
-      const currentSessionTime = Date.now() - storedTimerData.startTime; // in ms
-      const totalElapsedTime =
-        storedTimerData.initialElapsedTime * 1000 + currentSessionTime; // in ms
+    const currentSessionTime = Date.now() - timerData.startTime; // in ms
+    const totalElapsedTime =
+      timerData.initialElapsedTime * 1000 + currentSessionTime; // in ms
 
-      const elapsedSeconds = Math.floor(totalElapsedTime / 1000);
-      const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+    const elapsedSeconds = Math.floor(totalElapsedTime / 1000);
+    const elapsedMinutes = Math.floor(elapsedSeconds / 60);
 
-      console.log("Timer Number:", timerInterval);
-      console.log("Time in seconds:", elapsedSeconds);
-      console.log("Time in minutes:", elapsedMinutes);
-
-      console.log(
-        `Elapsed time for lesson ${lessonId}: ${elapsedSeconds} seconds.`
-      );
-
-      const lesson = activeLessons.get(lessonId);
-      if (lesson && lesson.completion_conditions) {
+    const lesson = activeLessons.get(lessonId);
+    if (lesson) {
+      lesson.elapsedTime = elapsedSeconds; // Storing total elapsed seconds
+      if (lesson.completion_conditions) {
         const timeConditions = lesson.completion_conditions.filter(
           (cond) => cond.condition_type === "elapsed_time" && !cond.isMet
         );
@@ -128,7 +268,7 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
             if (actionToExecute) {
               console.log(`Executing reaction: ${condition.action_type}`);
               actionToExecute(condition.action_details);
-              condition.isMet = true; 
+              condition.isMet = true;
             } else {
               console.warn(
                 `Action to take "${condition.action_type}" not found in CRM library.`
@@ -140,7 +280,6 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
     }
   }, 1000);
 }
-
 /**
  * Processes an action, checks it against all active lessons' conditions,
  * and triggers the appropriate reactions from the CRM.
@@ -152,7 +291,6 @@ export async function processAction(actionType, actionParams) {
 
   if (actionType === "begin_activities") {
     if (actionParams.lessonId) {
-      // Pass the elapsed time to the timer function
       await startLessonTimer(actionParams.lessonId, actionParams.elapsedTime);
     } else {
       console.error(
@@ -167,69 +305,59 @@ export async function processAction(actionType, actionParams) {
     return;
   }
 
-  // Iterate over all active lessons
   for (const [lessonId, lesson] of activeLessons.entries()) {
     if (!lesson.completion_conditions) continue;
 
-    // --- DIAGNOSTIC LOG ---
-    console.log(
-      `Inspecting completion_conditions for lesson: ${lesson.lesson_title}`,
-      lesson.completion_conditions
-    );
-
-    // Find all conditions in this lesson that match the action type
     const triggeredConditions = lesson.completion_conditions.filter(
-      (cond) => cond.condition_type === actionType
+      (cond) => cond.condition_type === actionType && !cond.isMet
     );
 
-    if (triggeredConditions.length > 0) {
-      console.log(`\n=== CONDITION CHECK RESULTS ===`);
-      console.log(
-        `Found ${triggeredConditions.length} matching condition(s) in lesson: ${lesson.lesson_title}`
-      );
-      console.log(`================================\n`);
-      triggeredConditions.forEach((condition) => {
-        let conditionMet = true; // Assume true if no condition_value is specified
+    triggeredConditions.forEach((condition) => {
+      let conditionMet = true;
 
-        // If a condition_value exists, check if the action parameters meet the condition
-        if (condition.condition_value) {
-          // Check if all properties in condition_value match the actionParams
-          conditionMet = Object.entries(condition.condition_value).every(
-            ([key, value]) => {
-              // For now, we are doing a simple equality check.
-              // This can be expanded later to support operators like '>', '<', etc.
-              console.log(
-                `Checking condition: ${key} === ${value}. Actual value: ${actionParams[key]}`
-              );
-              return actionParams[key] === value;
-            }
+      if (condition.condition_value) {
+        conditionMet = Object.entries(condition.condition_value).every(
+          ([key, value]) => {
+            console.log(
+              `Checking condition: ${key} === ${value}. Actual value: ${actionParams[key]}`
+            );
+            return actionParams[key] === value;
+          }
+        );
+      }
+
+      if (conditionMet) {
+        const actionName = condition.action_type;
+        if (lesson.firedActions.has(actionName)) {
+          console.log(
+            `Action '${actionName}' has already fired for lesson '${lesson.lesson_title}'. Skipping.`
           );
+          condition.isMet = true; // Still mark condition as met
+          return; // Using return because it's in a forEach loop
         }
 
-        if (conditionMet) {
-          console.log(`\n=== CONDITION MATCHED! ===`);
-          console.log(`Action type: ${actionType}`);
-          console.log(`========================\n`);
-          const actionToExecute = actions[condition.action_type];
-          if (actionToExecute) {
-            console.log(`Executing reaction: ${condition.action_type}`);
-            actionToExecute(condition.action_details);
-          } else {
-            console.warn(
-              `Action to take "${condition.action_type}" not found in CRM library.`
+        const actionToExecute = actions[actionName];
+        if (actionToExecute) {
+          console.log(`Executing reaction: ${actionName}`);
+          actionToExecute(condition.action_details);
+          lesson.firedActions.add(actionName); // Record the action
+          condition.isMet = true;
+
+          if (isLessonComplete(lesson)) {
+            console.log(
+              `All conditions met for lesson: ${lesson.lesson_title}`
             );
+            markLessonComplete(lesson);
           }
         } else {
-          console.log(`Condition not met for action: ${actionType}`);
+          console.warn(
+            `Action to take "${actionName}" not found in CRM library.`
+          );
         }
-      });
-    } else {
-      console.log(`\n=== NO MATCHING CONDITIONS ===`);
-      console.log(
-        `Action type '${actionType}' has no matching conditions in lesson: ${lesson.lesson_title}`
-      );
-      console.log(`============================\n`);
-    }
+      } else {
+        console.log(`Condition not met for action: ${actionType}`);
+      }
+    });
   }
 }
 
@@ -242,4 +370,36 @@ export async function initializeLessonEngine(studentProfile) {
   currentStudentProfile = studentProfile;
   const lessons = await fetchAssignedLessons(studentProfile);
   console.log("Lesson Engine Initialized.");
+
+  // Initialize SDSM completion monitor
+  try {
+    const { initializeCompletionMonitor } = await import("./SDSM/sdsm.js");
+    if (studentProfile && studentProfile.memberName) {
+      initializeCompletionMonitor(studentProfile.memberName);
+      console.log("SDSM completion monitor initialized");
+    }
+  } catch (err) {
+    console.error("Failed to initialize SDSM completion monitor:", err);
+  }
+}
+
+/**
+ * Gets the current completed lessons map
+ * @returns {Map} Map of completed lessons
+ */
+export function getCompletedLessons() {
+  return completedLessons;
+}
+
+/**
+ * Checks if a lesson has all its conditions met
+ * @param {string} lessonId - The lesson ID to check
+ * @returns {boolean} True if all conditions are met
+ */
+export function checkLessonCompletion(lessonId) {
+  const lesson = activeLessons.get(lessonId);
+  if (!lesson || !lesson.completion_conditions) {
+    return false;
+  }
+  return isLessonComplete(lesson);
 }
