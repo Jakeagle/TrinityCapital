@@ -309,7 +309,7 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
  * @param {object} actionParams - The parameters associated with the action.
  */
 export async function processAction(actionType, actionParams) {
-  console.log(`Processing action: ${actionType}`, actionParams);
+  console.log(`\n=== Processing action: ${actionType} ===`, actionParams);
 
   if (actionType === "begin_activities") {
     if (actionParams.lessonId) {
@@ -322,37 +322,111 @@ export async function processAction(actionType, actionParams) {
     }
   }
 
+  // Debug: Log active lessons
+  console.log(`Total active lessons: ${activeLessons.size}`);
   if (activeLessons.size === 0) {
-    console.log("No active lessons to check.");
+    console.warn(
+      "❌ NO ACTIVE LESSONS! Conditions cannot be checked. The lesson may not have been activated yet."
+    );
     return;
   }
 
+  // Log all active lessons for debugging
   for (const [lessonId, lesson] of activeLessons.entries()) {
-    if (!lesson.completion_conditions) continue;
+    console.log(`📚 Active Lesson: "${lesson.lesson_title}" (ID: ${lessonId})`);
+    console.log(
+      `   - Has completion_conditions: ${!!lesson.completion_conditions}`
+    );
+    if (lesson.completion_conditions) {
+      console.log(
+        `   - Number of conditions: ${lesson.completion_conditions.length}`
+      );
+      lesson.completion_conditions.forEach((cond, idx) => {
+        console.log(
+          `     Condition ${idx + 1}: type="${cond.condition_type}", action="${cond.action_type}", met=${cond.isMet}`
+        );
+      });
+    }
+  }
+
+  for (const [lessonId, lesson] of activeLessons.entries()) {
+    if (!lesson.completion_conditions) {
+      console.warn(
+        `❌ Lesson "${lesson.lesson_title}" has no completion_conditions!`
+      );
+      continue;
+    }
 
     const triggeredConditions = lesson.completion_conditions.filter(
       (cond) => cond.condition_type === actionType && !cond.isMet
     );
 
-    triggeredConditions.forEach((condition) => {
+    if (triggeredConditions.length === 0) {
+      console.log(
+        `   → No conditions matching action type "${actionType}" in lesson "${lesson.lesson_title}"`
+      );
+    } else {
+      console.log(
+        `   → Found ${triggeredConditions.length} matching condition(s) for action type "${actionType}"`
+      );
+    }
+
+    triggeredConditions.forEach((condition, condIndex) => {
+      console.log(`\n   🔍 Checking condition ${condIndex + 1}:`);
+      console.log(`      - Expected values:`, condition.condition_value);
+      console.log(`      - Action params:`, actionParams);
       let conditionMet = true;
 
       if (condition.condition_value) {
+        console.log(
+          `Comparing condition values for ${actionType}:`,
+          condition.condition_value,
+          "against action params:",
+          actionParams
+        );
+
         conditionMet = Object.entries(condition.condition_value).every(
           ([key, value]) => {
+            const actionValue = actionParams[key];
+
+            // Normalize string comparisons (case-insensitive, trim whitespace)
+            if (typeof value === "string" && typeof actionValue === "string") {
+              const normalizedValue = String(value).toLowerCase().trim();
+              const normalizedAction = String(actionValue).toLowerCase().trim();
+              console.log(
+                `Checking string condition: "${normalizedValue}" === "${normalizedAction}". Result: ${normalizedValue === normalizedAction}`
+              );
+              return normalizedValue === normalizedAction;
+            }
+
+            // For numeric comparisons, normalize to numbers
+            if (!isNaN(value) && !isNaN(actionValue)) {
+              const numValue = parseFloat(value);
+              const numAction = parseFloat(actionValue);
+              console.log(
+                `Checking numeric condition: ${numValue} === ${numAction}. Result: ${numValue === numAction}`
+              );
+              return numValue === numAction;
+            }
+
+            // Default strict equality check
             console.log(
-              `Checking condition: ${key} === ${value}. Actual value: ${actionParams[key]}`
+              `Checking condition: ${key} === ${value}. Actual value: ${actionValue}. Result: ${actionValue === value}`
             );
-            return actionParams[key] === value;
+            return actionValue === value;
           }
         );
       }
 
       if (conditionMet) {
         const actionName = condition.action_type;
+        console.log(
+          `      ✅ CONDITION MET! Now executing action: "${actionName}"`
+        );
+
         if (lesson.firedActions.has(actionName)) {
           console.log(
-            `Action '${actionName}' has already fired for lesson '${lesson.lesson_title}'. Skipping.`
+            `      ⚠️  Action '${actionName}' has already fired for lesson '${lesson.lesson_title}'. Skipping.`
           );
           condition.isMet = true; // Still mark condition as met
           return; // Using return because it's in a forEach loop
@@ -360,27 +434,29 @@ export async function processAction(actionType, actionParams) {
 
         const actionToExecute = actions[actionName];
         if (actionToExecute) {
-          console.log(`Executing reaction: ${actionName}`);
+          console.log(`      🚀 Executing reaction: ${actionName}`);
           actionToExecute(condition.action_details);
           lesson.firedActions.add(actionName); // Record the action
           condition.isMet = true;
 
           if (isLessonComplete(lesson)) {
             console.log(
-              `All conditions met for lesson: ${lesson.lesson_title}`
+              `      🎉 All conditions met for lesson: ${lesson.lesson_title}`
             );
             markLessonComplete(lesson);
           }
         } else {
           console.warn(
-            `Action to take "${actionName}" not found in CRM library.`
+            `      ❌ Action to take "${actionName}" not found in CRM library.`
           );
         }
       } else {
-        console.log(`Condition not met for action: ${actionType}`);
+        console.log(`      ❌ Condition NOT met for action: ${actionType}`);
       }
     });
   }
+
+  console.log(`=== End of action processing for: ${actionType} ===\n`);
 }
 
 /**
