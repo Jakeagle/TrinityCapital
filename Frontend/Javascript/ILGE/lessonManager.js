@@ -159,16 +159,133 @@ function markLessonComplete(lesson) {
 }
 
 /**
+ * Fetches saved condition states from the lesson server for a specific lesson.
+ * @param {string} studentId - The student ID.
+ * @param {string} lessonId - The lesson ID.
+ * @returns {Promise<object|null>} The condition states or null if not found.
+ */
+async function fetchConditionStates(studentId, lessonId) {
+  try {
+    const lessonServerUrl = "http://localhost:4000";
+    const response = await fetch(
+      `${lessonServerUrl}/api/lesson-condition-state?studentId=${studentId}&lessonId=${lessonId}`
+    );
+    if (!response.ok) {
+      console.log(
+        `No saved condition states found for lesson ${lessonId}. Starting fresh.`
+      );
+      return null;
+    }
+    const data = await response.json();
+    if (data.success && data.conditions) {
+      console.log(
+        `Restored condition states for lesson ${lessonId}:`,
+        data.conditions
+      );
+      return data.conditions;
+    }
+    return null;
+  } catch (error) {
+    console.warn(
+      `Could not fetch condition states from server: ${error.message}`
+    );
+    return null;
+  }
+}
+
+/**
+ * Saves condition states to the lesson server.
+ * @param {string} studentId - The student ID.
+ * @param {string} lessonId - The lesson ID.
+ * @param {Array} conditions - Array of condition objects with isMet status.
+ * @returns {Promise<boolean>} True if successful.
+ */
+async function saveConditionStates(studentId, lessonId, conditions) {
+  try {
+    const lessonServerUrl = "http://localhost:4000";
+    const response = await fetch(
+      `${lessonServerUrl}/api/lesson-condition-state`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          studentId,
+          lessonId,
+          conditions: conditions.map((cond) => ({
+            condition_type: cond.condition_type,
+            action_type: cond.action_type,
+            condition_value: cond.condition_value,
+            isMet: cond.isMet,
+            lastMetAt: cond.lastMetAt || null,
+          })),
+        }),
+      }
+    );
+    if (response.ok) {
+      console.log(`Condition states saved for lesson ${lessonId}`);
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error(
+      `Could not save condition states to server: ${error.message}`
+    );
+    return false;
+  }
+}
+
+/**
  * Activates a lesson, adding it to the list of lessons to check for conditions.
+ * Fetches and restores saved condition states from the server if available.
  * @param {object} lesson - The lesson object to activate.
  */
-export function activateLesson(lesson) {
+export async function activateLesson(lesson) {
   if (!lesson || !lesson._id) {
     console.error("Cannot activate lesson without a valid _id.", lesson);
     return;
   }
   console.log("Activating lesson:", lesson.lesson_title);
   lesson.firedActions = new Set();
+
+  // Initialize isMet property on all conditions if not already set
+  if (
+    lesson.completion_conditions &&
+    Array.isArray(lesson.completion_conditions)
+  ) {
+    lesson.completion_conditions.forEach((condition) => {
+      if (condition.isMet === undefined) {
+        condition.isMet = false;
+      }
+    });
+
+    // Try to fetch and restore saved condition states from server
+    if (currentStudentProfile && currentStudentProfile.memberName) {
+      const savedStates = await fetchConditionStates(
+        currentStudentProfile.memberName,
+        lesson._id
+      );
+      if (savedStates && Array.isArray(savedStates)) {
+        // Restore saved states, matching by condition_type
+        savedStates.forEach((savedState) => {
+          const matchingCondition = lesson.completion_conditions.find(
+            (cond) => cond.condition_type === savedState.condition_type
+          );
+          if (matchingCondition && savedState.isMet === true) {
+            matchingCondition.isMet = true;
+            if (savedState.lastMetAt) {
+              matchingCondition.lastMetAt = savedState.lastMetAt;
+            }
+            console.log(
+              `Restored condition: ${savedState.condition_type} = ${savedState.isMet}`
+            );
+          }
+        });
+      }
+    }
+  }
+
   activeLessons.set(lesson._id, lesson);
 }
 
@@ -271,6 +388,15 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
                   `Action '${actionName}' has already been fired for lesson '${lesson.lesson_title}'. Marking condition as met.`
                 );
                 condition.isMet = true;
+                condition.lastMetAt = new Date().toISOString();
+                // Persist the condition state
+                if (currentStudentProfile && currentStudentProfile.memberName) {
+                  saveConditionStates(
+                    currentStudentProfile.memberName,
+                    lesson._id,
+                    lesson.completion_conditions
+                  );
+                }
               }
               return; // Skip to the next condition.
             }
@@ -283,6 +409,16 @@ export async function startLessonTimer(lessonId, initialElapsedTime = null) {
               actionToExecute(condition.action_details);
               lesson.firedActions.add(actionName); // Record that the action has been fired.
               condition.isMet = true; // Mark the condition as met.
+              condition.lastMetAt = new Date().toISOString();
+
+              // Persist the condition state
+              if (currentStudentProfile && currentStudentProfile.memberName) {
+                saveConditionStates(
+                  currentStudentProfile.memberName,
+                  lesson._id,
+                  lesson.completion_conditions
+                );
+              }
 
               // After executing an action, check if the lesson is now complete.
               if (isLessonComplete(lesson)) {
@@ -429,6 +565,14 @@ export async function processAction(actionType, actionParams) {
             `      ⚠️  Action '${actionName}' has already fired for lesson '${lesson.lesson_title}'. Skipping.`
           );
           condition.isMet = true; // Still mark condition as met
+          // Persist the condition state
+          if (currentStudentProfile && currentStudentProfile.memberName) {
+            saveConditionStates(
+              currentStudentProfile.memberName,
+              lesson._id,
+              lesson.completion_conditions
+            );
+          }
           return; // Using return because it's in a forEach loop
         }
 
@@ -438,6 +582,16 @@ export async function processAction(actionType, actionParams) {
           actionToExecute(condition.action_details);
           lesson.firedActions.add(actionName); // Record the action
           condition.isMet = true;
+          condition.lastMetAt = new Date().toISOString();
+
+          // Persist the condition state
+          if (currentStudentProfile && currentStudentProfile.memberName) {
+            saveConditionStates(
+              currentStudentProfile.memberName,
+              lesson._id,
+              lesson.completion_conditions
+            );
+          }
 
           if (isLessonComplete(lesson)) {
             console.log(
