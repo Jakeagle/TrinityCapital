@@ -548,8 +548,16 @@ export function handleLessonModal(lesson, studentProfile) {
     beginActivitiesBtn.addEventListener("click", async () => {
       console.log(`${lesson.lesson_title} active`);
 
+      // Set the active lesson and wait for it to be updated with server data
+      const updatedLesson = await activateLesson(lesson, studentProfile);
+
+      if (!updatedLesson) {
+        console.error("UITM: Lesson activation failed. Aborting start.");
+        return;
+      }
+
       // Validate lesson start - checks completion status and conditions
-      const validationResult = validateLessonStart(lesson);
+      const validationResult = validateLessonStart(updatedLesson);
 
       // If lesson is already fully completed, don't proceed
       if (
@@ -561,11 +569,11 @@ export function handleLessonModal(lesson, studentProfile) {
       }
 
       // Log the current condition state for debugging
-      logLessonConditionState(lesson);
+      logLessonConditionState(updatedLesson);
 
       // Fetch existing timer data from the student profile
       const studentId = studentProfile.memberName;
-      const lessonId = lesson._id;
+      const lessonId = updatedLesson._id;
 
       let elapsedTime = 0;
       if (
@@ -588,13 +596,10 @@ export function handleLessonModal(lesson, studentProfile) {
 
       console.log("Existing timer data from profile:", elapsedTime);
 
-      // Set the active lesson
-      activateLesson(lesson);
-
       // Process the 'begin_activities' action with the elapsed time
       processAction("begin_activities", {
-        lessonTitle: lesson.lesson_title,
-        lessonId: lesson._id,
+        lessonTitle: updatedLesson.lesson_title,
+        lessonId: updatedLesson._id,
         elapsedTime: elapsedTime,
       });
 

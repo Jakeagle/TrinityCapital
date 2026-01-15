@@ -6,8 +6,9 @@
  * conditions have already been met.
  */
 
-import { completedLessons, activeLessons } from "../lessonManager.js";
+import { completedLessons, activeLessons, markLessonComplete } from "../lessonManager.js";
 import { createAndShowModal } from "../LRM/conditionRenderer.js";
+import { handleLessonCompletion } from "../CRM/lessonCompletionHandler.js";
 
 /**
  * Checks the completion status of a lesson
@@ -150,7 +151,7 @@ export function validateLessonStart(lesson) {
       `UITM_LCM: Lesson "${lesson.lesson_title}" is already fully completed.`
     );
 
-    showLessonAlreadyCompletedModal(lesson);
+    handleLessonCompletion(lesson);
 
     return {
       shouldProceed: false,
@@ -161,7 +162,24 @@ export function validateLessonStart(lesson) {
     };
   }
 
-  // Check B: Are there some conditions already completed?
+  // Check B: Are all conditions now met for the first time?
+  if (completedCount === totalCount && totalCount > 0) {
+    console.log(
+      `UITM_LCM: All conditions for lesson "${lesson.lesson_title}" have been met for the first time.`
+    );
+    markLessonComplete(lesson);
+    handleLessonCompletion(lesson);
+
+    return {
+      shouldProceed: false,
+      status: "completed_first_time",
+      message: "Lesson completed for the first time",
+      completedCount,
+      totalCount,
+    };
+  }
+
+  // Check C: Are there some conditions already completed?
   if (completedCount > 0 && completedCount < totalCount) {
     console.log(
       `UITM_LCM: Lesson "${lesson.lesson_title}" has partial completion (${completedCount}/${totalCount}).`

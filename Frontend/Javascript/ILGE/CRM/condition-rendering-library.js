@@ -55,6 +55,15 @@ export const actions = {
     console.log("Action: restart_student", params);
   },
   complete_lesson: (params) => {
-    console.log("Action: complete_lesson", params);
+    displayModalMessage({
+      title: "Lesson Complete!",
+      message: `Congratulations! You have completed the lesson: "${params.lesson.lesson_title}".`,
+    });
+  },
+  notify_lesson_already_completed: (params) => {
+    displayModalMessage({
+      title: "Lesson Already Completed",
+      message: `You have already completed this lesson: "${params.lesson.lesson_title}". Feel free to review the material.`,
+    });
   },
 };

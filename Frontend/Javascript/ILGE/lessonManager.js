@@ -135,7 +135,7 @@ function isLessonComplete(lesson) {
  * Marks a lesson as complete and stores the completion data with snapshot.
  * @param {object} lesson - The completed lesson object.
  */
-function markLessonComplete(lesson) {
+export function markLessonComplete(lesson) {
   if (!lesson || !lesson._id) {
     console.error("Cannot mark lesson complete without valid lesson object");
     return;
@@ -241,11 +241,18 @@ async function saveConditionStates(studentId, lessonId, conditions) {
  * Fetches and restores saved condition states from the server if available.
  * @param {object} lesson - The lesson object to activate.
  */
-export async function activateLesson(lesson) {
+export async function activateLesson(lesson, studentProfile) {
   if (!lesson || !lesson._id) {
     console.error("Cannot activate lesson without a valid _id.", lesson);
-    return;
+    return null;
   }
+
+  if (!studentProfile || !studentProfile.memberName) {
+    console.error("Cannot activate lesson without a student profile.", studentProfile);
+    activeLessons.set(lesson._id, lesson);
+    return lesson;
+  }
+
   console.log("Activating lesson:", lesson.lesson_title);
   lesson.firedActions = new Set();
 
@@ -261,32 +268,31 @@ export async function activateLesson(lesson) {
     });
 
     // Try to fetch and restore saved condition states from server
-    if (currentStudentProfile && currentStudentProfile.memberName) {
-      const savedStates = await fetchConditionStates(
-        currentStudentProfile.memberName,
-        lesson._id
-      );
-      if (savedStates && Array.isArray(savedStates)) {
-        // Restore saved states, matching by condition_type
-        savedStates.forEach((savedState) => {
-          const matchingCondition = lesson.completion_conditions.find(
-            (cond) => cond.condition_type === savedState.condition_type
-          );
-          if (matchingCondition && savedState.isMet === true) {
-            matchingCondition.isMet = true;
-            if (savedState.lastMetAt) {
-              matchingCondition.lastMetAt = savedState.lastMetAt;
-            }
-            console.log(
-              `Restored condition: ${savedState.condition_type} = ${savedState.isMet}`
-            );
+    const savedStates = await fetchConditionStates(
+      studentProfile.memberName,
+      lesson._id
+    );
+    if (savedStates && Array.isArray(savedStates)) {
+      // Restore saved states, matching by condition_type
+      savedStates.forEach((savedState) => {
+        const matchingCondition = lesson.completion_conditions.find(
+          (cond) => cond.condition_type === savedState.condition_type
+        );
+        if (matchingCondition && savedState.isMet === true) {
+          matchingCondition.isMet = true;
+          if (savedState.lastMetAt) {
+            matchingCondition.lastMetAt = savedState.lastMetAt;
           }
-        });
-      }
+          console.log(
+            `Restored condition: ${savedState.condition_type} = ${savedState.isMet}`
+          );
+        }
+      });
     }
   }
 
   activeLessons.set(lesson._id, lesson);
+  return lesson;
 }
 
 /**
