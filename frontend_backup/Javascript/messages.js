@@ -239,7 +239,7 @@ function createComposeArea() {
 }
 
 // Send a message
-function sendMessage(textarea) {
+async function sendMessage(textarea) {
   const content = textarea.value.trim();
   if (!content) return;
 
@@ -250,11 +250,33 @@ function sendMessage(textarea) {
 
   console.log("📧 Sending message:", content);
 
+  try {
+    const response = await fetch(`/filter-message?text=${encodeURIComponent(content)}`);
+    if (response.ok) {
+      const data = await response.json();
+      if (data.result !== content) {
+        showNotification("Profanity is not allowed.", "error");
+        return; // Block message
+      }
+    } else {
+      // If the filter service itself has an error (e.g. 500)
+      showNotification("Could not validate message. Please try again.", "error");
+      return; // Block message
+    }
+  } catch (error) {
+    console.error("Error filtering message:", error);
+    showNotification("Could not send message. Please try again later.", "error");
+    return; // Block message if filter is unreachable
+  }
+
+  // If we are here, message is clean.
+  const filteredContent = content; // We already validated it's not profane.
+
   // Create message object
   const message = {
     id: Date.now(),
     sender: "student",
-    content: content,
+    content: filteredContent,
     timestamp: new Date(),
     isRead: false,
   };

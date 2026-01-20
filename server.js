@@ -22,7 +22,7 @@ try {
     fetch = require("node-fetch");
   } catch (fetchError) {
     console.warn(
-      "Fetch not available. Install node-fetch: npm install node-fetch"
+      "Fetch not available. Install node-fetch: npm install node-fetch",
     );
   }
 }
@@ -197,7 +197,7 @@ io.on("connection", (socket) => {
    * This is the single entry point for all messages sent from any client.
    */
   socket.on("sendMessage", async (data, callback) => {
-    const { senderId, recipientId, messageContent } = data;
+    const { senderId, recipientId, messageContent, optimisticId } = data;
 
     console.log("Received sendMessage event:", data);
 
@@ -207,23 +207,91 @@ io.on("connection", (socket) => {
       return;
     }
 
+    // Profanity check
+    console.log(`[Profanity Check] Starting for message: "${messageContent}"`);
+    try {
+      const response = await fetch(
+        `https://www.purgomalum.com/service/json?text=${encodeURIComponent(messageContent)}`,
+      );
+      if (response.ok) {
+        const filterData = await response.json();
+        console.log("[Profanity Check] API Response:", filterData);
+        if (filterData.result !== messageContent) {
+          console.log(
+            "[Profanity Check] Profanity detected. Blocking message.",
+          );
+          const userSocket = userSockets.get(senderId);
+          if (userSocket) {
+            userSocket.emit("profanity-detected", {
+              message: "Profanity is not allowed.",
+              optimisticId: optimisticId,
+            });
+          }
+          if (callback)
+            callback({ success: false, error: "Profanity is not allowed." });
+          return;
+        }
+        console.log("[Profanity Check] Message is clean.");
+      } else {
+        console.error(
+          "[Profanity Check] PurgoMalum service returned an error:",
+          response.status,
+        );
+        const userSocket = userSockets.get(senderId);
+        if (userSocket) {
+          userSocket.emit("profanity-detected", {
+            message: "Could not validate message. Please try again.",
+            optimisticId: optimisticId,
+          });
+        }
+        if (callback)
+          callback({ success: false, error: "Could not validate message." });
+        return;
+      }
+    } catch (error) {
+      console.error(
+        "[Profanity Check] Error calling PurgoMalum service:",
+        error,
+      );
+      const userSocket = userSockets.get(senderId);
+      if (userSocket) {
+        userSocket.emit("profanity-detected", {
+          message: "Could not send message. Please try again later.",
+          optimisticId: optimisticId,
+        });
+      }
+      if (callback)
+        callback({ success: false, error: "Could not send message." });
+      return;
+    }
+
     const timestamp = new Date();
     // Check if it's a class-wide message
     const isClassMessage = recipientId.startsWith("class-message-");
     let threadId;
     let participants = [];
 
+    console.log(
+      `[SendMessage] Processing ${isClassMessage ? "CLASS" : "PRIVATE"} message.`,
+    );
+    console.log(`[SendMessage] Sender: ${senderId}, Recipient: ${recipientId}`);
+
     try {
       let thread;
       if (isClassMessage) {
         threadId = recipientId; // e.g., 'class-message-Ms.Thompson'
         participants = [senderId, "class-message-recipient"]; // A generic recipient for class messages
+        console.log(`[SendMessage] CLASS message. ThreadID: ${threadId}`);
+
         // Find the class message thread for this teacher
         thread = await client
           .db("TrinityCapital")
           .collection("threads")
           .findOne({ threadId: threadId });
         if (!thread) {
+          console.log(
+            `[SendMessage] No existing class thread found. Creating new one.`,
+          );
           // Create new class message thread
           thread = {
             threadId: threadId,
@@ -236,6 +304,9 @@ io.on("connection", (socket) => {
             .db("TrinityCapital")
             .collection("threads")
             .insertOne(thread);
+          console.log(`[SendMessage] New class thread created: ${threadId}`);
+        } else {
+          console.log(`[SendMessage] Found existing class thread: ${threadId}`);
         }
       } else {
         // Private message
@@ -243,6 +314,7 @@ io.on("connection", (socket) => {
         const sortedParticipants = [senderId, recipientId].sort();
         threadId = sortedParticipants.join("_"); // e.g., 'Emily Johnson_Ms.Thompson'
         participants = sortedParticipants;
+        console.log(`[SendMessage] PRIVATE message. ThreadID: ${threadId}`);
 
         // Find existing private thread
         thread = await client
@@ -254,6 +326,9 @@ io.on("connection", (socket) => {
           });
 
         if (!thread) {
+          console.log(
+            `[SendMessage] No existing private thread found. Creating new one.`,
+          );
           // Create new private thread
           thread = {
             threadId: threadId,
@@ -266,6 +341,11 @@ io.on("connection", (socket) => {
             .db("TrinityCapital")
             .collection("threads")
             .insertOne(thread);
+          console.log(`[SendMessage] New private thread created: ${threadId}`);
+        } else {
+          console.log(
+            `[SendMessage] Found existing private thread: ${threadId}`,
+          );
         }
       }
 
@@ -287,18 +367,29 @@ io.on("connection", (socket) => {
           {
             $push: { messages: messageDoc },
             $set: { lastMessageTimestamp: timestamp },
-          }
+          },
         );
+      console.log(
+        `[SendMessage] Message document added to thread ${threadId} in DB.`,
+      );
 
       // --- Broadcasting to relevant users ---
       // For class messages, broadcast to all students of the teacher AND the teacher
       if (isClassMessage) {
         const teacherName = senderId; // senderId is the teacher's full name
+        console.log(
+          `[SendMessage] Broadcasting class message from teacher: ${teacherName}`,
+        );
         const teacherDoc = await client
           .db("TrinityCapital")
           .collection("Teachers")
           .findOne({ name: teacherName });
-        if (!teacherDoc) throw new Error("Teacher not found");
+        if (!teacherDoc) {
+          console.error(
+            `[SendMessage] CRITICAL: Teacher document not found for name: ${teacherName}`,
+          );
+          throw new Error("Teacher not found");
+        }
 
         const students = await client
           .db("TrinityCapital")
@@ -306,6 +397,9 @@ io.on("connection", (socket) => {
           .find({ teacher: teacherDoc.name })
           .project({ memberName: 1 })
           .toArray();
+        console.log(
+          `[SendMessage] Found ${students.length} students for teacher ${teacherName}.`,
+        );
 
         // Send to all students
         for (const student of students) {
@@ -319,24 +413,53 @@ io.on("connection", (socket) => {
               timestamp,
               isClassMessage: true,
             });
-            console.log(`Forwarded class message to ${student.memberName}`);
+            console.log(
+              `[SendMessage] --> Emitted 'newMessage' to student: ${student.memberName}`,
+            );
+          } else {
+            console.log(
+              `[SendMessage] --X No active socket for student: ${student.memberName}`,
+            );
           }
         }
-        // Send to the teacher (sender)
+        // Send to the teacher (sender) for echo
         const teacherSocket = userSockets.get(teacherName);
         if (teacherSocket) {
           teacherSocket.emit("newMessage", messageDoc); // Send the original messageDoc
+          console.log(
+            `[SendMessage] --> Echoed 'newMessage' to sender (teacher): ${teacherName}`,
+          );
+        } else {
+          console.log(
+            `[SendMessage] --X No active socket for sender (teacher): ${teacherName}`,
+          );
         }
       } else {
         // Private message: send to recipient and sender
+        console.log(
+          `[SendMessage] Distributing private message between ${senderId} and ${recipientId}.`,
+        );
         const recipientSocket = userSockets.get(recipientId);
         if (recipientSocket) {
           recipientSocket.emit("newMessage", messageDoc);
-          console.log(`Forwarded private message to ${recipientId}`);
+          console.log(
+            `[SendMessage] --> Emitted 'newMessage' to recipient: ${recipientId}`,
+          );
+        } else {
+          console.log(
+            `[SendMessage] --X No active socket for recipient: ${recipientId}`,
+          );
         }
         const senderSocket = userSockets.get(senderId);
         if (senderSocket) {
           senderSocket.emit("newMessage", messageDoc);
+          console.log(
+            `[SendMessage] --> Echoed 'newMessage' to sender: ${senderId}`,
+          );
+        } else {
+          console.log(
+            `[SendMessage] --X No active socket for sender: ${senderId}`,
+          );
         }
       }
       if (callback) callback({ success: true });
@@ -375,7 +498,7 @@ const externalSocket = ClientIO(EXTERNAL_SOCKET_URL);
 
 externalSocket.on("connect", () => {
   console.log(
-    "Connected to external server at localhost:5000 for studentCreated events"
+    "Connected to external server at localhost:5000 for studentCreated events",
   );
 });
 
@@ -416,7 +539,7 @@ async function run() {
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log(
-      "Pinged your deployment. You successfully connected to MongoDB!"
+      "Pinged your deployment. You successfully connected to MongoDB!",
     );
 
     // Initialize scheduler manager after MongoDB connection
@@ -442,7 +565,7 @@ app.use(
   cors({
     origin: allowedOrigins,
     credentials: true,
-  })
+  }),
 );
 
 // Test route to verify API is working
@@ -477,7 +600,7 @@ app.post("/initialBalance", async (req, res) => {
       { "checkingAccount.accountHolder": memberName },
       {
         $set: { "checkingAccount.balanceTotal": checkingBalance },
-      }
+      },
     );
 
   await client
@@ -487,7 +610,7 @@ app.post("/initialBalance", async (req, res) => {
       { "savingsAccount.accountHolder": memberName },
       {
         $set: { "savingsAccount.balanceTotal": savingsBalance },
-      }
+      },
     );
 
   const updatedUserProfile = await client
@@ -553,21 +676,21 @@ app.get("/profiles/:memberName", async (req, res) => {
       console.log(`📚 Assigned Units: ${profile.assignedUnitIds.length}`);
       profile.assignedUnitIds.forEach((unit, index) => {
         console.log(
-          `  Unit ${index + 1}: ${unit.unitName || unit.unitId || "Unknown"}`
+          `  Unit ${index + 1}: ${unit.unitName || unit.unitId || "Unknown"}`,
         );
         console.log(
-          `    - Lesson IDs: ${Array.isArray(unit.lessonIds) ? unit.lessonIds.length : "None"}`
+          `    - Lesson IDs: ${Array.isArray(unit.lessonIds) ? unit.lessonIds.length : "None"}`,
         );
         if (Array.isArray(unit.lessonIds)) {
           console.log(
-            `    - First few lesson IDs: ${unit.lessonIds.slice(0, 3).join(", ")}${unit.lessonIds.length > 3 ? "..." : ""}`
+            `    - First few lesson IDs: ${unit.lessonIds.slice(0, 3).join(", ")}${unit.lessonIds.length > 3 ? "..." : ""}`,
           );
         }
       });
     } else {
       console.log(`❌ No assignedUnitIds found or not an array`);
       console.log(
-        `   assignedUnitIds value: ${JSON.stringify(profile.assignedUnitIds)}`
+        `   assignedUnitIds value: ${JSON.stringify(profile.assignedUnitIds)}`,
       );
     }
 
@@ -609,21 +732,21 @@ app.get("/profiles/:memberName", async (req, res) => {
       console.log(`📚 Assigned Units: ${profile.assignedUnitIds.length}`);
       profile.assignedUnitIds.forEach((unit, index) => {
         console.log(
-          `  Unit ${index + 1}: ${unit.unitName || unit.unitId || "Unknown"}`
+          `  Unit ${index + 1}: ${unit.unitName || unit.unitId || "Unknown"}`,
         );
         console.log(
-          `    - Lesson IDs: ${Array.isArray(unit.lessonIds) ? unit.lessonIds.length : "None"}`
+          `    - Lesson IDs: ${Array.isArray(unit.lessonIds) ? unit.lessonIds.length : "None"}`,
         );
         if (Array.isArray(unit.lessonIds)) {
           console.log(
-            `    - First few lesson IDs: ${unit.lessonIds.slice(0, 3).join(", ")}${unit.lessonIds.length > 3 ? "..." : ""}`
+            `    - First few lesson IDs: ${unit.lessonIds.slice(0, 3).join(", ")}${unit.lessonIds.length > 3 ? "..." : ""}`,
           );
         }
       });
     } else {
       console.log(`❌ No assignedUnitIds found or not an array`);
       console.log(
-        `   assignedUnitIds value: ${JSON.stringify(profile.assignedUnitIds)}`
+        `   assignedUnitIds value: ${JSON.stringify(profile.assignedUnitIds)}`,
       );
     }
 
@@ -653,7 +776,7 @@ app.post("/loans", async (req, res) => {
     // Update the transactions in the user profile
     const balance = UserProfile.checkingAccount.transactions.reduce(
       (acc, mov) => acc + mov,
-      0
+      0,
     );
     await client
       .db("TrinityCapital")
@@ -663,7 +786,7 @@ app.post("/loans", async (req, res) => {
         {
           $push: { "checkingAccount.transactions": amount },
           $set: { "checkingAccount.balanceTotal": balance },
-        }
+        },
       );
     let newDate = new Date().toISOString();
     await client
@@ -671,7 +794,7 @@ app.post("/loans", async (req, res) => {
       .collection("User Profiles")
       .updateOne(
         { "checkingAccount.accountHolder": name },
-        { $push: { "checkingAccount.movementsDates": newDate } }
+        { $push: { "checkingAccount.movementsDates": newDate } },
       );
     const updatedUserProfile = await client
       .db("TrinityCapital")
@@ -728,7 +851,7 @@ app.post("/transfer", async (req, res) => {
                 Category: "Transfer",
               },
             },
-          }
+          },
         );
 
       let newDate = new Date().toISOString();
@@ -737,7 +860,7 @@ app.post("/transfer", async (req, res) => {
         .collection("User Profiles")
         .updateOne(
           { "checkingAccount.accountHolder": memberNamePg },
-          { $push: { "checkingAccount.movementsDates": newDate } }
+          { $push: { "checkingAccount.movementsDates": newDate } },
         );
 
       await client
@@ -754,7 +877,7 @@ app.post("/transfer", async (req, res) => {
                 Category: "Transfer",
               },
             },
-          }
+          },
         );
 
       await client
@@ -762,7 +885,7 @@ app.post("/transfer", async (req, res) => {
         .collection("User Profiles")
         .updateOne(
           { "savingsAccount.accountHolder": memberNamePg },
-          { $push: { "savingsAccount.movementsDates": newDate } }
+          { $push: { "savingsAccount.movementsDates": newDate } },
         );
 
       const updatedUserProfile = await client
@@ -788,7 +911,7 @@ app.post("/transfer", async (req, res) => {
 
 const balanceCalc = async function (memberName, acc, type) {
   console.log(
-    `Starting balanceCalc for member: ${memberName}, account type: ${type}`
+    `Starting balanceCalc for member: ${memberName}, account type: ${type}`,
   );
 
   let amounts = [];
@@ -803,7 +926,7 @@ const balanceCalc = async function (memberName, acc, type) {
   } catch (error) {
     console.error(
       `Error collecting transaction amounts for ${memberName}:`,
-      error
+      error,
     );
     return; // Exit early if there's an error
   }
@@ -826,7 +949,7 @@ const balanceCalc = async function (memberName, acc, type) {
         .collection("User Profiles")
         .updateOne(
           { "checkingAccount.accountHolder": memberName },
-          { $set: { "checkingAccount.balanceTotal": balance } }
+          { $set: { "checkingAccount.balanceTotal": balance } },
         );
     } else if (type === "Savings") {
       console.log(`Updating Savings account balance for ${memberName}`);
@@ -835,7 +958,7 @@ const balanceCalc = async function (memberName, acc, type) {
         .collection("User Profiles")
         .updateOne(
           { "savingsAccount.accountHolder": memberName },
-          { $set: { "savingsAccount.balanceTotal": balance } }
+          { $set: { "savingsAccount.balanceTotal": balance } },
         );
     }
   } catch (error) {
@@ -858,7 +981,7 @@ const balanceCalc = async function (memberName, acc, type) {
 
     console.log(
       `Fetched updated profile for ${memberName}:`,
-      updatedUserProfile
+      updatedUserProfile,
     );
   } catch (error) {
     console.error(`Error fetching updated profile for ${memberName}:`, error);
@@ -874,7 +997,7 @@ const balanceCalc = async function (memberName, acc, type) {
     const userSocket = userSockets.get(memberName);
     if (userSocket) {
       console.log(
-        `Emitting 'checkingAccountUpdate' event to socket for ${memberName}`
+        `Emitting 'checkingAccountUpdate' event to socket for ${memberName}`,
       );
       userSocket.emit("checkingAccountUpdate", updatedChecking);
     } else {
@@ -890,7 +1013,7 @@ const balanceCalc = async function (memberName, acc, type) {
     const studentTeacher = updatedUserProfile.teacher;
     if (studentTeacher) {
       console.log(
-        `Notifying teacher ${studentTeacher} about financial update for student ${memberName}`
+        `Notifying teacher ${studentTeacher} about financial update for student ${memberName}`,
       );
 
       // Emit to all connected sockets (teachers will filter by their name)
@@ -908,7 +1031,7 @@ const balanceCalc = async function (memberName, acc, type) {
   } catch (error) {
     console.error(
       `Error notifying teachers about student financial update:`,
-      error
+      error,
     );
   }
 };
@@ -1002,7 +1125,7 @@ app.post("/processExistingBillsPayments", async (req, res) => {
     const payments = userProfile.checkingAccount.payments || [];
 
     console.log(
-      `Found ${bills.length} bills and ${payments.length} payments for ${memberName}`
+      `Found ${bills.length} bills and ${payments.length} payments for ${memberName}`,
     );
 
     // Process bills immediately
@@ -1018,7 +1141,7 @@ app.post("/processExistingBillsPayments", async (req, res) => {
         await schedulerManager.processTransaction(
           memberName,
           payment,
-          "payment"
+          "payment",
         );
       }
     }
@@ -1066,7 +1189,7 @@ app.post("/scheduler/remove", async (req, res) => {
       await schedulerManager.removeScheduledTransaction(
         memberName,
         transactionId,
-        type
+        type,
       );
       res.json({ success: true, message: `Removed scheduled ${type}` });
     } else {
@@ -1182,7 +1305,7 @@ app.post("/deposits", async (req, res) => {
             Category: "Check Deposit",
           },
         },
-      }
+      },
     );
 
   await client
@@ -1190,7 +1313,7 @@ app.post("/deposits", async (req, res) => {
     .collection("User Profiles")
     .updateOne(
       { "checkingAccount.accountHolder": memberName },
-      { $push: { "checkingAccount.movementsDates": newDate } }
+      { $push: { "checkingAccount.movementsDates": newDate } },
     );
 
   const updatedUserProfile = await client
@@ -1235,7 +1358,7 @@ app.post("/sendFunds", async (req, res) => {
             Category: "Money Deposit",
           },
         },
-      }
+      },
     );
 
   await client
@@ -1243,7 +1366,7 @@ app.post("/sendFunds", async (req, res) => {
     .collection("User Profiles")
     .updateOne(
       { "checkingAccount.accountHolder": destinationProfile },
-      { $push: { "checkingAccount.movementsDates": destinationDate } }
+      { $push: { "checkingAccount.movementsDates": destinationDate } },
     );
 
   //FOR SENDER
@@ -1261,7 +1384,7 @@ app.post("/sendFunds", async (req, res) => {
             Category: "Money Deposit",
           },
         },
-      }
+      },
     );
 
   await client
@@ -1269,7 +1392,7 @@ app.post("/sendFunds", async (req, res) => {
     .collection("User Profiles")
     .updateOne(
       { "checkingAccount.accountHolder": sender },
-      { $push: { "checkingAccount.movementsDates": destinationDate } }
+      { $push: { "checkingAccount.movementsDates": destinationDate } },
     );
 
   const updatedUserProfile = await client
@@ -1464,10 +1587,10 @@ if (mailUser && mailPass) {
   console.log("✅ Feedback email service is configured.");
 } else {
   console.warn(
-    "⚠️ WARNING: Email credentials are not set in the .env file (EMAIL_USER/EMAIL_PASS)."
+    "⚠️ WARNING: Email credentials are not set in the .env file (EMAIL_USER/EMAIL_PASS).",
   );
   console.warn(
-    "The /submit-feedback endpoint will save to the database but will NOT send emails."
+    "The /submit-feedback endpoint will save to the database but will NOT send emails.",
   );
 }
 
@@ -1481,7 +1604,7 @@ async function trySendFeedbackEmail(mailOptions, timeoutMs = 12000) {
     const result = await Promise.race([
       sendPromise,
       new Promise((_, reject) =>
-        setTimeout(() => reject(new Error("send_timeout")), timeoutMs)
+        setTimeout(() => reject(new Error("send_timeout")), timeoutMs),
       ),
     ]);
     console.log("Feedback email sent:", result && result.response);
@@ -1489,7 +1612,7 @@ async function trySendFeedbackEmail(mailOptions, timeoutMs = 12000) {
   } catch (err) {
     console.error(
       "Feedback email failed:",
-      err && err.message ? err.message : err
+      err && err.message ? err.message : err,
     );
     return false;
   }
@@ -1542,12 +1665,12 @@ app.post("/submit-feedback", async (req, res) => {
         const emailOk = await trySendFeedbackEmail(mailOptions);
         if (!emailOk) {
           console.warn(
-            "Feedback email could not be sent. Check SMTP/network/credentials."
+            "Feedback email could not be sent. Check SMTP/network/credentials.",
           );
         }
       } else {
         console.warn(
-          "Skipping feedback email because email service is not configured."
+          "Skipping feedback email because email service is not configured.",
         );
       }
 
@@ -1597,12 +1720,12 @@ app.post("/submit-feedback", async (req, res) => {
         const emailOk = await trySendFeedbackEmail(mailOptions);
         if (!emailOk) {
           console.warn(
-            "Bug report email could not be sent. Check SMTP/network/credentials."
+            "Bug report email could not be sent. Check SMTP/network/credentials.",
           );
         }
       } else {
         console.warn(
-          "Skipping feedback email because email service is not configured."
+          "Skipping feedback email because email service is not configured.",
         );
       }
 
@@ -1648,11 +1771,11 @@ app.post("/api/timers", async (req, res) => {
             lastUpdated: new Date(),
           },
         },
-        { upsert: true }
+        { upsert: true },
       );
 
     console.log(
-      `Timer saved for student ${studentId}, lesson ${lessonId}: ${elapsedTime} seconds`
+      `Timer saved for student ${studentId}, lesson ${lessonId}: ${elapsedTime} seconds`,
     );
     res.json({ success: true, message: "Timer saved" });
   } catch (error) {
@@ -1677,12 +1800,12 @@ app.get("/api/timers", async (req, res) => {
 
     if (timerDoc) {
       console.log(
-        `Timer fetched for student ${studentId}, lesson ${lessonId}: ${timerDoc.elapsedTime} seconds`
+        `Timer fetched for student ${studentId}, lesson ${lessonId}: ${timerDoc.elapsedTime} seconds`,
       );
       res.json({ elapsedTime: timerDoc.elapsedTime });
     } else {
       console.log(
-        `No timer found for student ${studentId}, lesson ${lessonId}`
+        `No timer found for student ${studentId}, lesson ${lessonId}`,
       );
       res.status(404).json({ error: "Timer not found" });
     }
@@ -1823,7 +1946,7 @@ function calculateStudentHealth(student) {
   const lastActivity = student.lastActivity ?? student.lastLessonCompleted;
   if (lastActivity) {
     const daysSinceActivity = Math.floor(
-      (new Date() - new Date(lastActivity)) / (1000 * 60 * 60 * 24)
+      (new Date() - new Date(lastActivity)) / (1000 * 60 * 60 * 24),
     );
     if (daysSinceActivity <= 1) {
       academicScore += 20;
@@ -1895,7 +2018,7 @@ app.post("/lessonArrays", async (req, res) => {
       <div class="col-1 lessonDiv ${lesson.id}">
         <p class="lessonImg"><i class="fa-solid ${lesson.icon}"></i></p>
         <h5 class="lessonName">${lesson.name}</h5>
-      </div>`
+      </div>`,
       )
       .join("");
 
@@ -1926,7 +2049,7 @@ app.post("/lesson-completion", async (req, res) => {
     } = req.body;
 
     console.log(
-      `🎓 Processing lesson completion for ${studentName}: ${lessonTitle} (${score}% - ${grade})`
+      `🎓 Processing lesson completion for ${studentName}: ${lessonTitle} (${score}% - ${grade})`,
     );
 
     // Find and update the student's profile
@@ -1998,7 +2121,7 @@ app.post("/lesson-completion", async (req, res) => {
           lastLessonCompleted: new Date(completionDate),
           lastActivity: new Date(),
         },
-      }
+      },
     );
 
     if (updateResult.matchedCount === 0) {
@@ -2010,7 +2133,7 @@ app.post("/lesson-completion", async (req, res) => {
     }
 
     console.log(
-      `✅ Successfully updated ${studentName}'s profile with lesson completion`
+      `✅ Successfully updated ${studentName}'s profile with lesson completion`,
     );
 
     // Get the student's teacher information for dashboard updates
@@ -2121,7 +2244,7 @@ app.get("/api/debug-student/:studentId", async (req, res) => {
           {},
           {
             projection: { memberName: 1, _id: 0 },
-          }
+          },
         )
         .limit(10)
         .toArray();
@@ -2193,7 +2316,7 @@ app.get("/api/student-current-lesson/:studentId", async (req, res) => {
     // Try to get current lesson from newer ObjectID-based system first
     if (assignedUnitIds.length > 0) {
       console.log(
-        `🔗 Using ObjectID-based lesson system for ${decodedStudentId}`
+        `🔗 Using ObjectID-based lesson system for ${decodedStudentId}`,
       );
 
       // Get all lesson IDs from assigned units
@@ -2221,15 +2344,15 @@ app.get("/api/student-current-lesson/:studentId", async (req, res) => {
         try {
           const lessonDataPath = path.join(
             __dirname,
-            "dallas_fed_aligned_lessons.json"
+            "dallas_fed_aligned_lessons.json",
           );
           const lessonData = JSON.parse(
-            fs.readFileSync(lessonDataPath, "utf8")
+            fs.readFileSync(lessonDataPath, "utf8"),
           );
           dallasFedLessons = lessonData.lessons || [];
         } catch (error) {
           console.log(
-            "⚠️ Could not load Dallas Fed lesson data, using fallback titles"
+            "⚠️ Could not load Dallas Fed lesson data, using fallback titles",
           );
         }
 
@@ -2395,14 +2518,14 @@ app.get("/api/student-current-lesson/:studentId", async (req, res) => {
       } catch (objectIdError) {
         console.warn(
           `Invalid ObjectId in legacy system: ${currentLessonId}`,
-          objectIdError
+          objectIdError,
         );
       }
     }
 
     // If we get here, no valid lesson was found
     console.log(
-      `ℹ️ No valid current lesson found for student: ${decodedStudentId}`
+      `ℹ️ No valid current lesson found for student: ${decodedStudentId}`,
     );
     return res.json(null);
   } catch (error) {
@@ -2445,11 +2568,11 @@ app.get("/api/student-financial-data/:studentId", async (req, res) => {
 
     const totalBills = bills.reduce(
       (sum, bill) => sum + (parseFloat(bill.amount) || 0),
-      0
+      0,
     );
     const totalPayments = payments.reduce(
       (sum, payment) => sum + (parseFloat(payment.amount) || 0),
-      0
+      0,
     );
 
     const financialData = {
@@ -2503,7 +2626,7 @@ app.get("/api/lesson-access/:studentId/:lessonId", async (req, res) => {
 
     const hasAccess = assignedLessonIds.includes(lessonId);
     const isCompleted = completedLessonIds.some(
-      (completed) => completed.lessonId === lessonId
+      (completed) => completed.lessonId === lessonId,
     );
 
     // For lesson gating, check if previous lessons are completed
@@ -2558,7 +2681,7 @@ app.post("/api/lock-lesson", async (req, res) => {
       {
         $addToSet: { lockedLessons: lessonId },
         $set: { lastLessonLocked: new Date() },
-      }
+      },
     );
 
     res.json({ success: true, message: "Lesson locked successfully" });
@@ -2595,7 +2718,7 @@ app.post("/api/unlock-next-lesson", async (req, res) => {
         {
           $set: { currentLessonId: nextLessonId },
           $pull: { lockedLessons: nextLessonId },
-        }
+        },
       );
 
       res.json({
@@ -2645,7 +2768,7 @@ app.post("/api/sync-teacher-dashboard", async (req, res) => {
           lastLessonCompleted: new Date(),
           studentHealth: grade >= 70 ? "healthy" : "needs_attention",
         },
-      }
+      },
     );
 
     res.json({
@@ -2695,13 +2818,13 @@ app.get("/api/student-lessons/:studentId", async (req, res) => {
         ) {
           allLessonIds.push(...unitAssignment.lessonIds);
           console.log(
-            `Unit "${unitAssignment.unitName}" contributes ${unitAssignment.lessonIds.length} lesson IDs`
+            `Unit "${unitAssignment.unitName}" contributes ${unitAssignment.lessonIds.length} lesson IDs`,
           );
         }
       });
 
       console.log(
-        `📝 Found ${allLessonIds.length} lesson IDs: ${allLessonIds.slice(0, 3)}...`
+        `📝 Found ${allLessonIds.length} lesson IDs: ${allLessonIds.slice(0, 3)}...`,
       );
 
       // Load Dallas Fed lesson data
@@ -2711,13 +2834,13 @@ app.get("/api/student-lessons/:studentId", async (req, res) => {
       try {
         const lessonDataPath = path.join(
           __dirname,
-          "dallas_fed_aligned_lessons.json"
+          "dallas_fed_aligned_lessons.json",
         );
         const lessonData = JSON.parse(fs.readFileSync(lessonDataPath, "utf8"));
         dallasFedLessons = lessonData.lessons || [];
       } catch (error) {
         console.log(
-          "⚠️ Could not load Dallas Fed lesson data, using fallback titles"
+          "⚠️ Could not load Dallas Fed lesson data, using fallback titles",
         );
       }
 
@@ -2774,7 +2897,7 @@ app.get("/api/student-lessons/:studentId", async (req, res) => {
     const assignedLessonIds = studentProfile.lessonIds || [];
     if (assignedLessonIds.length > 0 && allLessons.length === 0) {
       console.log(
-        `📚 Using legacy lesson system with ${assignedLessonIds.length} lessons`
+        `📚 Using legacy lesson system with ${assignedLessonIds.length} lessons`,
       );
 
       try {
@@ -2793,7 +2916,7 @@ app.get("/api/student-lessons/:studentId", async (req, res) => {
     }
 
     console.log(
-      `✅ Returning ${allLessons.length} lessons for ${decodedStudentId}`
+      `✅ Returning ${allLessons.length} lessons for ${decodedStudentId}`,
     );
     res.json(allLessons);
   } catch (error) {
@@ -2888,7 +3011,7 @@ app.post("/replaceLessonInUnit", async (req, res) => {
             { "unit.value": unitValue },
             { "lesson.lesson_title": oldLesson.lesson.lesson_title },
           ],
-        }
+        },
       );
 
     if (updateResult.matchedCount === 0) {
@@ -2899,7 +3022,7 @@ app.post("/replaceLessonInUnit", async (req, res) => {
     }
 
     console.log(
-      `Lesson replaced successfully: ${oldLesson.lesson.lesson_title} -> ${newLesson.lesson.lesson_title} in unit ${unitValue} for teacher ${teacherName}`
+      `Lesson replaced successfully: ${oldLesson.lesson.lesson_title} -> ${newLesson.lesson.lesson_title} in unit ${unitValue} for teacher ${teacherName}`,
     );
 
     // --- Emit Socket.IO event to update lesson management modal ---
@@ -2965,7 +3088,7 @@ app.post("/saveUnitChanges", async (req, res) => {
           $set: {
             "units.$.lessons": lessons,
           },
-        }
+        },
       );
 
     if (updateResult.matchedCount === 0) {
@@ -2983,7 +3106,7 @@ app.post("/saveUnitChanges", async (req, res) => {
     }
 
     console.log(
-      `Unit ${unitValue} updated successfully for teacher ${teacherName} with ${lessons.length} lessons`
+      `Unit ${unitValue} updated successfully for teacher ${teacherName} with ${lessons.length} lessons`,
     );
 
     // --- Emit Socket.IO event to update lesson management modal ---
@@ -3098,7 +3221,7 @@ app.post("/findTeacher", async (req, res) => {
       });
     } else {
       console.log(
-        `Teacher not found for username: ${teachUser}, pin: ${teachPin}`
+        `Teacher not found for username: ${teachUser}, pin: ${teachPin}`,
       );
       res.status(404).json({ found: false });
     }
@@ -3133,7 +3256,7 @@ app.get("/students/profiles/:teacherUsername", async (req, res) => {
 
     console.log(
       "Fetching student profiles for teacher username:",
-      teacherUsername
+      teacherUsername,
     );
 
     // First, find the teacher's name from the Teachers collection
@@ -3190,7 +3313,7 @@ app.get("/students/profiles/:teacherUsername", async (req, res) => {
       .toArray();
 
     console.log(
-      `Found ${studentProfiles.length} student profiles for teacher ${teacherName} (username: ${teacherUsername})`
+      `Found ${studentProfiles.length} student profiles for teacher ${teacherName} (username: ${teacherUsername})`,
     );
 
     // Calculate health metrics for each student
@@ -3223,7 +3346,7 @@ app.get("/class-health/:teacherUsername", async (req, res) => {
     const { teacherUsername } = req.params;
 
     console.log(
-      `🏥 Fetching real-time class health for teacher: ${teacherUsername}`
+      `🏥 Fetching real-time class health for teacher: ${teacherUsername}`,
     );
 
     // Find the teacher's name from the Teachers collection
@@ -3288,37 +3411,37 @@ app.get("/class-health/:teacherUsername", async (req, res) => {
     if (studentsWithHealth.length > 0) {
       const totalFinancial = studentsWithHealth.reduce(
         (sum, student) => sum + student.health.financial,
-        0
+        0,
       );
       const totalAcademic = studentsWithHealth.reduce(
         (sum, student) => sum + student.health.academic,
-        0
+        0,
       );
       const totalOverall = studentsWithHealth.reduce(
         (sum, student) => sum + student.health.overall,
-        0
+        0,
       );
       const totalLessons = studentsWithHealth.reduce(
         (sum, student) => sum + student.totalLessonsCompleted,
-        0
+        0,
       );
       const totalScores = studentsWithHealth.reduce(
         (sum, student) => sum + (student.averageScore || 0),
-        0
+        0,
       );
 
       classStats.averageFinancialHealth = Math.round(
-        totalFinancial / studentsWithHealth.length
+        totalFinancial / studentsWithHealth.length,
       );
       classStats.averageAcademicHealth = Math.round(
-        totalAcademic / studentsWithHealth.length
+        totalAcademic / studentsWithHealth.length,
       );
       classStats.averageOverallHealth = Math.round(
-        totalOverall / studentsWithHealth.length
+        totalOverall / studentsWithHealth.length,
       );
       classStats.totalLessonsCompleted = totalLessons;
       classStats.averageClassScore = Math.round(
-        totalScores / studentsWithHealth.length
+        totalScores / studentsWithHealth.length,
       );
 
       // Count health status distribution
@@ -3335,7 +3458,7 @@ app.get("/class-health/:teacherUsername", async (req, res) => {
     }
 
     console.log(
-      `📊 Class health calculated for ${studentsWithHealth.length} students`
+      `📊 Class health calculated for ${studentsWithHealth.length} students`,
     );
 
     res.json({
@@ -3397,6 +3520,69 @@ app.get("/messages/:userId", async (req, res) => {
     res.status(200).json({ threads }); // Return threads, not messages
   } catch (error) {
     console.error("Error fetching messages:", error);
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", details: error.message });
+  }
+});
+
+// Endpoint to create a new thread
+app.post("/newThread", async (req, res) => {
+  try {
+    const { participants } = req.body;
+
+    if (!participants || participants.length < 2) {
+      return res
+        .status(400)
+        .json({ error: "A thread requires at least two participants." });
+    }
+
+    // Create a canonical threadId by sorting participants
+    const sortedParticipants = participants.sort();
+    const threadId = sortedParticipants.join("_");
+
+    // Check if thread already exists
+    const existingThread = await client
+      .db("TrinityCapital")
+      .collection("threads")
+      .findOne({ threadId: threadId });
+
+    if (existingThread) {
+      return res
+        .status(200)
+        .json({ message: "Thread already exists.", thread: existingThread });
+    }
+
+    // Create new thread object
+    const newThread = {
+      threadId: threadId,
+      type: "private",
+      participants: sortedParticipants,
+      messages: [],
+      createdAt: new Date(),
+      lastMessageTimestamp: new Date(),
+    };
+
+    // Insert the new thread into the database
+    await client
+      .db("TrinityCapital")
+      .collection("threads")
+      .insertOne(newThread);
+
+    // Emit an event to notify clients (optional, but good for real-time updates)
+    // Notify both participants that a new thread has been created
+    sortedParticipants.forEach((participantId) => {
+      const userSocket = userSockets.get(participantId);
+      if (userSocket) {
+        userSocket.emit("threadCreated", newThread);
+      }
+    });
+
+    res
+      .status(201)
+      .json({ message: "Thread created successfully.", thread: newThread });
+  } catch (error) {
+    console.error("Error creating new thread:", error);
     res
       .status(500)
       .json({ error: "Internal Server Error", details: error.message });
@@ -3471,28 +3657,51 @@ app.post("/generateClassCodes", async (req, res) => {
     }
 
     console.log("Searching for teacherUsername:", teacherUsername);
-    // 1. Get teacher's state, school, and license number from Teachers collection
+    // 1. Get teacher's state, school, and access code from Teachers collection
     const teacher = await client
       .db("TrinityCapital")
       .collection("Teachers")
       .findOne({ username: teacherUsername });
     console.log("Teacher lookup result:", teacher);
+    console.log(
+      "Teacher fields available:",
+      teacher ? Object.keys(teacher) : "No teacher found",
+    );
 
     if (!teacher) {
       return res.status(404).json({ error: "Teacher not found" });
     }
 
-    // Get the access code from Access Codes collection using teacherEmail
-    const accessCodeDoc = await client
-      .db("TrinityCapital")
-      .collection("Access Codes")
-      .findOne({ sent_to: teacherEmail });
-    console.log("Access code lookup result:", accessCodeDoc);
+    // 2. Decrypt the teacher's access code (stored encrypted as AES-256-CBC in the accessCode field)
+    console.log("Decrypting teacher's access code...");
+    console.log("  teacher.accessCode:", teacher.accessCode);
 
     let licenseNumber = "00000000";
-    if (accessCodeDoc && accessCodeDoc.code) {
-      // Use a shortened version (first 8 chars, uppercase) for display
-      licenseNumber = accessCodeDoc.code.substring(0, 8).toUpperCase();
+    if (!teacher.accessCode) {
+      console.warn("No accessCode found for teacher:", teacherUsername);
+      return res.status(400).json({
+        error: "Teacher has no access code. Contact admin to verify licensing.",
+      });
+    }
+
+    try {
+      // Decrypt the AES-256-CBC encrypted code
+      const decryptedAccessCode = decrypt(teacher.accessCode);
+      console.log(
+        "✅ Successfully decrypted access code:",
+        decryptedAccessCode,
+      );
+
+      // Extract first 8 characters as the license number (e.g., "23A442C4" from "US-NMHS-23A442C4-01")
+      licenseNumber = decryptedAccessCode.substring(0, 8).toUpperCase();
+      console.log("License number extracted:", licenseNumber);
+    } catch (decryptError) {
+      console.error("❌ Failed to decrypt access code:", decryptError.message);
+      console.error("Encrypted code was:", teacher.accessCode);
+      return res.status(500).json({
+        error: "Failed to decrypt teacher access code",
+        details: decryptError.message,
+      });
     }
 
     // Generate school shorthand from school name
@@ -3510,8 +3719,8 @@ app.post("/generateClassCodes", async (req, res) => {
       .db("TrinityCapital")
       .collection("Teachers")
       .updateOne(
-        { Username: teacherUsername },
-        { $set: { classPeriods: periods } }
+        { username: teacherUsername },
+        { $set: { classPeriods: periods } },
       );
 
     // 3. Generate codes for each period
@@ -3643,7 +3852,7 @@ app.post("/sendEmail", async (req, res) => {
         recipients,
         cc, // Pass CC parameter
         finalSubject,
-        message
+        message,
       );
       res.status(200).json({ success: true });
     } catch (error) {
@@ -3676,13 +3885,13 @@ async function sendEmailViaGmailApi(
   to,
   cc,
   subject,
-  body
+  body,
 ) {
   const { google } = require("googleapis");
   const oAuth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    process.env.OAUTH2_REDIRECT_URI
+    process.env.OAUTH2_REDIRECT_URI,
   );
   oAuth2Client.setCredentials({ refresh_token: refreshToken });
   const gmail = google.gmail({ version: "v1", auth: oAuth2Client });
@@ -3698,7 +3907,7 @@ async function sendEmailViaGmailApi(
     `Subject: ${subject}`,
     "Content-Type: text/plain; charset=utf-8",
     "",
-    body
+    body,
   );
   const rawMessage = Buffer.from(messageParts.join("\r\n"))
     .toString("base64")
@@ -3717,7 +3926,7 @@ async function sendEmailViaGmailApi(
     throw new Error(
       error?.response?.data?.error?.message ||
         error.message ||
-        "Failed to send email via Gmail API"
+        "Failed to send email via Gmail API",
     );
   }
 }
@@ -3761,7 +3970,7 @@ app.post("/saveEmailAddress", async (req, res) => {
       .updateOne(
         { teacherUsername: sender },
         { $addToSet: { addresses: address } },
-        { upsert: true }
+        { upsert: true },
       );
     res.status(200).json({ success: true });
   } catch (err) {
@@ -3778,7 +3987,7 @@ app.post("/saveEmailTemplate", async (req, res) => {
       .updateOne(
         { teacherUsername: sender },
         { $addToSet: { templates: { subject, message } } },
-        { upsert: true }
+        { upsert: true },
       );
     res.status(200).json({ success: true });
   } catch (err) {
@@ -3795,7 +4004,7 @@ app.post("/saveEmailGroup", async (req, res) => {
       .updateOne(
         { teacherUsername: sender },
         { $addToSet: { groups: { name, addresses } } },
-        { upsert: true }
+        { upsert: true },
       );
     res.status(200).json({ success: true });
   } catch (err) {
@@ -3819,7 +4028,7 @@ app.get("/allStudents", async (req, res) => {
 
     // Return array of student IDs/usernames for assignment
     const studentIds = allStudents.map(
-      (student) => student._id || student.username || student.memberName
+      (student) => student._id || student.username || student.memberName,
     );
 
     console.log(`Found ${studentIds.length} students for admin assignment`);
@@ -3850,11 +4059,11 @@ app.get("/studentsInPeriod/:period", async (req, res) => {
 
     // Return array of student IDs/usernames for assignment
     const studentIds = studentsInPeriod.map(
-      (student) => student._id || student.username || student.memberName
+      (student) => student._id || student.username || student.memberName,
     );
 
     console.log(
-      `Found ${studentIds.length} students in period ${periodNumber}`
+      `Found ${studentIds.length} students in period ${periodNumber}`,
     );
     res.json(studentIds);
   } catch (error) {
@@ -3908,7 +4117,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
     const newAssignedUnitIds = studentProfile.assignedUnitIds || [];
 
     console.log(
-      `Found ${oldAssignedUnits.length} old assigned units and ${newAssignedUnitIds.length} new ObjectID-based units for student`
+      `Found ${oldAssignedUnits.length} old assigned units and ${newAssignedUnitIds.length} new ObjectID-based units for student`,
     );
 
     // Process old system units first
@@ -3916,20 +4125,20 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
 
     for (const unit of oldAssignedUnits) {
       console.log(
-        `Processing OLD unit: ${unit.name} (${unit.value}) assigned by ${unit.assignedBy}`
+        `Processing OLD unit: ${unit.name} (${unit.value}) assigned by ${unit.assignedBy}`,
       );
 
       try {
         // Fetch fresh lesson content from the lesson server
         const lessonServerResponse = await fetch(
-          `https://tclessonserver-production.up.railway.app/lessons/${unit.assignedBy}`
+          `https://tclessonserver-production.up.railway.app/lessons/${unit.assignedBy}`,
         );
 
         if (lessonServerResponse.ok) {
           const lessonData = await lessonServerResponse.json();
           if (lessonData.success && lessonData.units) {
             const fullUnit = lessonData.units.find(
-              (u) => u.value === unit.value
+              (u) => u.value === unit.value,
             );
             if (fullUnit && fullUnit.lessons) {
               // Create enriched unit with complete lesson data
@@ -3939,30 +4148,30 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
               };
               enrichedUnits.push(enrichedUnit);
               console.log(
-                `✅ Enriched unit ${unit.name} with ${fullUnit.lessons.length} complete lessons`
+                `✅ Enriched unit ${unit.name} with ${fullUnit.lessons.length} complete lessons`,
               );
             } else {
               console.warn(
-                `Unit ${unit.value} not found in lesson server data`
+                `Unit ${unit.value} not found in lesson server data`,
               );
               enrichedUnits.push(unit); // Keep original unit if no enrichment possible
             }
           } else {
             console.warn(
-              `No units data from lesson server for ${unit.assignedBy}`
+              `No units data from lesson server for ${unit.assignedBy}`,
             );
             enrichedUnits.push(unit);
           }
         } else {
           console.warn(
-            `Could not fetch lesson content from lesson server for unit ${unit.value}`
+            `Could not fetch lesson content from lesson server for unit ${unit.value}`,
           );
           enrichedUnits.push(unit);
         }
       } catch (error) {
         console.warn(
           `Error fetching lesson content for unit ${unit.value}:`,
-          error.message
+          error.message,
         );
         enrichedUnits.push(unit); // Keep original unit on error
       }
@@ -3971,7 +4180,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
     // Process NEW ObjectID-based system units
     if (newAssignedUnitIds.length > 0) {
       console.log(
-        `Processing ${newAssignedUnitIds.length} NEW ObjectID-based units...`
+        `Processing ${newAssignedUnitIds.length} NEW ObjectID-based units...`,
       );
 
       // Get all lesson IDs from all assigned units
@@ -3984,7 +4193,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
         ) {
           allLessonIds.push(...unitAssignment.lessonIds);
           console.log(
-            `Unit "${unitAssignment.unitName}" contributes ${unitAssignment.lessonIds.length} lesson IDs`
+            `Unit "${unitAssignment.unitName}" contributes ${unitAssignment.lessonIds.length} lesson IDs`,
           );
         }
       });
@@ -3996,7 +4205,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
       if (uniqueLessonIds.length > 0) {
         try {
           console.log(
-            `Querying lessons with IDs: ${uniqueLessonIds.slice(0, 3).join(", ")}...`
+            `Querying lessons with IDs: ${uniqueLessonIds.slice(0, 3).join(", ")}...`,
           );
 
           // Try both numeric and ObjectId formats for lesson lookup
@@ -4013,7 +4222,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
 
           if (numericIds.length > 0) {
             console.log(
-              `Trying numeric IDs: ${numericIds.slice(0, 3).join(", ")}...`
+              `Trying numeric IDs: ${numericIds.slice(0, 3).join(", ")}...`,
             );
             const numericLessons = await client
               .db("TrinityCapital")
@@ -4022,7 +4231,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
               .toArray();
             lessons.push(...numericLessons);
             console.log(
-              `Found ${numericLessons.length} lessons with numeric IDs`
+              `Found ${numericLessons.length} lessons with numeric IDs`,
             );
           }
 
@@ -4039,7 +4248,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
 
           if (objectIds.length > 0) {
             console.log(
-              `Trying ObjectId format for ${objectIds.length} IDs...`
+              `Trying ObjectId format for ${objectIds.length} IDs...`,
             );
             const objectIdLessons = await client
               .db("TrinityCapital")
@@ -4048,12 +4257,12 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
               .toArray();
             lessons.push(...objectIdLessons);
             console.log(
-              `Found ${objectIdLessons.length} lessons with ObjectId format`
+              `Found ${objectIdLessons.length} lessons with ObjectId format`,
             );
           }
 
           console.log(
-            `Fetched ${lessons.length} lesson documents from database`
+            `Fetched ${lessons.length} lesson documents from database`,
           );
 
           // Create a lookup map for lessons (handle both numeric and ObjectId keys)
@@ -4119,7 +4328,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
 
             enrichedUnits.push(enrichedNewUnit);
             console.log(
-              `✅ Added ObjectID-based unit "${unitAssignment.unitName}" with ${unitLessons.length} lessons`
+              `✅ Added ObjectID-based unit "${unitAssignment.unitName}" with ${unitLessons.length} lessons`,
             );
           });
         } catch (error) {
@@ -4129,7 +4338,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
     }
 
     console.log(
-      `✅ Successfully enriched ${enrichedUnits.length} total units (old + new systems) with complete lesson data`
+      `✅ Successfully enriched ${enrichedUnits.length} total units (old + new systems) with complete lesson data`,
     );
 
     res.json({
@@ -4153,7 +4362,7 @@ app.get("/student-lessons-by-ids/:studentId", async (req, res) => {
     const { studentId } = req.params;
 
     console.log(
-      `--- Fetching ObjectID-based lessons for student: ${studentId} ---`
+      `--- Fetching ObjectID-based lessons for student: ${studentId} ---`,
     );
 
     // Get student profile
@@ -4184,7 +4393,7 @@ app.get("/student-lessons-by-ids/:studentId", async (req, res) => {
       studentProfile.assignedUnitIds.length > 0
     ) {
       console.log(
-        `Student has ${studentProfile.assignedUnitIds.length} ObjectID-based unit assignments`
+        `Student has ${studentProfile.assignedUnitIds.length} ObjectID-based unit assignments`,
       );
 
       studentProfile.assignedUnitIds.forEach((unitAssignment) => {
@@ -4194,7 +4403,7 @@ app.get("/student-lessons-by-ids/:studentId", async (req, res) => {
         ) {
           allLessonIds.push(...unitAssignment.lessonIds);
           console.log(
-            `Unit "${unitAssignment.unitName}" contributes ${unitAssignment.lessonIds.length} lesson IDs`
+            `Unit "${unitAssignment.unitName}" contributes ${unitAssignment.lessonIds.length} lesson IDs`,
           );
         }
       });
@@ -4227,7 +4436,7 @@ app.get("/student-lessons-by-ids/:studentId", async (req, res) => {
             lessonIds: uniqueLessonIds,
             studentName: studentProfile.memberName || studentId,
           }),
-        }
+        },
       );
 
       if (lessonServerResponse.ok) {
@@ -4235,7 +4444,7 @@ app.get("/student-lessons-by-ids/:studentId", async (req, res) => {
 
         if (lessonData.success) {
           console.log(
-            `✅ Retrieved ${lessonData.lessons.length} lessons from lesson server`
+            `✅ Retrieved ${lessonData.lessons.length} lessons from lesson server`,
           );
 
           // Log lesson content summary
@@ -4243,10 +4452,10 @@ app.get("/student-lessons-by-ids/:studentId", async (req, res) => {
           lessonData.lessons.forEach((lesson, index) => {
             console.log(`${index + 1}. ${lesson.lesson_title}`);
             console.log(
-              `   - Blocks: ${lesson.lesson_blocks ? lesson.lesson_blocks.length : 0}`
+              `   - Blocks: ${lesson.lesson_blocks ? lesson.lesson_blocks.length : 0}`,
             );
             console.log(
-              `   - Conditions: ${lesson.lesson_conditions ? lesson.lesson_conditions.length : 0}`
+              `   - Conditions: ${lesson.lesson_conditions ? lesson.lesson_conditions.length : 0}`,
             );
           });
 
@@ -4267,7 +4476,7 @@ app.get("/student-lessons-by-ids/:studentId", async (req, res) => {
         }
       } else {
         console.error(
-          `Lesson server responded with status: ${lessonServerResponse.status}`
+          `Lesson server responded with status: ${lessonServerResponse.status}`,
         );
         return res.status(500).json({
           success: false,
@@ -4297,17 +4506,17 @@ app.post("/assignUnitToStudent", async (req, res) => {
 
     console.log(`--- NEW ObjectID-based Unit Assignment ---`);
     console.log(
-      `Assigning unit "${unitName}" (${unitId}) to student ${studentId} by ${assignedBy}`
+      `Assigning unit "${unitName}" (${unitId}) to student ${studentId} by ${assignedBy}`,
     );
 
     // Fetch the unit structure from the lesson server to get lesson ObjectIDs
     let lessonIds = [];
     try {
       console.log(
-        `🔍 Fetching unit structure from lesson server for unit ${unitId}...`
+        `🔍 Fetching unit structure from lesson server for unit ${unitId}...`,
       );
       const lessonServerResponse = await fetch(
-        `https://tclessonserver-production.up.railway.app/lessons/${assignedBy}`
+        `https://tclessonserver-production.up.railway.app/lessons/${assignedBy}`,
       );
       if (lessonServerResponse.ok) {
         const lessonData = await lessonServerResponse.json();
@@ -4318,7 +4527,7 @@ app.post("/assignUnitToStudent", async (req, res) => {
 
         if (lessonData.success && lessonData.units) {
           const targetUnit = lessonData.units.find(
-            (unit) => unit.value === unitId
+            (unit) => unit.value === unitId,
           );
           if (targetUnit && targetUnit.lessons) {
             // Create a lookup map from lesson titles to ObjectIDs from the lessons array
@@ -4330,7 +4539,7 @@ app.post("/assignUnitToStudent", async (req, res) => {
                 }
               });
               console.log(
-                `📚 Available lessons with ObjectIDs: ${Object.keys(lessonLookup).length}`
+                `📚 Available lessons with ObjectIDs: ${Object.keys(lessonLookup).length}`,
               );
             }
 
@@ -4340,7 +4549,7 @@ app.post("/assignUnitToStudent", async (req, res) => {
                 if (lesson._id) {
                   // Lesson already has proper ObjectID (Units 2-5)
                   console.log(
-                    `✅ Direct ObjectID: ${lesson.lesson_title} -> ${lesson._id}`
+                    `✅ Direct ObjectID: ${lesson.lesson_title} -> ${lesson._id}`,
                   );
                   return lesson._id;
                 } else if (
@@ -4350,24 +4559,24 @@ app.post("/assignUnitToStudent", async (req, res) => {
                   // Find ObjectID by matching lesson title (Unit 1)
                   const objectId = lessonLookup[lesson.lesson_title];
                   console.log(
-                    `🔗 Matched by title: ${lesson.lesson_title} -> ${objectId}`
+                    `🔗 Matched by title: ${lesson.lesson_title} -> ${objectId}`,
                   );
                   return objectId;
                 } else {
                   console.warn(
-                    `⚠️ No ObjectID found for lesson: ${lesson.lesson_title || "Unknown"}`
+                    `⚠️ No ObjectID found for lesson: ${lesson.lesson_title || "Unknown"}`,
                   );
                   return null;
                 }
               })
               .filter((id) => id); // Remove any null/undefined IDs
             console.log(
-              `✅ Found ${lessonIds.length} lesson ObjectIDs for unit ${unitName}`
+              `✅ Found ${lessonIds.length} lesson ObjectIDs for unit ${unitName}`,
             );
             console.log(`� Lesson ObjectIDs:`, lessonIds);
           } else {
             console.warn(
-              `⚠️ Unit ${unitId} not found or has no lessons in teacher data`
+              `⚠️ Unit ${unitId} not found or has no lessons in teacher data`,
             );
           }
         } else {
@@ -4375,13 +4584,13 @@ app.post("/assignUnitToStudent", async (req, res) => {
         }
       } else {
         console.warn(
-          `Could not fetch unit structure from lesson server for unit ${unitId}: ${lessonServerResponse.status}`
+          `Could not fetch unit structure from lesson server for unit ${unitId}: ${lessonServerResponse.status}`,
         );
       }
     } catch (error) {
       console.warn(
         `Error fetching unit structure for unit ${unitId}:`,
-        error.message
+        error.message,
       );
     }
 
@@ -4417,7 +4626,7 @@ app.post("/assignUnitToStudent", async (req, res) => {
         },
         {
           $addToSet: { assignedUnitIds: unitAssignment }, // New field for ObjectID-based assignments
-        }
+        },
       );
 
     if (updateResult.matchedCount === 0) {
@@ -4429,10 +4638,10 @@ app.post("/assignUnitToStudent", async (req, res) => {
     }
 
     console.log(
-      `✅ Successfully assigned unit with ${lessonIds.length} lesson ObjectIDs to student ${studentId}`
+      `✅ Successfully assigned unit with ${lessonIds.length} lesson ObjectIDs to student ${studentId}`,
     );
     console.log(
-      `🔗 Assignment uses ObjectID references instead of full lesson content`
+      `🔗 Assignment uses ObjectID references instead of full lesson content`,
     );
 
     // Emit socket event to notify student app of new unit assignment
@@ -4609,7 +4818,7 @@ app.post("/trigger-update", async (req, res) => {
       updateStatus.isUpdating = true;
       updateStatus.startTime = new Date();
       console.log(
-        "🔄 UPDATE TRIGGERED: Starting Trinity Capital update process"
+        "🔄 UPDATE TRIGGERED: Starting Trinity Capital update process",
       );
 
       // Notify all connected clients

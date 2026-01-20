@@ -257,6 +257,19 @@ billsBTN.addEventListener("click", async function (event) {
       billType,
       newDate
     );
+
+    // Update currentProfile with the new bill for lesson snapshots
+    if (!currentProfile.bills) {
+      currentProfile.bills = [];
+    }
+    currentProfile.bills.push({
+      name: billName.value.trim(),
+      amount: parseInt(-Math.abs(billInput.value)),
+      category: billType,
+      interval: billInterval,
+      date: newDate,
+    });
+    console.log("Updated currentProfile.bills:", currentProfile.bills);
   } catch (error) {
     console.error("Error processing bill:", error);
   } finally {
@@ -293,6 +306,19 @@ paymentsBTN.addEventListener("click", async function (event) {
       paymentType,
       newDate
     );
+
+    // Update currentProfile with the new payment for lesson snapshots
+    if (!currentProfile.paychecks) {
+      currentProfile.paychecks = [];
+    }
+    currentProfile.paychecks.push({
+      name: paymentName.value.trim(),
+      amount: parseInt(Math.abs(paymentInput.value)),
+      category: paymentType,
+      interval: payInterval,
+      date: newDate,
+    });
+    console.log("Updated currentProfile.paychecks:", currentProfile.paychecks);
   } catch (error) {
     console.error("Error processing payment:", error);
   } finally {

@@ -7,9 +7,6 @@
 
 import { completedLessons } from "../lessonManager.js";
 
-// Track which completed lessons have already been sent to the server
-const sentCompletions = new Set();
-
 export async function sendStudentSessionData(payload) {
   try {
     console.log("SDSM: Sending session payload to server...", payload);
@@ -62,7 +59,6 @@ export async function sendCompletedLessonSnapshot(studentName, completionData) {
 
     if (result.ok) {
       console.log("SDSM: Completed lesson snapshot sent successfully");
-      sentCompletions.add(completionData.lessonId);
     }
     return result;
   } catch (err) {
@@ -72,7 +68,9 @@ export async function sendCompletedLessonSnapshot(studentName, completionData) {
 }
 
 /**
- * Monitors for newly completed lessons and sends them to the server in real-time
+ * Monitors for newly completed lessons and sends them to the server in real-time.
+ * With the new backend, this will send all completed lessons every interval,
+ * and the backend will handle deduplication and updates.
  * @param {string} studentName - The name of the student
  */
 export function initializeCompletionMonitor(studentName) {
@@ -82,24 +80,25 @@ export function initializeCompletionMonitor(studentName) {
     // Get all completed lessons from lessonManager
     const completedLessonArray = Array.from(completedLessons.values());
 
-    // Find lessons that haven't been sent yet
+    // Loop through all completed lessons and send their state to the server.
+    // The backend will handle creating new records or updating existing ones.
     for (const completionData of completedLessonArray) {
-      if (!sentCompletions.has(completionData.lessonId)) {
+      console.log(
+        "SDSM: Sending state for completed lesson:",
+        completionData.lessonTitle
+      );
+
+      // Send immediately to server
+      const result = await sendCompletedLessonSnapshot(
+        studentName,
+        completionData
+      );
+
+      if (result.ok) {
         console.log(
-          "SDSM: Detected new completed lesson:",
+          "SDSM: Completed lesson data persisted to server:",
           completionData.lessonTitle
         );
-
-        // Send immediately to server
-        const result = await sendCompletedLessonSnapshot(
-          studentName,
-          completionData
-        );
-
-        if (result.ok) {
-          sentCompletions.add(completionData.lessonId);
-          console.log("SDSM: Completed lesson data persisted to server");
-        }
       }
     }
   }, 1000); // Check every second
@@ -109,12 +108,4 @@ export function initializeCompletionMonitor(studentName) {
     clearInterval(monitorInterval);
     console.log("SDSM: Completion monitor stopped");
   };
-}
-
-/**
- * Clears the sent completions tracking when needed (e.g., on logout)
- */
-export function resetCompletionTracking() {
-  sentCompletions.clear();
-  console.log("SDSM: Completion tracking reset");
 }

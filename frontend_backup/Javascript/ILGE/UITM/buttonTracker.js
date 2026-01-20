@@ -10,6 +10,10 @@ import {
   saveLessonTimerSync,
 } from "../LRM/lrm.js";
 import { sendStudentSessionData } from "../SDSM/sdsm.js";
+import {
+  validateLessonStart,
+  logLessonConditionState,
+} from "./lessonCompletionManager.js";
 
 function handleAccountSwitchModal() {
   const accountSwitchModal = document.querySelector(".accountSwitchModal");
@@ -131,19 +135,24 @@ function handleBillsModal() {
           : "not found";
 
         console.log("--- UITM: Bills Form Submitted ---");
-        console.log(`Bill Type: ${billType}`);
-        console.log(`Bill Name: ${billName}`);
-        console.log(`Bill Amount: ${billAmount}`);
-        console.log(`Bill Frequency: ${billFrequency}`);
+        console.log(`Bill Type: ${billType} (type: ${typeof billType})`);
+        console.log(`Bill Name: ${billName} (type: ${typeof billName})`);
+        console.log(`Bill Amount: ${billAmount} (type: ${typeof billAmount})`);
+        console.log(
+          `Bill Frequency: ${billFrequency} (type: ${typeof billFrequency})`
+        );
         console.log("Checking for matching conditions in active lesson...");
         console.log("----------------------------------");
 
-        processAction("bill_submitted", {
+        const billData = {
           billType: billType,
           billName: billName,
           billAmount: billAmount,
           billFrequency: billFrequency,
-        });
+        };
+
+        console.log("UITM: Sending bill data to CRM:", billData);
+        processAction("bill_created", billData);
       });
     }
   } else {
@@ -178,19 +187,30 @@ function handleBillsModal() {
           : "not found";
 
         console.log("--- UITM: Payments Form Submitted ---");
-        console.log(`Payment Type: ${paymentType}`);
-        console.log(`Payment Name: ${paymentName}`);
-        console.log(`Payment Amount: ${paymentAmount}`);
-        console.log(`Payment Frequency: ${paymentFrequency}`);
+        console.log(
+          `Payment Type: ${paymentType} (type: ${typeof paymentType})`
+        );
+        console.log(
+          `Payment Name: ${paymentName} (type: ${typeof paymentName})`
+        );
+        console.log(
+          `Payment Amount: ${paymentAmount} (type: ${typeof paymentAmount})`
+        );
+        console.log(
+          `Payment Frequency: ${paymentFrequency} (type: ${typeof paymentFrequency})`
+        );
         console.log("Checking for matching conditions in active lesson...");
         console.log("-------------------------------------");
 
-        processAction("payment_submitted", {
+        const paymentData = {
           paymentType: paymentType,
           paymentName: paymentName,
           paymentAmount: paymentAmount,
           paymentFrequency: paymentFrequency,
-        });
+        };
+
+        console.log("UITM: Sending payment data to CRM:", paymentData);
+        processAction("payment_created", paymentData);
       });
     }
   } else {
@@ -528,9 +548,32 @@ export function handleLessonModal(lesson, studentProfile) {
     beginActivitiesBtn.addEventListener("click", async () => {
       console.log(`${lesson.lesson_title} active`);
 
+      // Set the active lesson and wait for it to be updated with server data
+      const updatedLesson = await activateLesson(lesson, studentProfile);
+
+      if (!updatedLesson) {
+        console.error("UITM: Lesson activation failed. Aborting start.");
+        return;
+      }
+
+      // Validate lesson start - checks completion status and conditions
+      const validationResult = validateLessonStart(updatedLesson);
+
+      // If lesson is already fully completed, don't proceed
+      if (
+        !validationResult.shouldProceed &&
+        validationResult.status === "completed"
+      ) {
+        console.log("UITM: Lesson start blocked - already fully completed");
+        return;
+      }
+
+      // Log the current condition state for debugging
+      logLessonConditionState(updatedLesson);
+
       // Fetch existing timer data from the student profile
       const studentId = studentProfile.memberName;
-      const lessonId = lesson._id;
+      const lessonId = updatedLesson._id;
 
       let elapsedTime = 0;
       if (
@@ -553,13 +596,10 @@ export function handleLessonModal(lesson, studentProfile) {
 
       console.log("Existing timer data from profile:", elapsedTime);
 
-      // Set the active lesson
-      activateLesson(lesson);
-
       // Process the 'begin_activities' action with the elapsed time
       processAction("begin_activities", {
-        lessonTitle: lesson.lesson_title,
-        lessonId: lesson._id,
+        lessonTitle: updatedLesson.lesson_title,
+        lessonId: updatedLesson._id,
         elapsedTime: elapsedTime,
       });
 

@@ -434,7 +434,8 @@ function displayMessageThreads(
   conversationHeader.textContent = "Select a conversation";
 
   // Ensure Class Announcements thread is always present at the top
-  const classThreadId = `class-message-${currentProfile.teacher}`;
+  const classThreadIdentifier = currentProfile.teacher || currentProfile.memberName;
+  const classThreadId = `class-message-${classThreadIdentifier}`;
   if (!threadsMap.has(classThreadId)) {
     threadsMap.set(classThreadId, {
       threadId: classThreadId,
@@ -694,6 +695,8 @@ async function createNewThread(recipientId) {
  * @param {string} messageText - The content of the message.
  */
 function sendMessage(recipientIdForServer, messageContent) {
+  console.log(`[Chat] Sending message to ${recipientIdForServer}: "${messageContent}"`);
+  const optimisticId = Date.now(); // Create a unique ID for this message
   // Note: Lesson tracking removed - simplified messaging system
 
   // Determine if it's a class message based on the recipient ID
@@ -703,9 +706,11 @@ function sendMessage(recipientIdForServer, messageContent) {
     senderId: currentProfile.memberName,
     recipientId: recipientIdForServer, // This is the actual recipient for the server
     messageContent: messageContent,
+    optimisticId: optimisticId, // Send the ID to the server
   };
 
   // 1. Emit the message to the server
+  console.log("[Chat] Emitting 'sendMessage' to server with payload:", payload);
   socket.emit("sendMessage", payload);
 
   // --- OPTIMISTIC UPDATE ---
@@ -747,6 +752,7 @@ function sendMessage(recipientIdForServer, messageContent) {
     isClassMessage: isClassMessage,
     read: false,
     isOptimistic: true, // Flag for deduplication on server echo
+    optimisticId: optimisticId, // Store the ID on the local message object
   };
   threadData.messages.push(optimisticMessage);
   threadData.lastMessageTimestamp = optimisticMessage.timestamp;
@@ -1005,6 +1011,32 @@ if (timerModal) {
 socket.on("newMessage", (data) => {
   console.log("New message received:", data);
   handleNewMessage(data);
+});
+
+socket.on("profanity-detected", (data) => {
+  console.log("[Chat] Received 'profanity-detected' event from server:", data);
+  showModernNotification(data.message, "error");
+
+  // Find and remove the optimistic message
+  const { optimisticId } = data;
+  if (optimisticId) {
+    for (const [threadId, threadData] of currentMessageThreads.entries()) {
+      const messageIndex = threadData.messages.findIndex(
+        (msg) => msg.optimisticId === optimisticId
+      );
+
+      if (messageIndex !== -1) {
+        threadData.messages.splice(messageIndex, 1); // Remove the message
+        
+        // If the modal is open and this is the active thread, re-render the conversation
+        const activeThreadElement = document.querySelector('.thread-item.active-thread');
+        if (activeThreadElement && activeThreadElement.dataset.threadId === threadId) {
+          displayConversation(threadId, threadData.messages);
+        }
+        break; // Assume the ID is unique, so we can stop searching
+      }
+    }
+  }
 });
 
 // Listen for legacy class messages which sends raw HTML
