@@ -20,6 +20,9 @@ import { buildSessionPayload } from "./ILGE/UITM/buttonTracker.js";
 import { saveLessonTimer } from "./ILGE/LRM/lrm.js";
 import { sendStudentSessionData } from "./ILGE/SDSM/sdsm.js";
 
+// Quick Time Mode for sample accounts
+import { quickTimeMode } from "./quickTimeMode.js";
+
 // Show loading modal immediately
 document.addEventListener("DOMContentLoaded", function () {
   const loadingModal = document.getElementById("loadingModal");
@@ -146,6 +149,9 @@ if (logOutBTN) {
             }),
           });
           console.log(`✅ [Logout] Sample data reset successful`);
+
+          // Disable quick time mode on logout
+          quickTimeMode.disable();
         } catch (err) {
           console.warn(`⚠️  [Logout] Error resetting sample data:`, err);
         }
@@ -1666,6 +1672,9 @@ const loginFunc = async function (PIN, user, screen) {
       console.log(`📡 Emitting identify event for user: ${userId}`);
       socket.emit("identify", userId);
       console.log(`✅ Identify event emitted successfully`);
+
+      // Initialize Quick Time Mode for sample accounts
+      await quickTimeMode.initialize(userId);
 
       // Call initial balance
       initialBalance();
