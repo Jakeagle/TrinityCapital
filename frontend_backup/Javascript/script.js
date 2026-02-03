@@ -57,7 +57,7 @@ const socket = io("https://tcstudentserver-production.up.railway.app");
 
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
-    navigator.userAgent
+    navigator.userAgent,
   )
 ) {
   // Mobile device detected - redirect disabled
@@ -127,11 +127,35 @@ if (logOutBTN) {
         return window.location.reload();
       }
 
+      // Reset sample user data if applicable
+      if (
+        currentProfile &&
+        currentProfile.memberName &&
+        currentProfile.memberName.toLowerCase().includes("sample")
+      ) {
+        try {
+          console.log(
+            `🗑️  [Logout] Resetting sample user data for: ${currentProfile.memberName}`,
+          );
+          await fetch(`${API_BASE_URL}/sample/reset-data`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: currentProfile.memberName,
+              userType: "student",
+            }),
+          });
+          console.log(`✅ [Logout] Sample data reset successful`);
+        } catch (err) {
+          console.warn(`⚠️  [Logout] Error resetting sample data:`, err);
+        }
+      }
+
       // Wait for server response, but don't hang forever (8s timeout)
       const sendPromise = sendStudentSessionData(payload);
       const timeoutMs = 8000;
       const timeoutPromise = new Promise((resolve) =>
-        setTimeout(() => resolve({ ok: false, timeout: true }), timeoutMs)
+        setTimeout(() => resolve({ ok: false, timeout: true }), timeoutMs),
       );
 
       const result = await Promise.race([sendPromise, timeoutPromise]);
@@ -139,34 +163,34 @@ if (logOutBTN) {
       if (result && result.ok) {
         console.log(
           "Logout: session data confirmed by server, reloading.",
-          result.data
+          result.data,
         );
         window.location.reload();
       } else if (result && result.timeout) {
         console.warn(
           "Logout: send timed out after",
           timeoutMs,
-          "ms; reloading anyway."
+          "ms; reloading anyway.",
         );
         // Optionally show notification to user
         try {
           showModernNotification(
             "Could not confirm server save — reloading",
             "warning",
-            4000
+            4000,
           );
         } catch (e) {}
         window.location.reload();
       } else {
         console.warn(
           "Logout: server returned failure; reloading anyway.",
-          result
+          result,
         );
         try {
           showModernNotification(
             "Server rejected session save — reloading",
             "warning",
-            4000
+            4000,
           );
         } catch (e) {}
         window.location.reload();
@@ -248,15 +272,15 @@ async function initializeStudentMessaging(studentName) {
   try {
     console.log(
       "Attempting to fetch messages from:",
-      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`
+      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
     );
     const response = await fetch(
-      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`
+      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
     );
 
     if (!response.ok) {
       console.error(
-        `Fetch response not OK. Status: ${response.status}, StatusText: ${response.statusText}`
+        `Fetch response not OK. Status: ${response.status}, StatusText: ${response.statusText}`,
       );
       throw new Error(`HTTP error! status: ${response.status}`);
     }
@@ -265,7 +289,7 @@ async function initializeStudentMessaging(studentName) {
     let { threads } = await response.json(); // Expect { threads: [...] }
     console.log(
       "All threads fetched from DB for this student on login:",
-      threads
+      threads,
     ); // Log messages here
 
     if (!threads || !Array.isArray(threads)) {
@@ -277,7 +301,7 @@ async function initializeStudentMessaging(studentName) {
     currentMessageThreads = new Map(threads.map((t) => [t.threadId, t]));
     console.log(
       "Student message threads initialized on login:",
-      currentMessageThreads
+      currentMessageThreads,
     );
   } catch (error) {
     console.error("Failed to initialize student messaging:", error);
@@ -319,30 +343,29 @@ async function openMessageCenter() {
       try {
         // Fetch classmates from the server
         const response = await fetch(
-          `https://tcstudentserver-production.up.railway.app/classmates/${currentProfile.memberName}`
+          `https://tcstudentserver-production.up.railway.app/classmates/${currentProfile.memberName}`,
         );
         if (!response.ok) {
           throw new Error("Failed to fetch classmates");
         }
-        const classmates = await response.json();
+        const data = await response.json();
+        const classmates = data.classmates || [];
+        const teacher = data.teacher || "Unknown Teacher";
 
-        // Add teacher as an option (admin@trinity-capital.net)
-        const availableContacts = ["admin@trinity-capital.net"];
-        if (classmates && classmates.length > 0) {
-          availableContacts.push(...classmates);
-        }
+        // Build available contacts: teacher first, then classmates
+        const availableContacts = [teacher, ...classmates];
 
         // Display contacts for selection using a simple prompt
         const contactList = availableContacts
           .map((contact, index) => {
-            if (contact === "admin@trinity-capital.net") {
-              return `${index + 1}. ${contact} (Teacher)`;
+            if (contact === teacher) {
+              return `${index + 1}. ${contact} (Your Teacher)`;
             }
-            return `${index + 1}. ${contact}`;
+            return `${index + 1}. ${contact} (Classmate)`;
           })
           .join("\n");
         const selectionInput = prompt(
-          `Select a contact to start a new conversation:\n${contactList}`
+          `Select a contact to start a new conversation:\n${contactList}`,
         );
 
         if (selectionInput === null) {
@@ -389,7 +412,7 @@ async function openMessageCenter() {
   }
   try {
     const response = await fetch(
-      `https://tcstudentserver-production.up.railway.app/messages/${currentProfile.memberName}`
+      `https://tcstudentserver-production.up.railway.app/messages/${currentProfile.memberName}`,
     );
     if (!response.ok) throw new Error("Failed to fetch threads");
     const { threads } = await response.json(); // Expect { threads: [...] }
@@ -415,7 +438,7 @@ async function openMessageCenter() {
 function displayMessageThreads(
   threadsMap,
   activeThreadId = null,
-  options = {}
+  options = {},
 ) {
   const { autoSelectFirst = true } = options;
   const threadList = messagesModal.querySelector(".thread-list");
@@ -424,7 +447,7 @@ function displayMessageThreads(
 
   // Before clearing, find out which thread is currently active
   const previouslyActiveThread = threadList.querySelector(
-    ".thread-item.active-thread"
+    ".thread-item.active-thread",
   );
   const currentActiveThreadId =
     previouslyActiveThread?.dataset.threadId || activeThreadId;
@@ -434,7 +457,8 @@ function displayMessageThreads(
   conversationHeader.textContent = "Select a conversation";
 
   // Ensure Class Announcements thread is always present at the top
-  const classThreadIdentifier = currentProfile.teacher || currentProfile.memberName;
+  const classThreadIdentifier =
+    currentProfile.teacher || currentProfile.memberName;
   const classThreadId = `class-message-${classThreadIdentifier}`;
   if (!threadsMap.has(classThreadId)) {
     threadsMap.set(classThreadId, {
@@ -472,7 +496,7 @@ function displayMessageThreads(
   });
 
   let threadToActivate = threadList.querySelector(
-    `[data-thread-id="${CSS.escape(currentActiveThreadId)}"]`
+    `[data-thread-id="${CSS.escape(currentActiveThreadId)}"]`,
   );
 
   // If no thread is specifically active, but we should auto-select, pick the first one.
@@ -506,7 +530,7 @@ function createThreadElement(threadData) {
   } else {
     // For private messages, find the other participant's name
     const otherParticipant = threadData.participants?.find(
-      (p) => p !== currentProfile.memberName
+      (p) => p !== currentProfile.memberName,
     );
 
     // Special handling for teacher display name
@@ -572,7 +596,7 @@ function displayConversation(threadId, messages) {
     const wrapperElement = document.createElement("div");
     wrapperElement.classList.add("message-wrapper");
     wrapperElement.classList.add(
-      msg.senderId === currentProfile.memberName ? "sent" : "received"
+      msg.senderId === currentProfile.memberName ? "sent" : "received",
     );
 
     const senderTag =
@@ -599,7 +623,7 @@ function displayConversation(threadId, messages) {
   if (conversationView) {
     // Handle reply form
     let conversationFooter = conversationView.querySelector(
-      ".conversation-footer"
+      ".conversation-footer",
     );
     if (conversationFooter) {
       conversationFooter.remove(); // Clean up old one to prevent multiple listeners
@@ -629,7 +653,7 @@ function displayConversation(threadId, messages) {
           if (threadData.type === "private") {
             const participants = threadId.split("_");
             actualRecipientId = participants.find(
-              (p) => p !== currentProfile.memberName
+              (p) => p !== currentProfile.memberName,
             );
           } else if (threadData.type === "class") {
             // Class messages are sent to a specific class thread ID
@@ -652,7 +676,7 @@ function displayConversation(threadId, messages) {
   } else {
     // If it's a class message, remove any existing reply form
     const existingFooter = conversationView.querySelector(
-      ".conversation-footer"
+      ".conversation-footer",
     );
     if (existingFooter) existingFooter.remove();
     // No reply form for class messages for students
@@ -678,7 +702,7 @@ async function createNewThread(recipientId) {
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Failed to create new thread in the database: ${errorData.error || response.statusText}`
+        `Failed to create new thread in the database: ${errorData.error || response.statusText}`,
       );
     }
     const responseData = await response.json();
@@ -695,7 +719,9 @@ async function createNewThread(recipientId) {
  * @param {string} messageText - The content of the message.
  */
 function sendMessage(recipientIdForServer, messageContent) {
-  console.log(`[Chat] Sending message to ${recipientIdForServer}: "${messageContent}"`);
+  console.log(
+    `[Chat] Sending message to ${recipientIdForServer}: "${messageContent}"`,
+  );
   const optimisticId = Date.now(); // Create a unique ID for this message
   // Note: Lesson tracking removed - simplified messaging system
 
@@ -782,7 +808,7 @@ function handleNewMessage(message) {
   // Find or create the thread in our data map
   if (!currentMessageThreads.has(threadId)) {
     console.log(
-      `newMessage received for new threadId: ${threadId}. Creating it.`
+      `newMessage received for new threadId: ${threadId}. Creating it.`,
     );
     currentMessageThreads.set(threadId, {
       threadId: threadId,
@@ -885,15 +911,15 @@ const displayAccounts = function (currentAccount) {
     const checkingDate = new Date(
       currentProfile.checkingAccount.movementsDates[
         currentProfile.checkingAccount.movementsDates.length - 1
-      ]
+      ],
     );
     if (!isNaN(checkingDate.getTime())) {
       lastTransactionDate = checkingDate.toLocaleDateString(
-        currentProfile.locale
+        currentProfile.locale,
       );
     } else {
       lastTransactionDate = new Date().toLocaleDateString(
-        currentProfile.locale
+        currentProfile.locale,
       );
     }
   } else {
@@ -908,20 +934,20 @@ const displayAccounts = function (currentAccount) {
     const savingsDate = new Date(
       currentProfile.savingsAccount.movementsDates[
         currentProfile.savingsAccount.movementsDates.length - 1
-      ]
+      ],
     );
     if (!isNaN(savingsDate.getTime())) {
       lastTransactionDateSavings = savingsDate.toLocaleDateString(
-        currentProfile.locale
+        currentProfile.locale,
       );
     } else {
       lastTransactionDateSavings = new Date().toLocaleDateString(
-        currentProfile.locale
+        currentProfile.locale,
       );
     }
   } else {
     lastTransactionDateSavings = new Date().toLocaleDateString(
-      currentProfile.locale
+      currentProfile.locale,
     );
   }
 
@@ -932,7 +958,7 @@ const displayAccounts = function (currentAccount) {
             currentProfile.checkingAccount.accountType
           }</div>
           <div class="col accountNumber">${currentProfile.checkingAccount.accountNumber.slice(
-            -4
+            -4,
           )}</div>
           <div class="col updateDate">${lastTransactionDate}</div>
         </div>
@@ -942,7 +968,7 @@ const displayAccounts = function (currentAccount) {
           currentProfile.savingsAccount.accountType
         }</div>
         <div class="col accountNumber">${currentProfile.savingsAccount.accountNumber.slice(
-          -4
+          -4,
         )}</div>
         <div class="col updateDate">${lastTransactionDateSavings}</div>
       </div>
@@ -956,11 +982,31 @@ if (mainApp) mainApp.style.display = "none";
 
 /***********************************************************Server Listeners**********************************************/
 
+// Store current student's name for reconnection
+let currentStudentName = null;
+
 // Emit 'identify' event to associate the client with a user ID
 socket.on("connect", () => {
-  console.log("User connected:", socket.id);
+  console.log("✅ User connected:", socket.id);
 
-  // Emit the 'identify' event with the user ID (replace 'userId' with actual logic)
+  // If we have a stored student name, re-identify immediately on reconnection
+  if (currentStudentName) {
+    console.log(`🔄 Reconnected - Re-identifying as: ${currentStudentName}`);
+    socket.emit("identify", currentStudentName);
+  }
+});
+
+// Handle reconnection attempts
+socket.on("reconnect_attempt", () => {
+  console.warn("🔄 Socket reconnection attempt...");
+});
+
+socket.on("disconnect", () => {
+  console.warn("❌ Socket disconnected");
+});
+
+socket.on("connect_error", (error) => {
+  console.error("❌ Connection error:", error);
 });
 
 // Listen for checking account updates
@@ -970,6 +1016,15 @@ socket.on("checkingAccountUpdate", (updatedChecking) => {
   // Update the UI with the received checking account data
   displayBalance(updatedChecking);
   displayTransactions(updatedChecking);
+  displayBillList(updatedChecking);
+
+  // Also update the global currentAccount and currentProfile
+  if (currentAccount && currentAccount.accountType === "Checking") {
+    currentAccount = updatedChecking;
+  }
+  if (currentProfile) {
+    currentProfile.checkingAccount = updatedChecking;
+  }
 });
 
 // Listen for donation updates for checking accounts
@@ -1022,21 +1077,82 @@ socket.on("profanity-detected", (data) => {
   if (optimisticId) {
     for (const [threadId, threadData] of currentMessageThreads.entries()) {
       const messageIndex = threadData.messages.findIndex(
-        (msg) => msg.optimisticId === optimisticId
+        (msg) => msg.optimisticId === optimisticId,
       );
 
       if (messageIndex !== -1) {
         threadData.messages.splice(messageIndex, 1); // Remove the message
-        
+
         // If the modal is open and this is the active thread, re-render the conversation
-        const activeThreadElement = document.querySelector('.thread-item.active-thread');
-        if (activeThreadElement && activeThreadElement.dataset.threadId === threadId) {
+        const activeThreadElement = document.querySelector(
+          ".thread-item.active-thread",
+        );
+        if (
+          activeThreadElement &&
+          activeThreadElement.dataset.threadId === threadId
+        ) {
           displayConversation(threadId, threadData.messages);
         }
         break; // Assume the ID is unique, so we can stop searching
       }
     }
   }
+});
+
+// Listen for sample data cleanup completion and refresh UI
+socket.on("sampleDataCleanupComplete", (data) => {
+  console.log(
+    `🔄 [SampleDataCleanup] Cleanup complete notification received:`,
+    data,
+  );
+  console.log(
+    `📊 [SampleDataCleanup] Clearing ${data.threadsDeleted} threads from UI`,
+  );
+
+  // Refresh the account display to show cleared bills/payments/transactions
+  if (currentAccount && currentProfile) {
+    console.log(`♻️  [SampleDataCleanup] Refreshing account UI for display...`);
+
+    // Reset BOTH accounts completely - ensure balanceTotal is 0
+    currentProfile.checkingAccount.bills = [];
+    currentProfile.checkingAccount.payments = [];
+    currentProfile.checkingAccount.transactions = [];
+    currentProfile.checkingAccount.movementsDates = [];
+    currentProfile.checkingAccount.balanceTotal = 0;
+
+    currentProfile.savingsAccount.bills = [];
+    currentProfile.savingsAccount.payments = [];
+    currentProfile.savingsAccount.transactions = [];
+    currentProfile.savingsAccount.movementsDates = [];
+    currentProfile.savingsAccount.balanceTotal = 0;
+
+    // Sync the currently displayed account
+    if (currentAccount.accountType === "Checking") {
+      currentAccount = currentProfile.checkingAccount;
+    } else {
+      currentAccount = currentProfile.savingsAccount;
+    }
+
+    // Refresh the displayed UI for current account
+    console.log(
+      `💾 [SampleDataCleanup] Updated balance to: $${currentAccount.balanceTotal}`,
+    );
+    displayBalance(currentAccount);
+    displayTransactions(currentAccount);
+    displayBillList(currentAccount);
+
+    showModernNotification(
+      `✅ Sample data cleaned! Fresh start ready.`,
+      "success",
+    );
+    console.log(
+      `✅ [SampleDataCleanup] UI refresh complete - Balance: $${currentAccount.balanceTotal}`,
+    );
+  }
+
+  // Clear message threads for sample student
+  currentMessageThreads.clear();
+  console.log(`✅ [SampleDataCleanup] Message threads cleared`);
 });
 
 // Listen for legacy class messages which sends raw HTML
@@ -1071,7 +1187,7 @@ socket.on("unitAssignedToStudent", (data) => {
       currentProfile._id === studentId)
   ) {
     console.log(
-      `✅ New unit "${unitName}" (${unitValue}) assigned by ${assignedBy} to class period ${classPeriod}`
+      `✅ New unit "${unitName}" (${unitValue}) assigned by ${assignedBy} to class period ${classPeriod}`,
     );
 
     // Update the student's profile with the new unit assignment
@@ -1081,14 +1197,14 @@ socket.on("unitAssignedToStudent", (data) => {
 
     // Check if unit is already assigned to prevent duplicates
     const existingUnit = currentProfile.assignedUnitIds.find(
-      (unit) => unit.unitValue === unitValue || unit.unitId === unitId
+      (unit) => unit.unitValue === unitValue || unit.unitId === unitId,
     );
 
     if (!existingUnit) {
       currentProfile.assignedUnitIds.push(unitAssignment);
       console.log(
         "✅ Added new unit assignment to student profile:",
-        unitAssignment
+        unitAssignment,
       );
 
       // Re-render lessons to show the new unit - use dynamic import to access the lesson renderer
@@ -1096,7 +1212,7 @@ socket.on("unitAssignedToStudent", (data) => {
         console.log("🔄 Refreshing lessons display...");
         console.log(
           "🔍 DEBUG: currentProfile when calling renderLessons:",
-          currentProfile
+          currentProfile,
         );
         renderLessons(currentProfile);
       } else {
@@ -1108,7 +1224,7 @@ socket.on("unitAssignedToStudent", (data) => {
               module.renderLessons(currentProfile);
             } else {
               console.warn(
-                "renderLessons function not found in lesson renderer module"
+                "renderLessons function not found in lesson renderer module",
               );
             }
           })
@@ -1122,13 +1238,13 @@ socket.on("unitAssignedToStudent", (data) => {
         showModernNotification(
           `📚 New lesson unit assigned: "${unitName}" by ${assignedBy}`,
           "success",
-          7000
+          7000,
         );
       } else if (typeof showNotification === "function") {
         showNotification(
           `New lesson unit assigned: "${unitName}" by ${assignedBy}`,
           "success",
-          7000
+          7000,
         );
       } else {
         // Fallback notification
@@ -1216,7 +1332,7 @@ let Profiles = [];
 export async function getInfoProfiles() {
   try {
     console.log(
-      "Step 1: Starting the process to fetch profiles from the server."
+      "Step 1: Starting the process to fetch profiles from the server.",
     );
 
     const res = await fetch(testServerProfiles, {
@@ -1227,7 +1343,7 @@ export async function getInfoProfiles() {
 
     if (res.ok) {
       console.log(
-        `Step 3: Server responded successfully with status ${res.status}. Attempting to parse the JSON response.`
+        `Step 3: Server responded successfully with status ${res.status}. Attempting to parse the JSON response.`,
       );
       try {
         const Profiles = await res.json();
@@ -1235,12 +1351,12 @@ export async function getInfoProfiles() {
 
         // Log the initialization of Socket.IO listener
         console.log(
-          "Step 5: Setting up Socket.IO listener for profile updates."
+          "Step 5: Setting up Socket.IO listener for profile updates.",
         );
         socket.on("profiles", (updatedProfiles) => {
           console.log(
             "Step 6: Received updated profiles from the server:",
-            updatedProfiles
+            updatedProfiles,
           );
           // Update the UI or perform any necessary actions with updated profiles
         });
@@ -1250,25 +1366,25 @@ export async function getInfoProfiles() {
       } catch (jsonError) {
         console.error(
           "Step 4 Error: Failed to parse JSON response:",
-          jsonError.message
+          jsonError.message,
         );
         console.error("The server response may not be in the correct format.");
         throw new Error("Invalid JSON response from server");
       }
     } else {
       console.error(
-        `Step 3 Error: Server responded with status ${res.status} (${res.statusText}).`
+        `Step 3 Error: Server responded with status ${res.status} (${res.statusText}).`,
       );
       const errorDetails = await res.text(); // Attempt to read error details
       console.error(
         "Additional details from the server response:",
-        errorDetails
+        errorDetails,
       );
       throw new Error(`HTTP error: ${res.status} ${res.statusText}`);
     }
   } catch (error) {
     console.error(
-      "Final Step Error: An unexpected error occurred during the process."
+      "Final Step Error: An unexpected error occurred during the process.",
     );
     console.error("Error message:", error.message);
 
@@ -1417,7 +1533,7 @@ if (mobileLoginButton) {
 
     const mobileLoginPIN = document.querySelector(".mobile_login__input--pin");
     const mobileLoginText = document.querySelector(
-      ".mobile_login__input--user"
+      ".mobile_login__input--user",
     );
 
     setTimeout(async () => {
@@ -1489,13 +1605,67 @@ const loginFunc = async function (PIN, user, screen) {
     if (currentProfile) {
       showModernNotification(
         `Welcome back, ${currentProfile.memberName.split(" ")[0]}!`,
-        "success"
+        "success",
       );
+
+      // If this is the Sample Student, clean up previous session data BEFORE initializing
+      if (
+        currentProfile.memberName &&
+        currentProfile.memberName.toLowerCase().includes("sample")
+      ) {
+        console.log(
+          `👤 [SampleStudentLogin] Sample student logged in: ${currentProfile.memberName}`,
+        );
+        console.log(
+          `🗑️  [SampleStudentLogin] Cleaning up previous session data for: ${currentProfile.memberName}`,
+        );
+
+        try {
+          const cleanupUrl = `https://tcstudentserver-production.up.railway.app/sample/cleanup-student/${encodeURIComponent(
+            currentProfile.memberName,
+          )}`;
+          console.log(
+            `🌐 [SampleStudentLogin] Calling cleanup endpoint: ${cleanupUrl}`,
+          );
+
+          const cleanupResponse = await fetch(cleanupUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              studentName: currentProfile.memberName,
+            }),
+          });
+
+          console.log(
+            `📡 [SampleStudentLogin] Cleanup response status: ${cleanupResponse.status}`,
+          );
+
+          if (cleanupResponse.ok) {
+            const cleanupResult = await cleanupResponse.json();
+            console.log(
+              `✅ [SampleStudentLogin] Cleanup complete - cleared accounts and deleted ${cleanupResult.threadsDeleted} threads`,
+            );
+          } else {
+            console.warn(
+              `⚠️  [SampleStudentLogin] Cleanup returned status ${cleanupResponse.status}`,
+            );
+            const errorText = await cleanupResponse.text();
+            console.warn(`⚠️  [SampleStudentLogin] Error: ${errorText}`);
+          }
+        } catch (cleanupErr) {
+          console.error(
+            `❌ [SampleStudentLogin] Error cleaning up sample data:`,
+            cleanupErr,
+          );
+        }
+      }
 
       // Emit the identify event with the logged-in user's memberName
       const userId = currentProfile.memberName;
-      console.log(`Emitting identify event for user: ${userId}`);
+      currentStudentName = userId; // Store for reconnections
+      console.log(`📡 Emitting identify event for user: ${userId}`);
       socket.emit("identify", userId);
+      console.log(`✅ Identify event emitted successfully`);
 
       // Call initial balance
       initialBalance();
@@ -1556,7 +1726,7 @@ const loginFunc = async function (PIN, user, screen) {
         updateTime();
         balanceDate.textContent = `As of ${new Intl.DateTimeFormat(
           currentProfile.locale,
-          options
+          options,
         ).format(currentTime)}`;
 
         // Initialize student messaging system
@@ -1564,7 +1734,7 @@ const loginFunc = async function (PIN, user, screen) {
       } else {
         showModernNotification(
           "No checking account found. Please contact customer service.",
-          "error"
+          "error",
         );
       }
     }
@@ -1572,7 +1742,7 @@ const loginFunc = async function (PIN, user, screen) {
     console.error("Login error:", error);
     showModernNotification(
       "An error occurred during login. Please try again.",
-      "error"
+      "error",
     );
   }
 };
@@ -1593,7 +1763,7 @@ if (accBtnSwitch) {
       if (!targetAccount || targetAccount === "default") {
         showModernNotification(
           "Please select an account to switch to",
-          "error"
+          "error",
         );
         return;
       }
@@ -1660,7 +1830,7 @@ if (accBtnSwitch) {
       console.error("Account switch error:", error);
       showModernNotification(
         "An error occurred while switching accounts",
-        "error"
+        "error",
       );
     }
   });
@@ -1728,7 +1898,7 @@ export const displayTransactions = function (currentAccount) {
         // Only log if we have invalid date data, not missing data
         console.warn(
           "Invalid date found, using current date:",
-          currentAccount.movementsDates[i]
+          currentAccount.movementsDates[i],
         );
         date = new Date();
       }
@@ -1743,7 +1913,7 @@ export const displayTransactions = function (currentAccount) {
     const formattedMov = formatCur(
       mov.amount,
       currentAccount.locale,
-      currentAccount.currency
+      currentAccount.currency,
     );
     let transType;
     let transName = mov.Name;
@@ -1887,14 +2057,14 @@ export const displayBillList = function (currentAccount) {
       //displays date next to transactions
       const displayDate = formatMovementDate(
         advancedDate,
-        currentAccount.locale
+        currentAccount.locale,
       );
 
       //Formats transactions for user locale
       const formattedMov = formatCur(
         bill.amount,
         currentAccount.locale,
-        currentAccount.currency
+        currentAccount.currency,
       );
       let transType;
       let transName = bill.Name;
@@ -2009,7 +2179,7 @@ export function updateAccountNumberDisplay(account) {
 
   if (accountNumberElement) {
     accountNumberElement.textContent = formatAccountNumber(
-      account.accountNumber
+      account.accountNumber,
     );
   }
 
@@ -2026,7 +2196,7 @@ export const displayBalance = function (acc) {
   balanceValue.textContent = formatCur(
     acc.balanceTotal,
     acc.locale,
-    acc.currency
+    acc.currency,
   );
 };
 
@@ -2048,3 +2218,60 @@ export const updateUI = function (acc) {
     });
   }
 };
+
+/*****************************************SAMPLE USER DATA RESET***************************************************/
+
+/**
+ * Handle sample user data cleanup on unload/refresh/page leave
+ */
+function setupSampleUserCleanupHandlers() {
+  // Handle page unload/refresh/close
+  window.addEventListener("beforeunload", (e) => {
+    if (
+      currentProfile &&
+      currentProfile.memberName &&
+      currentProfile.memberName.toLowerCase().includes("sample")
+    ) {
+      console.log(
+        `[SampleUserCleanup] Page unload detected for sample user: ${currentProfile.memberName}`,
+      );
+      // Use sendBeacon for reliable delivery during unload
+      const payload = JSON.stringify({
+        username: currentProfile.memberName,
+        userType: "student",
+      });
+      navigator.sendBeacon(
+        `${API_BASE_URL}/sample/reset-data`,
+        new Blob([payload], { type: "application/json" }),
+      );
+    }
+  });
+
+  // Handle visibility change (tab/window blur)
+  document.addEventListener("visibilitychange", () => {
+    if (
+      document.hidden &&
+      currentProfile &&
+      currentProfile.memberName &&
+      currentProfile.memberName.toLowerCase().includes("sample")
+    ) {
+      console.log(
+        `[SampleUserCleanup] Page hidden for sample user: ${currentProfile.memberName}`,
+      );
+      // Reset data when user leaves the page
+      const payload = JSON.stringify({
+        username: currentProfile.memberName,
+        userType: "student",
+      });
+      navigator.sendBeacon(
+        `${API_BASE_URL}/sample/reset-data`,
+        new Blob([payload], { type: "application/json" }),
+      );
+    }
+  });
+
+  console.log("✅ [SampleUserCleanup] Cleanup handlers initialized");
+}
+
+// Initialize sample user cleanup handlers when the script loads
+setupSampleUserCleanupHandlers();

@@ -9,7 +9,17 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { google } = require("googleapis");
 const SchedulerManager = require("./schedulerManager");
-const { setupGitHubWebhook } = require("./githubWebhookHandler");
+
+// Import GitHub webhook handler if available (optional in production)
+let setupGitHubWebhook;
+try {
+  setupGitHubWebhook = require("./githubWebhookHandler").setupGitHubWebhook;
+} catch (err) {
+  console.warn(
+    "⚠️ GitHub webhook handler not available. Update notifications disabled.",
+  );
+  setupGitHubWebhook = () => {}; // No-op function
+}
 
 // Add fetch for Node.js versions that don't have it built-in
 let fetch;
@@ -29,7 +39,9 @@ try {
 
 const cors = require("cors");
 const bodyParser = require("body-parser");
+const SampleDataManager = require("./sampleDataManager");
 let Profiles;
+let sampleDataManager; // Will be initialized after MongoDB connection
 
 const port = process.env.PORT || 3000;
 const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
@@ -158,13 +170,14 @@ io.on("connection", (socket) => {
   // Handle user identification
   socket.on("identify", (userId) => {
     try {
-      console.log("User identified:", userId);
+      console.log(`🆔 User identified: ${userId} (Socket ID: ${socket.id})`);
       userSockets.set(userId, socket);
+      console.log(`📊 Total identified users: ${userSockets.size}`);
 
       // Acknowledge successful identification
       socket.emit("identified", { success: true });
     } catch (error) {
-      console.error("Error during user identification:", error);
+      console.error("❌ Error during user identification:", error);
       socket.emit("error", { message: "Failed to identify user" });
     }
   });
@@ -474,8 +487,11 @@ io.on("connection", (socket) => {
       // Remove socket from map when user disconnects
       for (const [userId, userSocket] of userSockets.entries()) {
         if (userSocket === socket) {
-          console.log("User disconnected:", userId);
+          console.log(
+            `👋 User disconnected: ${userId} (Socket ID: ${socket.id})`,
+          );
           userSockets.delete(userId);
+          console.log(`📊 Total identified users now: ${userSockets.size}`);
           break;
         }
       }
@@ -541,6 +557,10 @@ async function run() {
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!",
     );
+
+    // Initialize sample data manager after MongoDB connection
+    sampleDataManager = new SampleDataManager(client);
+    console.log("✅ Sample Data Manager initialized");
 
     // Initialize scheduler manager after MongoDB connection
     schedulerManager = new SchedulerManager(client, io, userSockets);
@@ -3231,6 +3251,386 @@ app.post("/findTeacher", async (req, res) => {
   }
 });
 
+/*****************************************SAMPLE DATA MANAGEMENT***************************************************/
+
+/**
+ * Reset sample user data on logout
+ * POST /sample/reset-data
+ * Body: { username, userType } OR { teacherName, userType }
+ * userType: "student" | "teacher"
+ */
+app.post("/sample/reset-data", async (req, res) => {
+  try {
+    const { username, teacherName, userType } = req.body;
+
+    // For teachers, use teacherName; for students, use username
+    const identifier = userType === "teacher" ? teacherName : username;
+
+    if (!identifier || !userType) {
+      return res.status(400).json({
+        error:
+          "Missing identifier (username for students, teacherName for teachers) or userType",
+      });
+    }
+
+    if (!sampleDataManager) {
+      return res
+        .status(500)
+        .json({ error: "Sample data manager not initialized" });
+    }
+
+    const result = await sampleDataManager.resetSampleUserData(
+      identifier,
+      userType,
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error resetting sample data:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Setup sample student membership
+ * POST /sample/setup-student
+ * Body: { studentName, teacherName }
+ */
+app.post("/sample/setup-student", async (req, res) => {
+  try {
+    const { studentName, teacherName } = req.body;
+
+    if (!studentName || !teacherName) {
+      return res
+        .status(400)
+        .json({ error: "Missing studentName or teacherName" });
+    }
+
+    if (!sampleDataManager) {
+      return res
+        .status(500)
+        .json({ error: "Sample data manager not initialized" });
+    }
+
+    const result = await sampleDataManager.setupSampleStudent(
+      studentName,
+      teacherName,
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error setting up sample student:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * Verify sample student (create if doesn't exist)
+ * POST /sample/verify-student
+ * Body: { studentName, teacherName }
+ */
+app.post("/sample/verify-student", async (req, res) => {
+  try {
+    const { studentName, teacherName } = req.body;
+
+    if (!studentName || !teacherName) {
+      return res
+        .status(400)
+        .json({ error: "Missing studentName or teacherName" });
+    }
+
+    if (!sampleDataManager) {
+      return res
+        .status(500)
+        .json({ error: "Sample data manager not initialized" });
+    }
+
+    const result = await sampleDataManager.verifySampleStudent(
+      studentName,
+      teacherName,
+    );
+    res.status(200).json(result);
+  } catch (error) {
+    console.error("Error verifying sample student:", error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+/**
+ * POST /sample/cleanup-messages/:teacherName
+ * Deletes all message threads for a sample teacher
+ * Called during sample teacher login cleanup
+ */
+app.post("/sample/cleanup-messages/:teacherName", async (req, res) => {
+  try {
+    const { teacherName } = req.params;
+    const decodedTeacherName = decodeURIComponent(teacherName);
+
+    if (!decodedTeacherName) {
+      return res.status(400).json({ error: "Missing teacherName parameter" });
+    }
+
+    console.log("\n" + "=".repeat(80));
+    console.log(
+      `💬 [SampleTeacherMessagesCleanup] Starting message cleanup for: ${decodedTeacherName}`,
+    );
+    console.log("=".repeat(80));
+
+    const threadsCollection = client.db("TrinityCapital").collection("threads");
+
+    // Debug: Check what threads exist BEFORE deletion
+    console.log(`\n📋 [DEBUG] Checking threads BEFORE cleanup...`);
+    const threadsBeforeDelete = await threadsCollection.find({}).toArray();
+    console.log(
+      `Found ${threadsBeforeDelete.length} total threads in database`,
+    );
+
+    // Find all threads with this teacher in the threadId
+    const threadQuery = {
+      $or: [
+        { threadId: { $regex: decodedTeacherName, $options: "i" } },
+        { participants: decodedTeacherName },
+      ],
+    };
+
+    const threadsToDelete = await threadsCollection.find(threadQuery).toArray();
+
+    console.log(
+      `\n🔍 [DEBUG] Found ${threadsToDelete.length} threads for teacher: ${decodedTeacherName}`,
+    );
+    threadsToDelete.forEach((thread, idx) => {
+      console.log(
+        `  [${idx + 1}] Thread ID: "${thread.threadId}", Participants: ${JSON.stringify(
+          thread.participants || [],
+        )}`,
+      );
+    });
+
+    // Delete all threads for this teacher
+    const deleteResult = await threadsCollection.deleteMany(threadQuery);
+
+    console.log(
+      `\n✅ Deleted ${deleteResult.deletedCount} message threads for ${decodedTeacherName}`,
+    );
+
+    // Debug: Verify threads are deleted
+    console.log(`\n📋 [DEBUG] Checking threads AFTER cleanup...`);
+    const threadsAfterDelete = await threadsCollection
+      .find(threadQuery)
+      .toArray();
+    console.log(`Found ${threadsAfterDelete.length} threads remaining`);
+    if (threadsAfterDelete.length > 0) {
+      console.log("⚠️  WARNING: Threads still exist after delete!");
+      threadsAfterDelete.forEach((thread) => {
+        console.log(
+          `  Remaining: "${thread.threadId}" with participants: ${JSON.stringify(
+            thread.participants || [],
+          )}`,
+        );
+      });
+    }
+
+    console.log("=".repeat(80) + "\n");
+
+    res.status(200).json({
+      success: true,
+      message: `Message threads cleaned up for ${decodedTeacherName}`,
+      threadsDeleted: deleteResult.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error during message cleanup:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to cleanup message threads: " + error.message,
+    });
+  }
+});
+
+/**
+ * POST /sample/cleanup-student/:studentName
+ * Deletes all data for a sample student
+ * Clears: bills, payments, transactions, movementsDates, lesson data, messages
+ * Called during sample student login
+ */
+app.post("/sample/cleanup-student/:studentName", async (req, res) => {
+  try {
+    const { studentName } = req.params;
+    const decodedStudentName = decodeURIComponent(studentName);
+
+    if (!decodedStudentName) {
+      return res.status(400).json({ error: "Missing studentName parameter" });
+    }
+
+    console.log("\n" + "=".repeat(80));
+    console.log(
+      `👤 [SampleStudentCleanup] Starting cleanup for: ${decodedStudentName}`,
+    );
+    console.log("=".repeat(80));
+
+    const profilesCollection = client
+      .db("TrinityCapital")
+      .collection("User Profiles");
+    const threadsCollection = client.db("TrinityCapital").collection("threads");
+    const lessonTimersCollection = client
+      .db("TrinityCapital")
+      .collection("LessonTimers");
+
+    // Debug: Check student BEFORE cleanup
+    console.log(`\n📋 [DEBUG] Checking student account BEFORE cleanup...`);
+    const studentBefore = await profilesCollection.findOne({
+      memberName: decodedStudentName,
+    });
+
+    if (!studentBefore) {
+      console.log(`⚠️  Student not found: ${decodedStudentName}`);
+      return res.status(404).json({
+        success: false,
+        message: `Student not found: ${decodedStudentName}`,
+      });
+    }
+
+    console.log(`✓ Found student: ${studentBefore.memberName}`);
+    console.log(
+      `  Checking bills: ${
+        studentBefore.checkingAccount?.bills?.length || 0
+      }, payments: ${studentBefore.checkingAccount?.payments?.length || 0}`,
+    );
+    console.log(
+      `  Transactions: ${
+        studentBefore.checkingAccount?.transactions?.length || 0
+      }`,
+    );
+
+    // Clear financial data for both accounts
+    console.log(`\n🔄 [STEP 1] Clearing checking account...`);
+    const checkingUpdateResult = await profilesCollection.updateOne(
+      { memberName: decodedStudentName },
+      {
+        $set: {
+          "checkingAccount.bills": [],
+          "checkingAccount.payments": [],
+          "checkingAccount.transactions": [],
+          "checkingAccount.movementsDates": [],
+          "checkingAccount.balanceTotal": 0,
+        },
+      },
+    );
+    console.log(
+      `✅ Checking account cleared - matched: ${checkingUpdateResult.matchedCount}, modified: ${checkingUpdateResult.modifiedCount}`,
+    );
+
+    console.log(`\n🔄 [STEP 2] Clearing savings account...`);
+    const savingsUpdateResult = await profilesCollection.updateOne(
+      { memberName: decodedStudentName },
+      {
+        $set: {
+          "savingsAccount.bills": [],
+          "savingsAccount.payments": [],
+          "savingsAccount.transactions": [],
+          "savingsAccount.movementsDates": [],
+          "savingsAccount.balanceTotal": 0,
+        },
+      },
+    );
+    console.log(
+      `✅ Savings account cleared - matched: ${savingsUpdateResult.matchedCount}, modified: ${savingsUpdateResult.modifiedCount}`,
+    );
+
+    // Clear lesson data
+    console.log(`\n🔄 [STEP 3] Clearing lesson data...`);
+    await profilesCollection.updateOne(
+      { memberName: decodedStudentName },
+      {
+        $set: {
+          activeLessons: [],
+          completedLessons: [],
+          lessonTimers: {},
+          assignedUnitIds: [],
+        },
+      },
+    );
+    console.log(`✅ Lesson data cleared`);
+
+    // Delete all lesson timers for this student
+    console.log(`\n🔄 [STEP 4] Deleting lesson timers...`);
+    const timerDeleteResult = await lessonTimersCollection.deleteMany({
+      studentId: decodedStudentName,
+    });
+    console.log(`✅ Deleted ${timerDeleteResult.deletedCount} lesson timers`);
+
+    // Delete all message threads involving this student
+    console.log(`\n🔄 [STEP 5] Deleting message threads...`);
+    const threadDeleteResult = await threadsCollection.deleteMany({
+      participants: decodedStudentName,
+    });
+    console.log(
+      `✅ Deleted ${threadDeleteResult.deletedCount} message threads`,
+    );
+
+    // Debug: Verify cleanup
+    console.log(`\n📋 [DEBUG] Checking student account AFTER cleanup...`);
+    const studentAfter = await profilesCollection.findOne({
+      memberName: decodedStudentName,
+    });
+    console.log(
+      `  Checking bills: ${studentAfter.checkingAccount.bills.length}`,
+    );
+    console.log(
+      `  Checking payments: ${studentAfter.checkingAccount.payments.length}`,
+    );
+    console.log(
+      `  Checking transactions: ${studentAfter.checkingAccount.transactions.length}`,
+    );
+    console.log(
+      `  Checking movementsDates: ${studentAfter.checkingAccount.movementsDates.length}`,
+    );
+    console.log(`  Savings bills: ${studentAfter.savingsAccount.bills.length}`);
+    console.log(
+      `  Savings transactions: ${studentAfter.savingsAccount.transactions.length}`,
+    );
+    console.log(
+      `  Savings movementsDates: ${studentAfter.savingsAccount.movementsDates.length}`,
+    );
+    console.log(
+      `  Active lessons: ${
+        Array.isArray(studentAfter.activeLessons)
+          ? studentAfter.activeLessons.length
+          : 0
+      }`,
+    );
+
+    console.log("=".repeat(80) + "\n");
+
+    // Emit socket event to notify the student to refresh their UI
+    const studentSocket = userSockets.get(decodedStudentName);
+    if (studentSocket) {
+      console.log(
+        `📡 Emitting sampleDataCleanupComplete to ${decodedStudentName}`,
+      );
+      studentSocket.emit("sampleDataCleanupComplete", {
+        studentName: decodedStudentName,
+        accountsCleared: true,
+        lessonsCleared: true,
+        threadsDeleted: threadDeleteResult.deletedCount,
+      });
+    } else {
+      console.log(`⚠️ Student socket not found for: ${decodedStudentName}`);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `Sample student data cleaned up for ${decodedStudentName}`,
+      accountsCleared: true,
+      lessonsCleared: true,
+      threadsDeleted: threadDeleteResult.deletedCount,
+    });
+  } catch (error) {
+    console.error("Error during sample student cleanup:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to cleanup sample student data: " + error.message,
+    });
+  }
+});
+
 app.post("/getStudents", async (req, res) => {
   const { parcel } = req.body;
 
@@ -4613,24 +5013,44 @@ app.post("/assignUnitToStudent", async (req, res) => {
     });
 
     // Update student profile with ObjectID-based assignment
+    // Handle studentId that might be an ObjectId string, numeric ID, or username
+    const { ObjectId } = require("mongodb");
+    let query = {};
+
+    try {
+      // Try as ObjectId first
+      if (studentId.match(/^[0-9a-f]{24}$/i)) {
+        query = { _id: new ObjectId(studentId) };
+      } else {
+        // Try as numeric ID or username
+        const numericId = parseInt(studentId, 10);
+        if (!isNaN(numericId)) {
+          query = { _id: numericId };
+        } else {
+          query = {
+            $or: [{ username: studentId }, { memberName: studentId }],
+          };
+        }
+      }
+    } catch (e) {
+      // If ObjectId conversion fails, try as string fields
+      query = {
+        $or: [{ username: studentId }, { memberName: studentId }],
+      };
+    }
+
+    console.log(`🔍 Searching for student with query:`, query);
+
     const updateResult = await client
       .db("TrinityCapital")
       .collection("User Profiles")
-      .updateOne(
-        {
-          $or: [
-            { _id: studentId },
-            { username: studentId },
-            { memberName: studentId },
-          ],
-        },
-        {
-          $addToSet: { assignedUnitIds: unitAssignment }, // New field for ObjectID-based assignments
-        },
-      );
+      .updateOne(query, {
+        $addToSet: { assignedUnitIds: unitAssignment }, // New field for ObjectID-based assignments
+      });
 
     if (updateResult.matchedCount === 0) {
-      console.log(`Student not found: ${studentId}`);
+      console.log(`❌ Student not found: ${studentId}`);
+      console.log(`   Query attempted:`, query);
       return res.status(404).json({
         success: false,
         error: "Student not found",
@@ -4757,6 +5177,7 @@ app.get("/classmates/:memberName", async (req, res) => {
     res.json({
       success: true,
       classmates: classmateNames,
+      teacher: studentProfile.teacher, // Include the teacher's name
     });
   } catch (error) {
     console.error("Error fetching classmates:", error);
