@@ -127,6 +127,30 @@ if (logOutBTN) {
         return window.location.reload();
       }
 
+      // Reset sample user data if applicable
+      if (
+        currentProfile &&
+        currentProfile.memberName &&
+        currentProfile.memberName.toLowerCase().includes("sample")
+      ) {
+        try {
+          console.log(
+            `🗑️  [Logout] Resetting sample user data for: ${currentProfile.memberName}`,
+          );
+          await fetch(`${API_BASE_URL}/sample/reset-data`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              username: currentProfile.memberName,
+              userType: "student",
+            }),
+          });
+          console.log(`✅ [Logout] Sample data reset successful`);
+        } catch (err) {
+          console.warn(`⚠️  [Logout] Error resetting sample data:`, err);
+        }
+      }
+
       // Wait for server response, but don't hang forever (8s timeout)
       const sendPromise = sendStudentSessionData(payload);
       const timeoutMs = 8000;
@@ -992,6 +1016,15 @@ socket.on("checkingAccountUpdate", (updatedChecking) => {
   // Update the UI with the received checking account data
   displayBalance(updatedChecking);
   displayTransactions(updatedChecking);
+  displayBillList(updatedChecking);
+
+  // Also update the global currentAccount and currentProfile
+  if (currentAccount && currentAccount.accountType === "Checking") {
+    currentAccount = updatedChecking;
+  }
+  if (currentProfile) {
+    currentProfile.checkingAccount = updatedChecking;
+  }
 });
 
 // Listen for donation updates for checking accounts
@@ -1064,6 +1097,62 @@ socket.on("profanity-detected", (data) => {
       }
     }
   }
+});
+
+// Listen for sample data cleanup completion and refresh UI
+socket.on("sampleDataCleanupComplete", (data) => {
+  console.log(
+    `🔄 [SampleDataCleanup] Cleanup complete notification received:`,
+    data,
+  );
+  console.log(
+    `📊 [SampleDataCleanup] Clearing ${data.threadsDeleted} threads from UI`,
+  );
+
+  // Refresh the account display to show cleared bills/payments/transactions
+  if (currentAccount && currentProfile) {
+    console.log(`♻️  [SampleDataCleanup] Refreshing account UI for display...`);
+
+    // Reset BOTH accounts completely - ensure balanceTotal is 0
+    currentProfile.checkingAccount.bills = [];
+    currentProfile.checkingAccount.payments = [];
+    currentProfile.checkingAccount.transactions = [];
+    currentProfile.checkingAccount.movementsDates = [];
+    currentProfile.checkingAccount.balanceTotal = 0;
+
+    currentProfile.savingsAccount.bills = [];
+    currentProfile.savingsAccount.payments = [];
+    currentProfile.savingsAccount.transactions = [];
+    currentProfile.savingsAccount.movementsDates = [];
+    currentProfile.savingsAccount.balanceTotal = 0;
+
+    // Sync the currently displayed account
+    if (currentAccount.accountType === "Checking") {
+      currentAccount = currentProfile.checkingAccount;
+    } else {
+      currentAccount = currentProfile.savingsAccount;
+    }
+
+    // Refresh the displayed UI for current account
+    console.log(
+      `💾 [SampleDataCleanup] Updated balance to: $${currentAccount.balanceTotal}`,
+    );
+    displayBalance(currentAccount);
+    displayTransactions(currentAccount);
+    displayBillList(currentAccount);
+
+    showModernNotification(
+      `✅ Sample data cleaned! Fresh start ready.`,
+      "success",
+    );
+    console.log(
+      `✅ [SampleDataCleanup] UI refresh complete - Balance: $${currentAccount.balanceTotal}`,
+    );
+  }
+
+  // Clear message threads for sample student
+  currentMessageThreads.clear();
+  console.log(`✅ [SampleDataCleanup] Message threads cleared`);
 });
 
 // Listen for legacy class messages which sends raw HTML
@@ -1518,6 +1607,58 @@ const loginFunc = async function (PIN, user, screen) {
         `Welcome back, ${currentProfile.memberName.split(" ")[0]}!`,
         "success",
       );
+
+      // If this is the Sample Student, clean up previous session data BEFORE initializing
+      if (
+        currentProfile.memberName &&
+        currentProfile.memberName.toLowerCase().includes("sample")
+      ) {
+        console.log(
+          `👤 [SampleStudentLogin] Sample student logged in: ${currentProfile.memberName}`,
+        );
+        console.log(
+          `🗑️  [SampleStudentLogin] Cleaning up previous session data for: ${currentProfile.memberName}`,
+        );
+
+        try {
+          const cleanupUrl = `https://tcstudentserver-production.up.railway.app/sample/cleanup-student/${encodeURIComponent(
+            currentProfile.memberName,
+          )}`;
+          console.log(
+            `🌐 [SampleStudentLogin] Calling cleanup endpoint: ${cleanupUrl}`,
+          );
+
+          const cleanupResponse = await fetch(cleanupUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              studentName: currentProfile.memberName,
+            }),
+          });
+
+          console.log(
+            `📡 [SampleStudentLogin] Cleanup response status: ${cleanupResponse.status}`,
+          );
+
+          if (cleanupResponse.ok) {
+            const cleanupResult = await cleanupResponse.json();
+            console.log(
+              `✅ [SampleStudentLogin] Cleanup complete - cleared accounts and deleted ${cleanupResult.threadsDeleted} threads`,
+            );
+          } else {
+            console.warn(
+              `⚠️  [SampleStudentLogin] Cleanup returned status ${cleanupResponse.status}`,
+            );
+            const errorText = await cleanupResponse.text();
+            console.warn(`⚠️  [SampleStudentLogin] Error: ${errorText}`);
+          }
+        } catch (cleanupErr) {
+          console.error(
+            `❌ [SampleStudentLogin] Error cleaning up sample data:`,
+            cleanupErr,
+          );
+        }
+      }
 
       // Emit the identify event with the logged-in user's memberName
       const userId = currentProfile.memberName;
@@ -2077,3 +2218,60 @@ export const updateUI = function (acc) {
     });
   }
 };
+
+/*****************************************SAMPLE USER DATA RESET***************************************************/
+
+/**
+ * Handle sample user data cleanup on unload/refresh/page leave
+ */
+function setupSampleUserCleanupHandlers() {
+  // Handle page unload/refresh/close
+  window.addEventListener("beforeunload", (e) => {
+    if (
+      currentProfile &&
+      currentProfile.memberName &&
+      currentProfile.memberName.toLowerCase().includes("sample")
+    ) {
+      console.log(
+        `[SampleUserCleanup] Page unload detected for sample user: ${currentProfile.memberName}`,
+      );
+      // Use sendBeacon for reliable delivery during unload
+      const payload = JSON.stringify({
+        username: currentProfile.memberName,
+        userType: "student",
+      });
+      navigator.sendBeacon(
+        `${API_BASE_URL}/sample/reset-data`,
+        new Blob([payload], { type: "application/json" }),
+      );
+    }
+  });
+
+  // Handle visibility change (tab/window blur)
+  document.addEventListener("visibilitychange", () => {
+    if (
+      document.hidden &&
+      currentProfile &&
+      currentProfile.memberName &&
+      currentProfile.memberName.toLowerCase().includes("sample")
+    ) {
+      console.log(
+        `[SampleUserCleanup] Page hidden for sample user: ${currentProfile.memberName}`,
+      );
+      // Reset data when user leaves the page
+      const payload = JSON.stringify({
+        username: currentProfile.memberName,
+        userType: "student",
+      });
+      navigator.sendBeacon(
+        `${API_BASE_URL}/sample/reset-data`,
+        new Blob([payload], { type: "application/json" }),
+      );
+    }
+  });
+
+  console.log("✅ [SampleUserCleanup] Cleanup handlers initialized");
+}
+
+// Initialize sample user cleanup handlers when the script loads
+setupSampleUserCleanupHandlers();
