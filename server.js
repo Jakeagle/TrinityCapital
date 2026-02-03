@@ -40,8 +40,10 @@ try {
 const cors = require("cors");
 const bodyParser = require("body-parser");
 const SampleDataManager = require("./sampleDataManager");
+const QuickTimeManager = require("./quickTimeManager");
 let Profiles;
 let sampleDataManager; // Will be initialized after MongoDB connection
+let quickTimeManager; // Will be initialized after MongoDB connection
 
 const port = process.env.PORT || 3000;
 const allowedOrigins = process.env.ALLOWED_ORIGINS.split(",");
@@ -173,6 +175,14 @@ io.on("connection", (socket) => {
       console.log(`🆔 User identified: ${userId} (Socket ID: ${socket.id})`);
       userSockets.set(userId, socket);
       console.log(`📊 Total identified users: ${userSockets.size}`);
+
+      // Initialize quick time mode for sample students on login
+      if (quickTimeManager && quickTimeManager.isSampleUser(userId)) {
+        console.log(
+          `⏱️  [Socket.Identify] Sample student detected: ${userId} - Initializing Quick Time mode`,
+        );
+        quickTimeManager.initializeQuickTimeMode(userId);
+      }
 
       // Acknowledge successful identification
       socket.emit("identified", { success: true });
@@ -490,6 +500,15 @@ io.on("connection", (socket) => {
           console.log(
             `👋 User disconnected: ${userId} (Socket ID: ${socket.id})`,
           );
+
+          // Disable quick time mode if user was in it
+          if (quickTimeManager && quickTimeManager.isSampleUser(userId)) {
+            console.log(
+              `⏱️  [Disconnect] Disabling Quick Time mode for: ${userId}`,
+            );
+            quickTimeManager.disableQuickTimeMode(userId);
+          }
+
           userSockets.delete(userId);
           console.log(`📊 Total identified users now: ${userSockets.size}`);
           break;
@@ -509,7 +528,7 @@ io.on("connection", (socket) => {
 // Listen for 'studentCreated' event from another server (localhost:5000)
 const { io: ClientIO } = require("socket.io-client");
 const EXTERNAL_SOCKET_URL =
-  process.env.EXTERNAL_SOCKET_URL || "https://tcregistrationserver-production.up.railway.app";
+  process.env.EXTERNAL_SOCKET_URL || "http://localhost:5000";
 const externalSocket = ClientIO(EXTERNAL_SOCKET_URL);
 
 externalSocket.on("connect", () => {
@@ -562,13 +581,22 @@ async function run() {
     sampleDataManager = new SampleDataManager(client);
     console.log("✅ Sample Data Manager initialized");
 
-    // Initialize scheduler manager after MongoDB connection
+    // Initialize scheduler manager FIRST (before quick time manager needs it)
     schedulerManager = new SchedulerManager(client, io, userSockets);
     await schedulerManager.initializeScheduler();
 
+    // Initialize quick time manager for sample accounts (now that schedulerManager exists)
+    quickTimeManager = new QuickTimeManager(
+      client,
+      io,
+      userSockets,
+      schedulerManager,
+    );
+    console.log("✅ Quick Time Manager initialized");
+
     // Setup GitHub webhook handler
     const webhookSecret = process.env.GITHUB_WEBHOOK_SECRET || "";
-    const serverUrl = process.env.SERVER_URL || "https://tcstudentserver-production.up.railway.app";
+    const serverUrl = process.env.SERVER_URL || "http://localhost:3000";
     setupGitHubWebhook(app, webhookSecret, serverUrl);
   } finally {
     // // Ensures that the client will close when you finish/error
@@ -1090,6 +1118,14 @@ app.post("/bills", async (req, res) => {
     if (schedulerManager) {
       await schedulerManager.addScheduledTransaction(prfName, newTrans, type);
 
+      // AFTER the transaction is added, reschedule for quick time if needed
+      if (quickTimeManager && quickTimeManager.isSampleUser(prfName)) {
+        console.log(
+          `⏱️  [Bills] Sample user detected: ${prfName} - Rescheduling transactions for Quick Time`,
+        );
+        await quickTimeManager.processPendingTransactions(prfName);
+      }
+
       // Get updated profile for response
       const updatedUserProfile = await client
         .db("TrinityCapital")
@@ -1108,6 +1144,7 @@ app.post("/bills", async (req, res) => {
         success: true,
         message: `${type} scheduled successfully`,
         schedulerStatus: schedulerManager.getSchedulerStatus(),
+        quickTimeMode: quickTimeManager?.isSampleUser(prfName) || false,
       });
     } else {
       res.status(500).json({ error: "Scheduler not initialized" });
@@ -1190,6 +1227,27 @@ app.get("/scheduler/status", (req, res) => {
     }
   } catch (error) {
     console.error("Error getting scheduler status:", error);
+    res
+      .status(500)
+      .json({ error: "Internal Server Error", details: error.message });
+  }
+});
+
+// Get quick time mode status
+app.get("/quicktime/status/:username", (req, res) => {
+  try {
+    const { username } = req.params;
+
+    if (!quickTimeManager) {
+      return res
+        .status(500)
+        .json({ error: "Quick Time Manager not initialized" });
+    }
+
+    const status = quickTimeManager.getQuickTimeStatus(username);
+    res.json(status);
+  } catch (error) {
+    console.error("Error getting quick time status:", error);
     res
       .status(500)
       .json({ error: "Internal Server Error", details: error.message });
@@ -2445,7 +2503,7 @@ app.get("/api/student-current-lesson/:studentId", async (req, res) => {
           const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
           
           const lessonServerResponse = await fetch(
-            'https://tclessonserver-production.up.railway.app/get-lessons-by-ids',
+            'http://localhost:4000/get-lessons-by-ids',
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -4531,7 +4589,7 @@ app.get("/student/:studentId/assignedUnits", async (req, res) => {
       try {
         // Fetch fresh lesson content from the lesson server
         const lessonServerResponse = await fetch(
-          `https://tclessonserver-production.up.railway.app/lessons/${unit.assignedBy}`,
+          `http://localhost:4000/lessons/${unit.assignedBy}`,
         );
 
         if (lessonServerResponse.ok) {
@@ -4826,7 +4884,7 @@ app.get("/student-lessons-by-ids/:studentId", async (req, res) => {
     try {
       console.log(`🔗 Requesting lesson content from lesson server...`);
       const lessonServerResponse = await fetch(
-        "https://tclessonserver-production.up.railway.app/get-lessons-by-ids",
+        "http://localhost:4000/get-lessons-by-ids",
         {
           method: "POST",
           headers: {
@@ -4916,7 +4974,7 @@ app.post("/assignUnitToStudent", async (req, res) => {
         `🔍 Fetching unit structure from lesson server for unit ${unitId}...`,
       );
       const lessonServerResponse = await fetch(
-        `https://tclessonserver-production.up.railway.app/lessons/${assignedBy}`,
+        `http://localhost:4000/lessons/${assignedBy}`,
       );
       if (lessonServerResponse.ok) {
         const lessonData = await lessonServerResponse.json();
