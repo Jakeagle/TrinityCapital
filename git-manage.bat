@@ -102,24 +102,25 @@ set /p commit_message="📝 Enter commit message for frontend changes: "
 echo 🚀 Switching to Production URLs...
 powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "production"
 
-REM Backup current .gitignore
-if exist ".gitignore" copy ".gitignore" ".gitignore.backup" >nul
+REM Add all changes first
+git add -A
 
-REM Use frontend-specific .gitignore
-copy "frontend.gitignore" ".gitignore" >nul
+REM Remove server files from staging (keep only frontend)
+git reset HEAD server.js schedulerManager.js catchupScheduler.js githubWebhookHandler.js *.md >nul 2>&1
 
-REM Add only Frontend files
-git add Frontend/
-git add index.html
-git add public/
-
+echo 📝 Committing frontend changes...
 git commit -m "FRONTEND: %commit_message%"
 
-REM Push to main repo (TrinityCapital)
-git push origin master
+if errorlevel 1 (
+    echo ⚠️  No changes to commit
+    echo 🔄 Reverting to Local URLs...
+    powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "local"
+    goto :end
+)
 
-REM Restore original .gitignore
-if exist ".gitignore.backup" move ".gitignore.backup" ".gitignore" >nul
+REM Push to main repo (TrinityCapital)
+echo 📤 Pushing to origin...
+git push origin master
 
 echo 🔄 Reverting to Local URLs...
 powershell -ExecutionPolicy Bypass -File "url-replacer.ps1" -Mode "local"
