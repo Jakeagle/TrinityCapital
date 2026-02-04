@@ -23,6 +23,11 @@ import { sendStudentSessionData } from "./ILGE/SDSM/sdsm.js";
 // Quick Time Mode for sample accounts
 import { quickTimeMode } from "./quickTimeMode.js";
 
+// Define API base URL based on environment
+const isProduction = window.location.hostname !== "localhost";
+const PROD_API_BASE_URL = "https://tcstudentserver-production.up.railway.app";
+const API_BASE_URL = isProduction ? PROD_API_BASE_URL : "https://tcstudentserver-production.up.railway.app";
+
 // Show loading modal immediately
 document.addEventListener("DOMContentLoaded", function () {
   const loadingModal = document.getElementById("loadingModal");
