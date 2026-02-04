@@ -16,7 +16,7 @@ async function fetchAssignedLessons(studentProfile) {
 
   try {
     const response = await fetch(
-      `${lessonServerUrl}/lessons?studentId=${studentId}`
+      `${lessonServerUrl}/lessons?studentId=${studentId}`,
     );
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -33,19 +33,19 @@ async function fetchAssignedLessons(studentProfile) {
 async function fetchLessonTimer(studentId, lessonId) {
   if (!studentId || !lessonId) {
     console.error(
-      "Student ID and Lesson ID are required to fetch a lesson timer."
+      "Student ID and Lesson ID are required to fetch a lesson timer.",
     );
     return null;
   }
 
   try {
     const response = await fetch(
-      `${lessonServerUrl}/api/timers?studentId=${studentId}&lessonId=${lessonId}`
+      `${lessonServerUrl}/api/timers?studentId=${studentId}&lessonId=${lessonId}`,
     );
     if (!response.ok) {
       if (response.status === 404) {
         console.log(
-          `No existing timer found for lesson ${lessonId}. A new one will be created.`
+          `No existing timer found for lesson ${lessonId}. A new one will be created.`,
         );
         return null; // It's not an error if the timer doesn't exist yet
       }
@@ -62,7 +62,7 @@ async function fetchLessonTimer(studentId, lessonId) {
 async function saveLessonTimer(studentId, lessonId, elapsedTime) {
   if (!studentId || !lessonId || elapsedTime === undefined) {
     console.error(
-      "Student ID, Lesson ID, and elapsedTime are required to save a lesson timer."
+      "Student ID, Lesson ID, and elapsedTime are required to save a lesson timer.",
     );
     return false;
   }
@@ -94,7 +94,7 @@ async function saveLessonTimer(studentId, lessonId, elapsedTime) {
 function saveLessonTimerSync(studentId, lessonId, elapsedTime) {
   if (!studentId || !lessonId || elapsedTime === undefined) {
     console.error(
-      "Student ID, Lesson ID, and elapsedTime are required to save a lesson timer."
+      "Student ID, Lesson ID, and elapsedTime are required to save a lesson timer.",
     );
     return false;
   }
@@ -108,7 +108,7 @@ function saveLessonTimerSync(studentId, lessonId, elapsedTime) {
         studentId,
         lessonId,
         elapsedTime,
-      })
+      }),
     );
     if (xhr.status >= 200 && xhr.status < 300) {
       console.log("Timer saved synchronously:", xhr.responseText);
@@ -117,7 +117,7 @@ function saveLessonTimerSync(studentId, lessonId, elapsedTime) {
       console.error(
         "Failed to save timer synchronously:",
         xhr.status,
-        xhr.responseText
+        xhr.responseText,
       );
       return false;
     }

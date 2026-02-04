@@ -1,48 +1,48 @@
-'use strict';
+"use strict";
 
-import { getInfoProfiles } from './script.js';
-import { currentProfile } from './script.js';
+import { getInfoProfiles } from "./script.js";
+import { currentProfile } from "./script.js";
 import {
   validateAmount,
   validateText,
   validateDate,
   validateSignature,
   validateForm,
-} from './validation.js';
+} from "./validation.js";
 import {
   setLoadingState,
   showNotification as showModernNotification,
-} from './uiEnhancements.js';
+} from "./uiEnhancements.js";
 
 console.log(currentProfile);
 
 /**************************************************Variables ***********************************************/
 
-const name = $('.nameInput');
+const name = $(".nameInput");
 
-const dest = document.querySelector('.destInput');
+const dest = document.querySelector(".destInput");
 
-const amount = $('.amountInput');
+const amount = $(".amountInput");
 
-const date = $('.dateInput');
+const date = $(".dateInput");
 
-const signature = $('.sigInput');
+const signature = $(".sigInput");
 
-const submit = $('.submitBtn');
+const submit = $(".submitBtn");
 
-const mainApp = $('.mainApp');
+const mainApp = $(".mainApp");
 
-const backBTN = $('.backBtn');
+const backBTN = $(".backBtn");
 
-const loginBTN = document.querySelector('.login__btn');
+const loginBTN = document.querySelector(".login__btn");
 
-const depositLink = 'https://tcstudentserver-production.up.railway.app/deposits';
+const depositLink = "https://tcstudentserver-production.up.railway.app/deposits";
 
-mainApp.css('display', 'none');
+mainApp.css("display", "none");
 
 /******************************************************Event listeners **************************************/
 backBTN.click(function () {
-  location.replace('index.html');
+  location.replace("index.html");
 });
 
 submit.click(function (e) {
@@ -66,7 +66,7 @@ window.initializeDeposit = initializeDeposit;
 function initializeDeposit() {
   // Check if user is logged in
   if (!currentProfile || !currentProfile.memberName) {
-    console.warn('User not logged in or member name not found');
+    console.warn("User not logged in or member name not found");
     return;
   }
 
@@ -80,14 +80,14 @@ function initializeDeposit() {
  */
 function generateExpectedSignature() {
   if (!currentProfile || !currentProfile.memberName) {
-    return '';
+    return "";
   }
 
   return currentProfile.memberName
     .toLowerCase()
-    .split(' ')
-    .map(name => name[0])
-    .join('');
+    .split(" ")
+    .map((name) => name[0])
+    .join("");
 }
 
 /**
@@ -106,8 +106,8 @@ const validateAndProcessDeposit = function () {
 
   if (!payeeValidation || !payeeValidation.isValid) {
     showModernNotification(
-      payeeValidation?.error || 'Please select a valid recipient',
-      'error',
+      payeeValidation?.error || "Please select a valid recipient",
+      "error",
     );
     return;
   }
@@ -122,54 +122,54 @@ const validateAndProcessDeposit = function () {
       field: name[0],
       value: nameValue,
       validations: [
-        value =>
+        (value) =>
           validateText(value, {
-            fieldName: 'Name',
+            fieldName: "Name",
             allowNumbers: false,
             allowSpecialChars: false,
           }),
-        value => {
+        (value) => {
           if (value && value.trim() !== currentProfile.memberName) {
-            return ['Name must match the account holder name'];
+            return ["Name must match the account holder name"];
           }
           return [];
         },
       ],
-      fieldName: 'Name',
+      fieldName: "Name",
     },
     {
       field: amount[0],
       value: amountValue,
       validations: [
-        value =>
+        (value) =>
           validateAmount(value, {
             min: 0.01,
             max: 10000,
-            fieldName: 'Deposit Amount',
+            fieldName: "Deposit Amount",
           }),
       ],
-      fieldName: 'Amount',
+      fieldName: "Amount",
     },
     {
       field: date[0],
       value: dateValue,
       validations: [
-        value =>
+        (value) =>
           validateDate(value, {
             allowFuture: false,
-            fieldName: 'Date',
+            fieldName: "Date",
             maxPastDays: 30,
           }),
       ],
-      fieldName: 'Date',
+      fieldName: "Date",
     },
     {
       field: signature[0],
       value: signatureValue,
       validations: [
-        value => validateSignature(value, expectedSignature, 'Signature'),
+        (value) => validateSignature(value, expectedSignature, "Signature"),
       ],
-      fieldName: 'Signature',
+      fieldName: "Signature",
     },
   ];
 
@@ -180,7 +180,7 @@ const validateAndProcessDeposit = function () {
   const validation = validateForm(validationRules);
 
   if (!validation.isValid) {
-    showModernNotification(validation.errors.join(', '), 'error');
+    showModernNotification(validation.errors.join(", "), "error");
     return;
   }
 
@@ -189,7 +189,7 @@ const validateAndProcessDeposit = function () {
 };
 
 const processDeposit = function () {
-  console.log('Processing deposit...');
+  console.log("Processing deposit...");
 
   let userDeposit = parseFloat(amount.val());
   let member = currentProfile.memberName;
@@ -200,7 +200,7 @@ const processDeposit = function () {
     : null;
 
   if (!payeeInfo) {
-    showModernNotification('Error: Could not get payee information', 'error');
+    showModernNotification("Error: Could not get payee information", "error");
     return;
   }
 
@@ -218,12 +218,12 @@ const checkAll = function () {
 };
 export async function sendDeposit(loan, destination, member) {
   try {
-    showModernNotification('Processing deposit...', 'info');
+    showModernNotification("Processing deposit...", "info");
 
     const res = await fetch(depositLink, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         parcel: [loan, destination, member],
@@ -238,34 +238,34 @@ export async function sendDeposit(loan, destination, member) {
 
     showModernNotification(
       `Deposit of $${loan.toFixed(2)} completed successfully!`,
-      'success',
+      "success",
     );
 
     // Record deposit action using lesson engine
     if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('deposit', {
+      await window.lessonEngine.onAppAction("deposit", {
         amount: loan,
         destination: destination,
         member: member,
-        transactionType: 'deposit',
+        transactionType: "deposit",
         timestamp: new Date().toISOString(),
       });
 
       console.log(
-        '✅ Deposit action recorded for lesson tracking:',
+        "✅ Deposit action recorded for lesson tracking:",
         `${loan.toFixed(2)} to ${destination}`,
       );
     } else {
       console.warn(
-        '⚠️ Lesson engine not available - deposit tracking disabled',
+        "⚠️ Lesson engine not available - deposit tracking disabled",
       );
     }
 
     // Clear form
-    name.val('');
-    amount.val('');
-    date.val('');
-    signature.val('');
+    name.val("");
+    amount.val("");
+    date.val("");
+    signature.val("");
 
     // Reset the payee dropdown
     if (window.checkPayeeManager) {
@@ -274,8 +274,8 @@ export async function sendDeposit(loan, destination, member) {
 
     return result;
   } catch (error) {
-    console.error('Deposit failed:', error);
-    showModernNotification(`Deposit failed: ${error.message}`, 'error');
+    console.error("Deposit failed:", error);
+    showModernNotification(`Deposit failed: ${error.message}`, "error");
     throw error;
   }
 }

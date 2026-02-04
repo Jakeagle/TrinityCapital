@@ -85,7 +85,7 @@ async function sendBillData(type, amount, interval, name, cat, date) {
     // Show success message
     showNotification(
       `${type.charAt(0).toUpperCase() + type.slice(1)} scheduled successfully!`,
-      "success"
+      "success",
     );
 
     // Clear form
@@ -255,7 +255,7 @@ billsBTN.addEventListener("click", async function (event) {
       billInterval,
       billName.value.trim(),
       billType,
-      newDate
+      newDate,
     );
 
     // Update currentProfile with the new bill for lesson snapshots
@@ -304,7 +304,7 @@ paymentsBTN.addEventListener("click", async function (event) {
       payInterval,
       paymentName.value.trim(),
       paymentType,
-      newDate
+      newDate,
     );
 
     // Update currentProfile with the new payment for lesson snapshots
