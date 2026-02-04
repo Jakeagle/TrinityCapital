@@ -4,9 +4,9 @@
  * Includes catch-up mechanism for missed transactions during server downtime
  */
 
-const cron = require('node-cron');
-const { ObjectId } = require('mongodb');
-const CatchupScheduler = require('./catchupScheduler');
+const cron = require("node-cron");
+const { ObjectId } = require("mongodb");
+const CatchupScheduler = require("./catchupScheduler");
 
 class SchedulerManager {
   constructor(mongoClient, io, userSockets) {
@@ -25,7 +25,7 @@ class SchedulerManager {
     const now = new Date();
 
     switch (interval) {
-      case 'weekly':
+      case "weekly":
         // Find next occurrence of the same day of week
         const daysUntilNext = (7 - (now.getDay() - created.getDay())) % 7;
         const nextWeekly = new Date(now);
@@ -35,7 +35,7 @@ class SchedulerManager {
         nextWeekly.setHours(0, 0, 0, 0);
         return nextWeekly;
 
-      case 'bi-weekly':
+      case "bi-weekly":
         // Every 14 days from creation date
         const daysSinceCreated = Math.floor(
           (now - created) / (1000 * 60 * 60 * 24),
@@ -46,7 +46,7 @@ class SchedulerManager {
         nextBiWeekly.setHours(0, 0, 0, 0);
         return nextBiWeekly;
 
-      case 'monthly':
+      case "monthly":
         // Same day of each month
         const nextMonthly = new Date(created);
         nextMonthly.setMonth(now.getMonth() + 1);
@@ -56,7 +56,7 @@ class SchedulerManager {
         nextMonthly.setHours(0, 0, 0, 0);
         return nextMonthly;
 
-      case 'yearly':
+      case "yearly":
         // Same date each year
         const nextYearly = new Date(created);
         nextYearly.setFullYear(now.getFullYear() + 1);
@@ -95,13 +95,13 @@ class SchedulerManager {
 
       // Add transaction to user's account
       await this.client
-        .db('TrinityCapital')
-        .collection('User Profiles')
+        .db("TrinityCapital")
+        .collection("User Profiles")
         .updateOne(
-          { 'checkingAccount.accountHolder': memberName },
+          { "checkingAccount.accountHolder": memberName },
           {
             $push: {
-              'checkingAccount.transactions': {
+              "checkingAccount.transactions": {
                 amount: transaction.amount,
                 interval: transaction.interval,
                 Name: transaction.Name,
@@ -114,11 +114,11 @@ class SchedulerManager {
 
       // Add movement date
       await this.client
-        .db('TrinityCapital')
-        .collection('User Profiles')
+        .db("TrinityCapital")
+        .collection("User Profiles")
         .updateOne(
-          { 'checkingAccount.accountHolder': memberName },
-          { $push: { 'checkingAccount.movementsDates': newDate } },
+          { "checkingAccount.accountHolder": memberName },
+          { $push: { "checkingAccount.movementsDates": newDate } },
         );
 
       // Update balance
@@ -133,16 +133,16 @@ class SchedulerManager {
       if (nextExecutionDate) {
         // Update the next execution date in the database
         const updateField =
-          type === 'bill'
-            ? 'checkingAccount.bills'
-            : 'checkingAccount.payments';
+          type === "bill"
+            ? "checkingAccount.bills"
+            : "checkingAccount.payments";
 
         await this.client
-          .db('TrinityCapital')
-          .collection('User Profiles')
+          .db("TrinityCapital")
+          .collection("User Profiles")
           .updateOne(
             {
-              'checkingAccount.accountHolder': memberName,
+              "checkingAccount.accountHolder": memberName,
               [`${updateField}._id`]: transaction._id,
             },
             {
@@ -166,12 +166,12 @@ class SchedulerManager {
       const userSocket = this.userSockets.get(memberName);
       if (userSocket) {
         const updatedProfile = await this.client
-          .db('TrinityCapital')
-          .collection('User Profiles')
-          .findOne({ 'checkingAccount.accountHolder': memberName });
+          .db("TrinityCapital")
+          .collection("User Profiles")
+          .findOne({ "checkingAccount.accountHolder": memberName });
 
         userSocket.emit(
-          'checkingAccountUpdate',
+          "checkingAccountUpdate",
           updatedProfile.checkingAccount,
         );
       }
@@ -206,7 +206,7 @@ class SchedulerManager {
       },
       {
         scheduled: true,
-        timezone: 'America/New_York', // Adjust timezone as needed
+        timezone: "America/New_York", // Adjust timezone as needed
       },
     );
 
@@ -219,11 +219,11 @@ class SchedulerManager {
   async initializeScheduler() {
     try {
       console.log(
-        '🚀 Initializing persistent scheduler with catch-up mechanism...',
+        "🚀 Initializing persistent scheduler with catch-up mechanism...",
       );
 
       // STEP 1: Perform catch-up check for missed transactions
-      console.log('🔄 Performing catch-up check for missed transactions...');
+      console.log("🔄 Performing catch-up check for missed transactions...");
       const catchupResult = await this.catchupScheduler.performCatchupCheck();
 
       if (catchupResult.success) {
@@ -231,13 +231,13 @@ class SchedulerManager {
           `✅ Catch-up complete: ${catchupResult.totalProcessed} transactions processed`,
         );
       } else {
-        console.error('❌ Catch-up failed:', catchupResult.error);
+        console.error("❌ Catch-up failed:", catchupResult.error);
       }
 
       // STEP 2: Initialize regular scheduler
       const profiles = await this.client
-        .db('TrinityCapital')
-        .collection('User Profiles')
+        .db("TrinityCapital")
+        .collection("User Profiles")
         .find({})
         .toArray();
 
@@ -248,7 +248,7 @@ class SchedulerManager {
         // Process bills
         const bills = profile.checkingAccount?.bills || [];
         for (const bill of bills) {
-          await this.initializeTransactionSchedule(memberName, bill, 'bill');
+          await this.initializeTransactionSchedule(memberName, bill, "bill");
         }
 
         // Process payments
@@ -257,7 +257,7 @@ class SchedulerManager {
           await this.initializeTransactionSchedule(
             memberName,
             payment,
-            'payment',
+            "payment",
           );
         }
       }
@@ -269,7 +269,7 @@ class SchedulerManager {
       // Setup graceful shutdown handler
       this.setupShutdownHandler();
     } catch (error) {
-      console.error('Error initializing scheduler:', error);
+      console.error("Error initializing scheduler:", error);
     }
   }
 
@@ -293,16 +293,16 @@ class SchedulerManager {
         if (nextExecutionDate) {
           // Store calculated date in database
           const updateField =
-            type === 'bill'
-              ? 'checkingAccount.bills'
-              : 'checkingAccount.payments';
+            type === "bill"
+              ? "checkingAccount.bills"
+              : "checkingAccount.payments";
 
           await this.client
-            .db('TrinityCapital')
-            .collection('User Profiles')
+            .db("TrinityCapital")
+            .collection("User Profiles")
             .updateOne(
               {
-                'checkingAccount.accountHolder': memberName,
+                "checkingAccount.accountHolder": memberName,
                 [`${updateField}._id`]: transaction._id,
               },
               {
@@ -349,13 +349,13 @@ class SchedulerManager {
 
       // Add to database
       const updateField =
-        type === 'bill' ? 'checkingAccount.bills' : 'checkingAccount.payments';
+        type === "bill" ? "checkingAccount.bills" : "checkingAccount.paychecks";
 
       await this.client
-        .db('TrinityCapital')
-        .collection('User Profiles')
+        .db("TrinityCapital")
+        .collection("User Profiles")
         .updateOne(
-          { 'checkingAccount.accountHolder': memberName },
+          { "checkingAccount.accountHolder": memberName },
           { $push: { [updateField]: transactionData } },
         );
 
@@ -384,9 +384,9 @@ class SchedulerManager {
   async updateBalance(memberName) {
     try {
       const profile = await this.client
-        .db('TrinityCapital')
-        .collection('User Profiles')
-        .findOne({ 'checkingAccount.accountHolder': memberName });
+        .db("TrinityCapital")
+        .collection("User Profiles")
+        .findOne({ "checkingAccount.accountHolder": memberName });
 
       if (!profile || !profile.checkingAccount.transactions) return;
 
@@ -398,14 +398,14 @@ class SchedulerManager {
       );
 
       await this.client
-        .db('TrinityCapital')
-        .collection('User Profiles')
+        .db("TrinityCapital")
+        .collection("User Profiles")
         .updateOne(
-          { 'checkingAccount.accountHolder': memberName },
-          { $set: { 'checkingAccount.balanceTotal': balance } },
+          { "checkingAccount.accountHolder": memberName },
+          { $set: { "checkingAccount.balanceTotal": balance } },
         );
     } catch (error) {
-      console.error('Error updating balance:', error);
+      console.error("Error updating balance:", error);
     }
   }
 
@@ -415,16 +415,16 @@ class SchedulerManager {
   async notifyTeachers(memberName, transactionType) {
     try {
       const profile = await this.client
-        .db('TrinityCapital')
-        .collection('User Profiles')
-        .findOne({ 'checkingAccount.accountHolder': memberName });
+        .db("TrinityCapital")
+        .collection("User Profiles")
+        .findOne({ "checkingAccount.accountHolder": memberName });
 
       if (profile && profile.teacher) {
         console.log(
           `Notifying teacher ${profile.teacher} about ${transactionType} for student ${memberName}`,
         );
 
-        this.io.emit('studentFinancialUpdate', {
+        this.io.emit("studentFinancialUpdate", {
           studentName: memberName,
           teacherName: profile.teacher,
           updatedData: {
@@ -435,7 +435,7 @@ class SchedulerManager {
         });
       }
     } catch (error) {
-      console.error('Error notifying teachers:', error);
+      console.error("Error notifying teachers:", error);
     }
   }
 
@@ -454,13 +454,13 @@ class SchedulerManager {
 
       // Remove from database
       const updateField =
-        type === 'bill' ? 'checkingAccount.bills' : 'checkingAccount.payments';
+        type === "bill" ? "checkingAccount.bills" : "checkingAccount.payments";
 
       await this.client
-        .db('TrinityCapital')
-        .collection('User Profiles')
+        .db("TrinityCapital")
+        .collection("User Profiles")
         .updateOne(
-          { 'checkingAccount.accountHolder': memberName },
+          { "checkingAccount.accountHolder": memberName },
           { $pull: { [updateField]: { _id: transactionId } } },
         );
 
@@ -493,16 +493,16 @@ class SchedulerManager {
    * Setup graceful shutdown handler to record shutdown time
    */
   setupShutdownHandler() {
-    const gracefulShutdown = async signal => {
+    const gracefulShutdown = async (signal) => {
       console.log(
         `📝 Received ${signal}. Recording shutdown time for catch-up...`,
       );
 
       try {
         await this.catchupScheduler.recordServerShutdown();
-        console.log('✅ Shutdown time recorded successfully');
+        console.log("✅ Shutdown time recorded successfully");
       } catch (error) {
-        console.error('❌ Failed to record shutdown time:', error);
+        console.error("❌ Failed to record shutdown time:", error);
       }
 
       // Stop all scheduled jobs
@@ -511,14 +511,14 @@ class SchedulerManager {
         console.log(`🛑 Stopped job: ${jobKey}`);
       }
 
-      console.log('🔄 Scheduler shutdown complete');
+      console.log("🔄 Scheduler shutdown complete");
       process.exit(0);
     };
 
     // Handle different shutdown signals
-    process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
-    process.on('SIGINT', () => gracefulShutdown('SIGINT'));
-    process.on('SIGUSR2', () => gracefulShutdown('SIGUSR2')); // For nodemon
+    process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+    process.on("SIGINT", () => gracefulShutdown("SIGINT"));
+    process.on("SIGUSR2", () => gracefulShutdown("SIGUSR2")); // For nodemon
   }
 
   /**
@@ -532,7 +532,7 @@ class SchedulerManager {
    * Manually trigger catch-up check (for testing or admin purposes)
    */
   async manualCatchupCheck() {
-    console.log('🔧 Manual catch-up check triggered...');
+    console.log("🔧 Manual catch-up check triggered...");
     return await this.catchupScheduler.performCatchupCheck();
   }
 }
