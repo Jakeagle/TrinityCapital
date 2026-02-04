@@ -56,7 +56,7 @@ function hideLoadingAndShowLogin() {
   }
 }
 
-const socket = io("http://localhost:3000");
+const socket = io("https://tcstudentserver-production.up.railway.app");
 
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
