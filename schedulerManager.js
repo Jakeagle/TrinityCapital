@@ -349,7 +349,7 @@ class SchedulerManager {
 
       // Add to database
       const updateField =
-        type === "bill" ? "checkingAccount.bills" : "checkingAccount.paychecks";
+        type === "bill" ? "checkingAccount.bills" : "checkingAccount.payments";
 
       await this.client
         .db("TrinityCapital")
