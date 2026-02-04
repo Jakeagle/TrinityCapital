@@ -20,6 +20,7 @@ $filesToProcess = @(
     "Frontend\Javascript\checkPayeeManager.js",
     "Frontend\Javascript\billsAndPayments.js",
     "Frontend\Javascript\ILGE\LRM\lrm.js",
+    "Frontend\Javascript\quickTimeMode.js",
     "server.js"
 )
 
