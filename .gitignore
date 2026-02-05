@@ -51,9 +51,6 @@ jspm_packages/
 # vscode
 .vscode/
 
-# Exclude Frontend folder (goes to separate repo)
-Frontend/
-
 # OS generated files
 .DS_Store
 .DS_Store?
