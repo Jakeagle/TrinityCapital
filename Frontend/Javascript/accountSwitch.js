@@ -13,7 +13,7 @@ import {
 const loginButton = document.querySelector('.login__btn');
 const accountBTNs = document.querySelectorAll('.form__btn--accountSwitch');
 const accountContainer = document.querySelector('.accountListBg');
-const testServerProfiles = 'http://localhost:3000/profiles';
+const testServerProfiles = 'https://trinity-capital-prod.herokuapp.com/profiles';
 
 let btnNum = 0;
 

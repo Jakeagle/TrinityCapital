@@ -36,7 +36,7 @@ const backBTN = $(".backBtn");
 
 const loginBTN = document.querySelector(".login__btn");
 
-const depositLink = "http://localhost:3000/deposits";
+const depositLink = "https://trinity-capital-prod.herokuapp.com/deposits";
 
 mainApp.css("display", "none");
 

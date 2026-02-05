@@ -38,7 +38,7 @@ let accountRecieve;
 
 let amount;
 
-const transferLink = `http://localhost:3000/transfer`;
+const transferLink = `https://trinity-capital-prod.herokuapp.com/transfer`;
 
 /************************************************Functions*************************************************/
 
