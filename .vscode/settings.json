@@ -1,4 +1,0 @@
-{
-  "appService.defaultWebAppToDeploy": "/subscriptions/a2cb019e-c5cd-412e-96c6-dd03119be2b8/resourceGroups/TrinCapRG-2/providers/Microsoft.Web/sites/TrinityCapitalTestServer-2",
-  "appService.deploySubpath": "."
-}
