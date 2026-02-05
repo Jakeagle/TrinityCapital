@@ -8,7 +8,7 @@
     "start": "node server.js",
     "migrate-scheduler": "node migrationScheduler.js",
     "test-scheduler": "node testScheduler.js",
-    "dev": "concurrently \"npx nodemon server.js\" \"npx live-server\"",
+    "dev": "concurrently \"npx nodemon server/server.js\" \"npx live-server\"",
     "server": "nodemon server.js",
     "client": "live-server"
   },
