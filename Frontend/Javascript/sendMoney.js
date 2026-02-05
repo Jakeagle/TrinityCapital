@@ -22,7 +22,7 @@ const recipient = document.querySelector('.recipients');
 const inputBTN = document.querySelector('.sendBtn');
 const backBTN = document.querySelector('.backBtn');
 
-const sendMoneyURL = `https://trinity-capital-prod.herokuapp.com/sendFunds`;
+const sendMoneyURL = `https://tcstudentserver-production.up.railway.app/sendFunds`;
 let theRecipient;
 
 mainApp.style.display = 'none';

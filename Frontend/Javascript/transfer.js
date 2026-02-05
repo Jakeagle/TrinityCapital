@@ -38,7 +38,7 @@ let accountRecieve;
 
 let amount;
 
-const transferLink = `https://trinity-capital-prod.herokuapp.com/transfer`;
+const transferLink = `https://tcstudentserver-production.up.railway.app/transfer`;
 
 /************************************************Functions*************************************************/
 

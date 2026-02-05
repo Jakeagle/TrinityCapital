@@ -27,9 +27,9 @@ export let payInterval;
 let billType;
 let paymentType;
 
-const socket = io("https://trinity-capital-prod.herokuapp.com");
-const billURL = `https://trinity-capital-prod.herokuapp.com/bills`;
-const schedulerStatusURL = `https://trinity-capital-prod.herokuapp.com/scheduler/status`;
+const socket = io("https://tcstudentserver-production.up.railway.app");
+const billURL = `https://tcstudentserver-production.up.railway.app/bills`;
+const schedulerStatusURL = `https://tcstudentserver-production.up.railway.app/scheduler/status`;
 
 /**********************************************Functions***********************************************/
 
