@@ -22,7 +22,7 @@ const recipient = document.querySelector('.recipients');
 const inputBTN = document.querySelector('.sendBtn');
 const backBTN = document.querySelector('.backBtn');
 
-const sendMoneyURL = `https://tcstudentserver-production.up.railway.app/sendFunds`;
+const sendMoneyURL = `http://localhost:3000/sendFunds`;
 let theRecipient;
 
 mainApp.style.display = 'none';
