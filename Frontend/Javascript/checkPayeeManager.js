@@ -208,7 +208,7 @@ class CheckPayeeManager {
       // Encode the member name to handle spaces and special characters
       const encodedMemberName = encodeURIComponent(currentProfile.memberName);
       const response = await fetch(
-        `http://localhost:3000/classmates/${encodedMemberName}`,
+        `https://tcstudentserver-production.up.railway.app/classmates/${encodedMemberName}`,
       );
 
       if (!response.ok) {

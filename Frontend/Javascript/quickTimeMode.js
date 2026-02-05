@@ -13,7 +13,7 @@ class QuickTimeMode {
   constructor() {
     this.isEnabled = false;
     this.isLoading = true;
-    this.apiUrl = "http://localhost:3000";
+    this.apiUrl = "https://tcstudentserver-production.up.railway.app";
     this.socket = io(this.apiUrl);
     this.statusElement = null;
     this.containerElement = null;

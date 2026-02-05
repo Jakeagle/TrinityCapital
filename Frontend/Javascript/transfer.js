@@ -38,7 +38,7 @@ let accountRecieve;
 
 let amount;
 
-const transferLink = `http://localhost:3000/transfer`;
+const transferLink = `https://tcstudentserver-production.up.railway.app/transfer`;
 
 /************************************************Functions*************************************************/
 
