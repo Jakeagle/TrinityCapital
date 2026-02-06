@@ -61,7 +61,14 @@ function hideLoadingAndShowLogin() {
   }
 }
 
-const socket = io("https://tcstudentserver-production.up.railway.app");
+const socket = io("https://tcstudentserver-production.up.railway.app", {
+  reconnection: true,
+  reconnectionAttempts: Infinity,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
+  transports: ["websocket", "polling"], // Try websocket first, fallback to polling
+});
 
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
@@ -998,7 +1005,7 @@ let currentStudentName = null;
 
 // Emit 'identify' event to associate the client with a user ID
 socket.on("connect", () => {
-  console.log("✅ User connected:", socket.id);
+  console.log("✅ Socket connected:", socket.id);
 
   // If we have a stored student name, re-identify immediately on reconnection
   if (currentStudentName) {
@@ -1008,16 +1015,20 @@ socket.on("connect", () => {
 });
 
 // Handle reconnection attempts
-socket.on("reconnect_attempt", () => {
-  console.warn("🔄 Socket reconnection attempt...");
+socket.on("reconnect_attempt", (attempt) => {
+  console.warn(`🔄 Socket reconnection attempt #${attempt}...`);
 });
 
-socket.on("disconnect", () => {
-  console.warn("❌ Socket disconnected");
+socket.on("disconnect", (reason) => {
+  console.warn(`❌ Socket disconnected. Reason: ${reason}`);
+  if (reason === "io server disconnect") {
+    // Server disconnected, need to reconnect manually
+    socket.connect();
+  }
 });
 
 socket.on("connect_error", (error) => {
-  console.error("❌ Connection error:", error);
+  console.error("❌ Connection error:", error.message);
 });
 
 // Listen for checking account updates
@@ -1037,6 +1048,9 @@ socket.on("checkingAccountUpdate", (updatedChecking) => {
     currentProfile.checkingAccount = updatedChecking;
 
     // Notify server about financial activity for teacher dashboard update
+    console.log(
+      `📤 Emitting studentFinancialActivity for ${currentProfile.memberName}`,
+    );
     socket.emit("studentFinancialActivity", {
       studentName: currentProfile.memberName,
       accountType: "checking",
@@ -1058,6 +1072,9 @@ socket.on("donationChecking", (updatedDonCheck) => {
     currentProfile.checkingAccount = updatedDonCheck;
 
     // Notify server about financial activity for teacher dashboard update
+    console.log(
+      `📤 Emitting studentFinancialActivity (donation) for ${currentProfile.memberName}`,
+    );
     socket.emit("studentFinancialActivity", {
       studentName: currentProfile.memberName,
       accountType: "checking",
@@ -1079,6 +1096,9 @@ socket.on("donationSaving", (updatedDonSav) => {
     currentProfile.savingsAccount = updatedDonSav;
 
     // Notify server about financial activity for teacher dashboard update
+    console.log(
+      `📤 Emitting studentFinancialActivity (savings) for ${currentProfile.memberName}`,
+    );
     socket.emit("studentFinancialActivity", {
       studentName: currentProfile.memberName,
       accountType: "savings",
