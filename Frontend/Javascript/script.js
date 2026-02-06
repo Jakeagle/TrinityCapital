@@ -2275,28 +2275,9 @@ function setupSampleUserCleanupHandlers() {
     }
   });
 
-  // Handle visibility change (tab/window blur)
-  document.addEventListener("visibilitychange", () => {
-    if (
-      document.hidden &&
-      currentProfile &&
-      currentProfile.memberName &&
-      currentProfile.memberName.toLowerCase().includes("sample")
-    ) {
-      console.log(
-        `[SampleUserCleanup] Page hidden for sample user: ${currentProfile.memberName}`,
-      );
-      // Reset data when user leaves the page
-      const payload = JSON.stringify({
-        username: currentProfile.memberName,
-        userType: "student",
-      });
-      navigator.sendBeacon(
-        `${API_BASE_URL}/sample/reset-data`,
-        new Blob([payload], { type: "application/json" }),
-      );
-    }
-  });
+  // NOTE: Removed visibilitychange handler - it was resetting data when switching tabs
+  // to view teacher dashboard, causing the dashboard to show stale data.
+  // beforeunload handler above is sufficient for cleanup on page close/refresh.
 
   console.log("✅ [SampleUserCleanup] Cleanup handlers initialized");
 }
