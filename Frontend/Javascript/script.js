@@ -1035,15 +1035,7 @@ socket.on("connect_error", (error) => {
 socket.on("checkingAccountUpdate", (updatedChecking) => {
   console.log("Checking account update received:", updatedChecking);
 
-  // Update the UI with the received checking account data
-  displayBalance(updatedChecking);
-  displayTransactions(updatedChecking);
-  displayBillList(updatedChecking);
-
-  // Also update the global currentAccount and currentProfile
-  if (currentAccount && currentAccount.accountType === "Checking") {
-    currentAccount = updatedChecking;
-  }
+  // Update currentProfile with latest checking data
   if (currentProfile) {
     currentProfile.checkingAccount = updatedChecking;
 
@@ -1057,15 +1049,52 @@ socket.on("checkingAccountUpdate", (updatedChecking) => {
       account: updatedChecking,
     });
   }
+
+  // Only update UI if currently viewing the checking account
+  if (currentAccount && currentAccount.accountType === "Checking") {
+    console.log("✅ Updating UI for checking account (currently viewing)");
+    displayBalance(updatedChecking);
+    displayTransactions(updatedChecking);
+    displayBillList(updatedChecking);
+    currentAccount = updatedChecking;
+  } else {
+    console.log("⏭️  Skipping UI update - currently viewing savings account");
+  }
+});
+
+// Listen for savings account updates
+socket.on("savingsAccountUpdate", (updatedSavings) => {
+  console.log("Savings account update received:", updatedSavings);
+
+  // Update currentProfile with latest savings data
+  if (currentProfile) {
+    currentProfile.savingsAccount = updatedSavings;
+
+    // Notify server about financial activity for teacher dashboard update
+    console.log(
+      `📤 Emitting studentFinancialActivity for ${currentProfile.memberName}`,
+    );
+    socket.emit("studentFinancialActivity", {
+      studentName: currentProfile.memberName,
+      accountType: "savings",
+      account: updatedSavings,
+    });
+  }
+
+  // Only update UI if currently viewing the savings account
+  if (currentAccount && currentAccount.accountType === "Savings") {
+    console.log("✅ Updating UI for savings account (currently viewing)");
+    displayBalance(updatedSavings);
+    displayTransactions(updatedSavings);
+    currentAccount = updatedSavings;
+  } else {
+    console.log("⏭️  Skipping UI update - currently viewing checking account");
+  }
 });
 
 // Listen for donation updates for checking accounts
 socket.on("donationChecking", (updatedDonCheck) => {
   console.log("Donation to checking account update received:", updatedDonCheck);
-
-  // Update the UI with the received donation data
-  displayBalance(updatedDonCheck);
-  displayTransactions(updatedDonCheck);
 
   // Update currentProfile if available
   if (currentProfile) {
@@ -1081,15 +1110,20 @@ socket.on("donationChecking", (updatedDonCheck) => {
       account: updatedDonCheck,
     });
   }
+
+  // Only update UI if currently viewing the checking account
+  if (currentAccount && currentAccount.accountType === "Checking") {
+    console.log("✅ Updating UI for checking donation (currently viewing)");
+    displayBalance(updatedDonCheck);
+    displayTransactions(updatedDonCheck);
+  } else {
+    console.log("⏭️  Skipping UI update - currently viewing savings account");
+  }
 });
 
 // Listen for donation updates for savings accounts
 socket.on("donationSaving", (updatedDonSav) => {
   console.log("Donation to savings account update received:", updatedDonSav);
-
-  // Update the UI with the received donation data
-  displayBalance(updatedDonSav);
-  displayTransactions(updatedDonSav);
 
   // Update currentProfile if available
   if (currentProfile) {
@@ -1104,6 +1138,15 @@ socket.on("donationSaving", (updatedDonSav) => {
       accountType: "savings",
       account: updatedDonSav,
     });
+  }
+
+  // Only update UI if currently viewing the savings account
+  if (currentAccount && currentAccount.accountType === "Savings") {
+    console.log("✅ Updating UI for savings donation (currently viewing)");
+    displayBalance(updatedDonSav);
+    displayTransactions(updatedDonSav);
+  } else {
+    console.log("⏭️  Skipping UI update - currently viewing checking account");
   }
 });
 
