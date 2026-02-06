@@ -25,10 +25,10 @@ import { quickTimeMode } from "./quickTimeMode.js";
 
 // Define API base URL based on environment
 const isProduction = window.location.hostname !== "localhost";
-const PROD_API_BASE_URL = "http://localhost:3000";
+const PROD_API_BASE_URL = "https://tcstudentserver-production.up.railway.app";
 const API_BASE_URL = isProduction
   ? PROD_API_BASE_URL
-  : "http://localhost:3000";
+  : "https://tcstudentserver-production.up.railway.app";
 
 // Show loading modal immediately
 document.addEventListener("DOMContentLoaded", function () {
@@ -63,7 +63,7 @@ function hideLoadingAndShowLogin() {
   }
 }
 
-const socket = io("http://localhost:3000");
+const socket = io("https://tcstudentserver-production.up.railway.app");
 
 if (
   /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|OperaMini/i.test(
@@ -285,10 +285,10 @@ async function initializeStudentMessaging(studentName) {
   try {
     console.log(
       "Attempting to fetch messages from:",
-      `http://localhost:3000/messages/${studentName}`,
+      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
     );
     const response = await fetch(
-      `http://localhost:3000/messages/${studentName}`,
+      `https://tcstudentserver-production.up.railway.app/messages/${studentName}`,
     );
 
     if (!response.ok) {
@@ -356,7 +356,7 @@ async function openMessageCenter() {
       try {
         // Fetch classmates from the server
         const response = await fetch(
-          `http://localhost:3000/classmates/${currentProfile.memberName}`,
+          `https://tcstudentserver-production.up.railway.app/classmates/${currentProfile.memberName}`,
         );
         if (!response.ok) {
           throw new Error("Failed to fetch classmates");
@@ -425,7 +425,7 @@ async function openMessageCenter() {
   }
   try {
     const response = await fetch(
-      `http://localhost:3000/messages/${currentProfile.memberName}`,
+      `https://tcstudentserver-production.up.railway.app/messages/${currentProfile.memberName}`,
     );
     if (!response.ok) throw new Error("Failed to fetch threads");
     const { threads } = await response.json(); // Expect { threads: [...] }
@@ -705,7 +705,7 @@ function displayConversation(threadId, messages) {
 async function createNewThread(recipientId) {
   try {
     const response = await fetch(
-      "http://localhost:3000/newThread",
+      "https://tcstudentserver-production.up.railway.app/newThread",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1331,18 +1331,18 @@ socket.on("unitAssignedToStudent", (data) => {
 
 /***********************************************************Server Functions**********************************************/
 const testServerProfiles =
-  "http://localhost:3000/profiles";
+  "https://tcstudentserver-production.up.railway.app/profiles";
 
-const loanURL = "http://localhost:3000/loans";
+const loanURL = "https://tcstudentserver-production.up.railway.app/loans";
 
 const donationURL =
-  "http://localhost:3000/donations";
+  "https://tcstudentserver-production.up.railway.app/donations";
 
 const donationSavingsURL =
-  "http://localhost:3000/donationsSavings";
+  "https://tcstudentserver-production.up.railway.app/donationsSavings";
 
 const balanceURL =
-  "http://localhost:3000/initialBalance";
+  "https://tcstudentserver-production.up.railway.app/initialBalance";
 
 const productivityURL = "http://localhost:5040/timers";
 
@@ -1628,7 +1628,8 @@ const loginFunc = async function (PIN, user, screen) {
         "success",
       );
 
-      // If this is the Sample Student, clean up previous session data BEFORE initializing
+      // Sample student login - do NOT automatically clear data
+      // If students need a reset, use the Reset Sample Student endpoint explicitly
       if (
         currentProfile.memberName &&
         currentProfile.memberName.toLowerCase().includes("sample")
@@ -1637,50 +1638,12 @@ const loginFunc = async function (PIN, user, screen) {
           `👤 [SampleStudentLogin] Sample student logged in: ${currentProfile.memberName}`,
         );
         console.log(
-          `🗑️  [SampleStudentLogin] Cleaning up previous session data for: ${currentProfile.memberName}`,
+          `⏱️  [SampleStudentLogin] Quick Time Mode will be initialized by server`,
         );
-
-        try {
-          const cleanupUrl = `https://tcstudentserver-production.up.railway.app/sample/cleanup-student/${encodeURIComponent(
-            currentProfile.memberName,
-          )}`;
-          console.log(
-            `🌐 [SampleStudentLogin] Calling cleanup endpoint: ${cleanupUrl}`,
-          );
-
-          const cleanupResponse = await fetch(cleanupUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              studentName: currentProfile.memberName,
-            }),
-          });
-
-          console.log(
-            `📡 [SampleStudentLogin] Cleanup response status: ${cleanupResponse.status}`,
-          );
-
-          if (cleanupResponse.ok) {
-            const cleanupResult = await cleanupResponse.json();
-            console.log(
-              `✅ [SampleStudentLogin] Cleanup complete - cleared accounts and deleted ${cleanupResult.threadsDeleted} threads`,
-            );
-          } else {
-            console.warn(
-              `⚠️  [SampleStudentLogin] Cleanup returned status ${cleanupResponse.status}`,
-            );
-            const errorText = await cleanupResponse.text();
-            console.warn(`⚠️  [SampleStudentLogin] Error: ${errorText}`);
-          }
-        } catch (cleanupErr) {
-          console.error(
-            `❌ [SampleStudentLogin] Error cleaning up sample data:`,
-            cleanupErr,
-          );
-        }
       }
 
       // Emit the identify event with the logged-in user's memberName
+
       const userId = currentProfile.memberName;
       currentStudentName = userId; // Store for reconnections
       console.log(`📡 Emitting identify event for user: ${userId}`);

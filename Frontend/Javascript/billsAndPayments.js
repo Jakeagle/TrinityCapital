@@ -1,6 +1,5 @@
 "use strict";
 import { currentProfile } from "./script.js";
-import { processAction } from "./ILGE/lessonManager.js";
 import {
   showNotification,
   validateAmount,
@@ -27,9 +26,9 @@ export let payInterval;
 let billType;
 let paymentType;
 
-const socket = io("http://localhost:3000");
-const billURL = `http://localhost:3000/bills`;
-const schedulerStatusURL = `http://localhost:3000/scheduler/status`;
+const socket = io("https://tcstudentserver-production.up.railway.app");
+const billURL = `https://tcstudentserver-production.up.railway.app/bills`;
+const schedulerStatusURL = `https://tcstudentserver-production.up.railway.app/scheduler/status`;
 
 /**********************************************Functions***********************************************/
 
@@ -227,11 +226,6 @@ paymentFrequency.addEventListener("change", function (event) {
 
 // Handle bill submission with validation
 billsBTN.addEventListener("click", async function (event) {
-  processAction("bill_added", {
-    amount: parseInt(-Math.abs(billInput.value)),
-    name: billName.value.trim(),
-    category: billType,
-  });
   event.preventDefault();
 
   const originalText = billsBTN.textContent;
@@ -258,18 +252,21 @@ billsBTN.addEventListener("click", async function (event) {
       newDate,
     );
 
-    // Update currentProfile with the new bill for lesson snapshots
-    if (!currentProfile.bills) {
-      currentProfile.bills = [];
+    // Update currentProfile with the new bill in the correct location
+    if (!currentProfile.checkingAccount.bills) {
+      currentProfile.checkingAccount.bills = [];
     }
-    currentProfile.bills.push({
+    currentProfile.checkingAccount.bills.push({
       name: billName.value.trim(),
       amount: parseInt(-Math.abs(billInput.value)),
       category: billType,
       interval: billInterval,
       date: newDate,
     });
-    console.log("Updated currentProfile.bills:", currentProfile.bills);
+    console.log(
+      "Updated currentProfile.checkingAccount.bills:",
+      currentProfile.checkingAccount.bills,
+    );
   } catch (error) {
     console.error("Error processing bill:", error);
   } finally {
@@ -307,18 +304,21 @@ paymentsBTN.addEventListener("click", async function (event) {
       newDate,
     );
 
-    // Update currentProfile with the new payment for lesson snapshots
-    if (!currentProfile.paychecks) {
-      currentProfile.paychecks = [];
+    // Update currentProfile with the new payment in the correct location
+    if (!currentProfile.checkingAccount.payments) {
+      currentProfile.checkingAccount.payments = [];
     }
-    currentProfile.paychecks.push({
+    currentProfile.checkingAccount.payments.push({
       name: paymentName.value.trim(),
       amount: parseInt(Math.abs(paymentInput.value)),
       category: paymentType,
       interval: payInterval,
       date: newDate,
     });
-    console.log("Updated currentProfile.paychecks:", currentProfile.paychecks);
+    console.log(
+      "Updated currentProfile.checkingAccount.payments:",
+      currentProfile.checkingAccount.payments,
+    );
   } catch (error) {
     console.error("Error processing payment:", error);
   } finally {
