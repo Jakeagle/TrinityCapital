@@ -26,9 +26,7 @@ import { quickTimeMode } from "./quickTimeMode.js";
 // Define API base URL based on environment
 const isProduction = window.location.hostname !== "localhost";
 const PROD_API_BASE_URL = "https://tcstudentserver-production.up.railway.app";
-const API_BASE_URL = isProduction
-  ? PROD_API_BASE_URL
-  : "https://tcstudentserver-production.up.railway.app";
+const API_BASE_URL = isProduction ? PROD_API_BASE_URL : "https://tcstudentserver-production.up.railway.app";
 
 // Show loading modal immediately
 document.addEventListener("DOMContentLoaded", function () {
@@ -704,16 +702,13 @@ function displayConversation(threadId, messages) {
  */
 async function createNewThread(recipientId) {
   try {
-    const response = await fetch(
-      "https://tcstudentserver-production.up.railway.app/newThread",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          participants: [currentProfile.memberName, recipientId],
-        }),
-      },
-    );
+    const response = await fetch("https://tcstudentserver-production.up.railway.app/newThread", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        participants: [currentProfile.memberName, recipientId],
+      }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json();
@@ -1040,6 +1035,13 @@ socket.on("checkingAccountUpdate", (updatedChecking) => {
   }
   if (currentProfile) {
     currentProfile.checkingAccount = updatedChecking;
+
+    // Notify server about financial activity for teacher dashboard update
+    socket.emit("studentFinancialActivity", {
+      studentName: currentProfile.memberName,
+      accountType: "checking",
+      account: updatedChecking,
+    });
   }
 });
 
@@ -1050,6 +1052,18 @@ socket.on("donationChecking", (updatedDonCheck) => {
   // Update the UI with the received donation data
   displayBalance(updatedDonCheck);
   displayTransactions(updatedDonCheck);
+
+  // Update currentProfile if available
+  if (currentProfile) {
+    currentProfile.checkingAccount = updatedDonCheck;
+
+    // Notify server about financial activity for teacher dashboard update
+    socket.emit("studentFinancialActivity", {
+      studentName: currentProfile.memberName,
+      accountType: "checking",
+      account: updatedDonCheck,
+    });
+  }
 });
 
 // Listen for donation updates for savings accounts
@@ -1059,6 +1073,18 @@ socket.on("donationSaving", (updatedDonSav) => {
   // Update the UI with the received donation data
   displayBalance(updatedDonSav);
   displayTransactions(updatedDonSav);
+
+  // Update currentProfile if available
+  if (currentProfile) {
+    currentProfile.savingsAccount = updatedDonSav;
+
+    // Notify server about financial activity for teacher dashboard update
+    socket.emit("studentFinancialActivity", {
+      studentName: currentProfile.memberName,
+      accountType: "savings",
+      account: updatedDonSav,
+    });
+  }
 });
 
 // Handle potential timer modal logic (if used elsewhere)
@@ -1330,19 +1356,15 @@ socket.on("unitAssignedToStudent", (data) => {
 });
 
 /***********************************************************Server Functions**********************************************/
-const testServerProfiles =
-  "https://tcstudentserver-production.up.railway.app/profiles";
+const testServerProfiles = "https://tcstudentserver-production.up.railway.app/profiles";
 
 const loanURL = "https://tcstudentserver-production.up.railway.app/loans";
 
-const donationURL =
-  "https://tcstudentserver-production.up.railway.app/donations";
+const donationURL = "https://tcstudentserver-production.up.railway.app/donations";
 
-const donationSavingsURL =
-  "https://tcstudentserver-production.up.railway.app/donationsSavings";
+const donationSavingsURL = "https://tcstudentserver-production.up.railway.app/donationsSavings";
 
-const balanceURL =
-  "https://tcstudentserver-production.up.railway.app/initialBalance";
+const balanceURL = "https://tcstudentserver-production.up.railway.app/initialBalance";
 
 const productivityURL = "http://localhost:5040/timers";
 
