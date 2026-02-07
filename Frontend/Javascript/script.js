@@ -1033,7 +1033,19 @@ socket.on("connect_error", (error) => {
 
 // Listen for checking account updates
 socket.on("checkingAccountUpdate", (updatedChecking) => {
-  console.log("Checking account update received:", updatedChecking);
+  console.log("🔔 [CheckingUpdate] Checking account update received");
+  console.log(
+    "🔍 [CheckingUpdate] Current account type:",
+    currentAccount?.accountType,
+  );
+  console.log(
+    "🔍 [CheckingUpdate] Current account number:",
+    currentAccount?.accountNumber,
+  );
+  console.log(
+    "🔍 [CheckingUpdate] Savings account number:",
+    currentProfile?.savingsAccount?.accountNumber,
+  );
 
   // Update currentProfile with latest checking data
   if (currentProfile) {
@@ -1050,15 +1062,29 @@ socket.on("checkingAccountUpdate", (updatedChecking) => {
     });
   }
 
-  // Only update UI if currently viewing the checking account
-  if (currentAccount && currentAccount.accountType === "Checking") {
-    console.log("✅ Updating UI for checking account (currently viewing)");
-    displayBalance(updatedChecking);
-    displayTransactions(updatedChecking);
-    displayBillList(updatedChecking);
+  // CRITICAL: Only update UI if currently viewing the checking account
+  // We must NOT update if viewing savings
+  const isViewingChecking = currentAccount?.accountType === "Checking";
+  const isViewingSavings = currentAccount?.accountType === "Savings";
+
+  console.log("🔍 [CheckingUpdate] isViewingChecking:", isViewingChecking);
+  console.log("🔍 [CheckingUpdate] isViewingSavings:", isViewingSavings);
+
+  if (isViewingChecking) {
+    console.log(
+      "✅ [CheckingUpdate] Updating UI for checking account (currently viewing)",
+    );
+    // Update currentAccount reference FIRST before calling display functions
     currentAccount = updatedChecking;
+    displayBalance(currentAccount);
+    displayTransactions(currentAccount);
+    displayBillList(currentAccount);
   } else {
-    console.log("⏭️  Skipping UI update - currently viewing savings account");
+    console.log(
+      `⏭️  [CheckingUpdate] Skipping UI update - currently viewing ${currentAccount?.accountType || "unknown"} account`,
+    );
+    // EXPLICITLY do not update UI when viewing savings
+    console.log("🔒 [CheckingUpdate] UI remains locked to current account");
   }
 });
 
@@ -1082,13 +1108,22 @@ socket.on("savingsAccountUpdate", (updatedSavings) => {
   }
 
   // Only update UI if currently viewing the savings account
-  if (currentAccount && currentAccount.accountType === "Savings") {
+  // Check both account type AND that we're not viewing checking
+  if (
+    currentAccount &&
+    currentAccount.accountType === "Savings" &&
+    currentAccount.accountNumber === currentProfile.savingsAccount.accountNumber
+  ) {
     console.log("✅ Updating UI for savings account (currently viewing)");
-    displayBalance(updatedSavings);
-    displayTransactions(updatedSavings);
+    // Update currentAccount reference FIRST before calling display functions
     currentAccount = updatedSavings;
+    displayBalance(currentAccount);
+    displayTransactions(currentAccount);
+    // Savings accounts don't display bills, so no displayBillList call
   } else {
-    console.log("⏭️  Skipping UI update - currently viewing checking account");
+    console.log(
+      `⏭️  Skipping UI update - currently viewing ${currentAccount?.accountType || "unknown"} account`,
+    );
   }
 });
 
@@ -1112,12 +1147,20 @@ socket.on("donationChecking", (updatedDonCheck) => {
   }
 
   // Only update UI if currently viewing the checking account
-  if (currentAccount && currentAccount.accountType === "Checking") {
+  if (
+    currentAccount &&
+    currentAccount.accountType === "Checking" &&
+    currentAccount.accountNumber ===
+      currentProfile.checkingAccount.accountNumber
+  ) {
     console.log("✅ Updating UI for checking donation (currently viewing)");
-    displayBalance(updatedDonCheck);
-    displayTransactions(updatedDonCheck);
+    currentAccount = updatedDonCheck;
+    displayBalance(currentAccount);
+    displayTransactions(currentAccount);
   } else {
-    console.log("⏭️  Skipping UI update - currently viewing savings account");
+    console.log(
+      `⏭️  Skipping UI update - currently viewing ${currentAccount?.accountType || "unknown"} account`,
+    );
   }
 });
 
@@ -1141,12 +1184,19 @@ socket.on("donationSaving", (updatedDonSav) => {
   }
 
   // Only update UI if currently viewing the savings account
-  if (currentAccount && currentAccount.accountType === "Savings") {
+  if (
+    currentAccount &&
+    currentAccount.accountType === "Savings" &&
+    currentAccount.accountNumber === currentProfile.savingsAccount.accountNumber
+  ) {
     console.log("✅ Updating UI for savings donation (currently viewing)");
-    displayBalance(updatedDonSav);
-    displayTransactions(updatedDonSav);
+    currentAccount = updatedDonSav;
+    displayBalance(currentAccount);
+    displayTransactions(currentAccount);
   } else {
-    console.log("⏭️  Skipping UI update - currently viewing checking account");
+    console.log(
+      `⏭️  Skipping UI update - currently viewing ${currentAccount?.accountType || "unknown"} account`,
+    );
   }
 });
 
@@ -1560,6 +1610,22 @@ hideLoadingAndShowLogin();
 
 export let currentAccount;
 export let currentProfile;
+
+/**
+ * Setter function to update the global currentAccount variable
+ * This is necessary because imported variables are read-only in ES6 modules
+ * @param {Object} account - The account object to set as current
+ */
+export function setCurrentAccount(account) {
+  console.log(
+    `🔄 [SetCurrentAccount] Updating currentAccount to: ${account?.accountType}`,
+  );
+  console.log(
+    `🔄 [SetCurrentAccount] Account number: ${account?.accountNumber}`,
+  );
+  currentAccount = account;
+}
+
 let currentTime;
 let accPIN;
 let accUser;
@@ -1861,6 +1927,15 @@ if (accBtnSwitch) {
         targetAccount === currentProfile.checkingAccount.accountNumber.slice(-4)
       ) {
         currentAccount = currentProfile.checkingAccount;
+        console.log("🔄 [AccountSwitch] Switched to CHECKING account");
+        console.log(
+          "🔄 [AccountSwitch] Account type:",
+          currentAccount.accountType,
+        );
+        console.log(
+          "🔄 [AccountSwitch] Account number:",
+          currentAccount.accountNumber,
+        );
         balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(-4)}`;
         updateUI(currentAccount);
 
@@ -1872,6 +1947,15 @@ if (accBtnSwitch) {
         targetAccount === currentProfile.savingsAccount.accountNumber.slice(-4)
       ) {
         currentAccount = currentProfile.savingsAccount;
+        console.log("🔄 [AccountSwitch] Switched to SAVINGS account");
+        console.log(
+          "🔄 [AccountSwitch] Account type:",
+          currentAccount.accountType,
+        );
+        console.log(
+          "🔄 [AccountSwitch] Account number:",
+          currentAccount.accountNumber,
+        );
         balanceLabel.textContent = `Current Balance for: #${currentAccount.accountNumber.slice(-4)}`;
         updateUI(currentAccount);
 
@@ -1941,7 +2025,18 @@ if (donateBtn) {
 }
 
 //Display Transactions
-export const displayTransactions = function (currentAccount) {
+export const displayTransactions = function (acc) {
+  console.log(
+    "🖥️  [DisplayTransactions] Called with account type:",
+    acc?.accountType,
+  );
+  console.log("🖥️  [DisplayTransactions] Account number:", acc?.accountNumber);
+  console.log("🖥️  [DisplayTransactions] Balance:", acc?.balanceTotal);
+  console.log(
+    "🖥️  [DisplayTransactions] Transactions count:",
+    acc?.transactions?.length,
+  );
+
   let movs;
 
   //selects the transactions HTML element
@@ -1950,7 +2045,7 @@ export const displayTransactions = function (currentAccount) {
 
   //Variable set for the transactions themselves
 
-  movs = currentAccount.transactions;
+  movs = acc.transactions;
 
   //A loop that runs through each transaction in the current account object
   movs.forEach(function (mov, i) {
@@ -1962,14 +2057,14 @@ export const displayTransactions = function (currentAccount) {
 
     //Sets up the date variable for the transactions
     // Check if movementsDates array exists and has the index, otherwise use current date
-    if (currentAccount.movementsDates && currentAccount.movementsDates[i]) {
-      date = new Date(currentAccount.movementsDates[i]);
+    if (acc.movementsDates && acc.movementsDates[i]) {
+      date = new Date(acc.movementsDates[i]);
       // Check if the date is valid
       if (isNaN(date.getTime())) {
         // Only log if we have invalid date data, not missing data
         console.warn(
           "Invalid date found, using current date:",
-          currentAccount.movementsDates[i],
+          acc.movementsDates[i],
         );
         date = new Date();
       }
@@ -1979,13 +2074,9 @@ export const displayTransactions = function (currentAccount) {
     }
 
     //displays date next to transactions
-    const displayDate = formatMovementDate(date, currentAccount.locale);
+    const displayDate = formatMovementDate(date, acc.locale);
     //Formats transactions for user locale
-    const formattedMov = formatCur(
-      mov.amount,
-      currentAccount.locale,
-      currentAccount.currency,
-    );
+    const formattedMov = formatCur(mov.amount, acc.locale, acc.currency);
     let transType;
     let transName = mov.Name;
 
@@ -2067,10 +2158,12 @@ export const displayTransactions = function (currentAccount) {
                         </div>`;
     //Inserts HTML with required data
     transactionContainer.insertAdjacentHTML("afterbegin", html);
-    displayBillList(currentAccount);
   });
+
+  // Display bills ONCE after all transactions are rendered (not in the loop)
+  displayBillList(acc);
 };
-export const displayBillList = function (currentAccount) {
+export const displayBillList = function (acc) {
   let bills;
 
   //selects the transactions HTML element
@@ -2080,7 +2173,7 @@ export const displayBillList = function (currentAccount) {
   // Record that user has viewed their bills for lesson tracking
   if (typeof recordLessonAction === "function") {
     recordLessonAction("account_checked", {
-      accountType: currentAccount.accountType,
+      accountType: acc.accountType,
       action: "viewed_bills",
       timestamp: new Date().toISOString(),
     });
@@ -2088,14 +2181,14 @@ export const displayBillList = function (currentAccount) {
 
   //Variable set for the transactions themselves
 
-  bills = currentAccount.bills;
+  bills = acc.bills;
 
   //Sets the date for each transaction according to the date set in the current Account object
 
   //Sets up the date variable for the transactions
 
   //A loop that runs through each transaction in the current account object
-  if (currentAccount.accountType != "Savings") {
+  if (acc.accountType != "Savings") {
     bills.forEach(function (bill, i) {
       //ternerary to determine whether a transaction is a deposit or withdrawal
 
@@ -2126,17 +2219,10 @@ export const displayBillList = function (currentAccount) {
       }
 
       //displays date next to transactions
-      const displayDate = formatMovementDate(
-        advancedDate,
-        currentAccount.locale,
-      );
+      const displayDate = formatMovementDate(advancedDate, acc.locale);
 
       //Formats transactions for user locale
-      const formattedMov = formatCur(
-        bill.amount,
-        currentAccount.locale,
-        currentAccount.currency,
-      );
+      const formattedMov = formatCur(bill.amount, acc.locale, acc.currency);
       let transType;
       let transName = bill.Name;
 
@@ -2261,6 +2347,12 @@ export function updateAccountNumberDisplay(account) {
 
 //Displays the current balance based on the transactions array
 export const displayBalance = function (acc) {
+  console.log(
+    "💰 [DisplayBalance] Called with account type:",
+    acc?.accountType,
+  );
+  console.log("💰 [DisplayBalance] Balance:", acc?.balanceTotal);
+
   //calculates the balance based on the transaction array
 
   //displays balance

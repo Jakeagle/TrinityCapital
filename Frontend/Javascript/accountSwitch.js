@@ -1,19 +1,20 @@
-'use strict';
+"use strict";
 import {
   currentAccount,
   currentProfile,
+  setCurrentAccount,
   updateUI,
   displayBalance,
   displayTransactions,
   displayBillList,
   getInfoProfiles,
   updateAccountNumberDisplay,
-} from './script.js';
+} from "./script.js";
 
-const loginButton = document.querySelector('.login__btn');
-const accountBTNs = document.querySelectorAll('.form__btn--accountSwitch');
-const accountContainer = document.querySelector('.accountListBg');
-const testServerProfiles = 'https://tcstudentserver-production.up.railway.app/profiles';
+const loginButton = document.querySelector(".login__btn");
+const accountBTNs = document.querySelectorAll(".form__btn--accountSwitch");
+const accountContainer = document.querySelector(".accountListBg");
+const testServerProfiles = "https://tcstudentserver-production.up.railway.app/profiles";
 
 let btnNum = 0;
 
@@ -27,7 +28,7 @@ function initializeAccountSwitch() {
     !currentProfile.checkingAccount ||
     !currentProfile.savingsAccount
   ) {
-    console.warn('User not logged in or accounts not found');
+    console.warn("User not logged in or accounts not found");
     return;
   }
 
@@ -38,7 +39,7 @@ function initializeAccountSwitch() {
 
   console.log(accounts);
 
-  accounts.forEach(account => {
+  accounts.forEach((account) => {
     const html = [
       ` <li class="account">
        ${account.accountType} ------------- ${account.accountNumber.slice(-4)}
@@ -53,23 +54,27 @@ function initializeAccountSwitch() {
        >
      </li>`,
     ];
-    accountContainer.insertAdjacentHTML('beforeEnd', html);
+    accountContainer.insertAdjacentHTML("beforeEnd", html);
   });
-  let checking = document.querySelector('.Checking');
-  let savings = document.querySelector('.Savings');
+  let checking = document.querySelector(".Checking");
+  let savings = document.querySelector(".Savings");
 
-  checking.addEventListener('click', async function () {
-    const accountNumber = document.querySelector('.accountNumber');
-    const accountType = document.querySelector('.accountType');
+  checking.addEventListener("click", async function () {
+    const accountNumber = document.querySelector(".accountNumber");
+    const accountType = document.querySelector(".accountType");
     let newProfile;
     let Profiles = await getInfoProfiles();
 
-    Profiles.forEach(profile => {
+    Profiles.forEach((profile) => {
       if (profile.memberName === currentProfile.memberName) {
         newProfile = profile;
       }
     });
 
+    // CRITICAL: Update the global currentAccount variable FIRST
+    setCurrentAccount(newProfile.checkingAccount);
+
+    // Then update the UI
     updateUI(newProfile.checkingAccount);
 
     // Use the proper formatting function for account number display
@@ -77,32 +82,36 @@ function initializeAccountSwitch() {
 
     // Record account switch action using lesson engine
     if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('account_switched', {
-        fromAccount: currentAccount?.accountType || 'unknown',
-        toAccount: 'Checking',
+      await window.lessonEngine.onAppAction("account_switched", {
+        fromAccount: currentAccount?.accountType || "unknown",
+        toAccount: "Checking",
         accountNumber: newProfile.checkingAccount.accountNumber,
         balance: newProfile.checkingAccount.balanceTotal,
         timestamp: new Date().toISOString(),
       });
 
-      console.log('✅ Account switch to Checking recorded for lesson tracking');
+      console.log("✅ Account switch to Checking recorded for lesson tracking");
     }
 
     console.log(Profiles);
   });
 
-  savings.addEventListener('click', async function () {
-    const accountNumber = document.querySelector('.accountNumber');
-    const accountType = document.querySelector('.accountType');
+  savings.addEventListener("click", async function () {
+    const accountNumber = document.querySelector(".accountNumber");
+    const accountType = document.querySelector(".accountType");
     let newProfile;
     let Profiles = await getInfoProfiles();
 
-    Profiles.forEach(profile => {
+    Profiles.forEach((profile) => {
       if (profile.memberName === currentProfile.memberName) {
         newProfile = profile;
       }
     });
 
+    // CRITICAL: Update the global currentAccount variable FIRST
+    setCurrentAccount(newProfile.savingsAccount);
+
+    // Then update the UI
     updateUI(newProfile.savingsAccount);
 
     // Use the proper formatting function for account number display
@@ -110,15 +119,15 @@ function initializeAccountSwitch() {
 
     // Record account switch action using lesson engine
     if (window.lessonEngine && window.lessonEngine.initialized) {
-      await window.lessonEngine.onAppAction('account_switched', {
-        fromAccount: currentAccount?.accountType || 'unknown',
-        toAccount: 'Savings',
+      await window.lessonEngine.onAppAction("account_switched", {
+        fromAccount: currentAccount?.accountType || "unknown",
+        toAccount: "Savings",
         accountNumber: newProfile.savingsAccount.accountNumber,
         balance: newProfile.savingsAccount.balanceTotal,
         timestamp: new Date().toISOString(),
       });
 
-      console.log('✅ Account switch to Savings recorded for lesson tracking');
+      console.log("✅ Account switch to Savings recorded for lesson tracking");
     }
 
     console.log(Profiles);
