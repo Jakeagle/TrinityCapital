@@ -1779,8 +1779,7 @@ const loginFunc = async function (PIN, user, screen) {
         "success",
       );
 
-      // Sample student login - do NOT automatically clear data
-      // If students need a reset, use the Reset Sample Student endpoint explicitly
+      // Sample student login - automatically clear data for fresh start
       if (
         currentProfile.memberName &&
         currentProfile.memberName.toLowerCase().includes("sample")
@@ -1788,6 +1787,55 @@ const loginFunc = async function (PIN, user, screen) {
         console.log(
           `👤 [SampleStudentLogin] Sample student logged in: ${currentProfile.memberName}`,
         );
+        console.log(
+          `🗑️  [SampleStudentLogin] Initiating data cleanup for fresh start...`,
+        );
+
+        // Call cleanup endpoint to reset sample student data
+        try {
+          const cleanupResponse = await fetch(
+            `${API_BASE_URL}/sample/cleanup-student/${encodeURIComponent(currentProfile.memberName)}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+          );
+
+          if (cleanupResponse.ok) {
+            const cleanupResult = await cleanupResponse.json();
+            console.log(
+              `✅ [SampleStudentLogin] Data cleanup successful:`,
+              cleanupResult,
+            );
+
+            // Immediately clear local profile data to match cleaned state
+            currentProfile.checkingAccount.bills = [];
+            currentProfile.checkingAccount.payments = [];
+            currentProfile.checkingAccount.transactions = [];
+            currentProfile.checkingAccount.movementsDates = [];
+            currentProfile.checkingAccount.balanceTotal = 0;
+
+            currentProfile.savingsAccount.bills = [];
+            currentProfile.savingsAccount.payments = [];
+            currentProfile.savingsAccount.transactions = [];
+            currentProfile.savingsAccount.movementsDates = [];
+            currentProfile.savingsAccount.balanceTotal = 0;
+
+            console.log(`✅ [SampleStudentLogin] Local profile data cleared`);
+          } else {
+            console.warn(
+              `⚠️  [SampleStudentLogin] Cleanup request failed with status: ${cleanupResponse.status}`,
+            );
+          }
+        } catch (cleanupError) {
+          console.error(
+            `❌ [SampleStudentLogin] Error during cleanup:`,
+            cleanupError,
+          );
+        }
+
         console.log(
           `⏱️  [SampleStudentLogin] Quick Time Mode will be initialized by server`,
         );
