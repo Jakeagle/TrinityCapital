@@ -1474,6 +1474,207 @@ socket.on("unitAssignedToStudent", (data) => {
   }
 });
 
+// Listen for new lesson assignments in real-time
+socket.on("newLessonAssigned", (data) => {
+  console.log("New lesson assignment received:", data);
+
+  const {
+    studentName,
+    username,
+    lessonId,
+    lessonTitle,
+    lessonDescription,
+    unitName,
+    unitValue,
+    teacherName,
+    classPeriod,
+  } = data;
+
+  // Check if this lesson is for the current student
+  if (
+    currentProfile &&
+    (currentProfile.memberName === studentName ||
+      currentProfile.userName === username ||
+      currentProfile.username === username)
+  ) {
+    console.log(
+      `✅ New lesson "${lessonTitle}" assigned in unit "${unitName}" by ${teacherName}`,
+    );
+
+    // Show notification to student
+    if (typeof showModernNotification === "function") {
+      showModernNotification(
+        `📖 New lesson available: "${lessonTitle}" in ${unitName}`,
+        "success",
+        7000,
+      );
+    } else if (typeof showNotification === "function") {
+      showNotification(
+        `New lesson available: "${lessonTitle}" in ${unitName}`,
+        "success",
+        7000,
+      );
+    } else {
+      // Fallback notification
+      const notification = document.createElement("div");
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        max-width: 300px;
+        animation: slideInRight 0.3s ease-out;
+      `;
+      notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 18px;">📖</span>
+          <div>
+            <strong>New Lesson Available!</strong><br>
+            <span style="opacity: 0.9;">"${lessonTitle}"</span><br>
+            <span style="opacity: 0.8; font-size: 12px;">${unitName}</span>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(notification);
+
+      // Auto-remove after 7 seconds
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.style.animation = "slideOutRight 0.3s ease-out";
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.parentNode.removeChild(notification);
+            }
+          }, 300);
+        }
+      }, 7000);
+    }
+
+    // Refresh lessons display if the render function is available
+    if (typeof renderLessons === "function") {
+      console.log("🔄 Refreshing lessons display to show new lesson...");
+      // Fetch updated profile and re-render
+      getInfoProfiles().then(() => {
+        if (currentProfile) {
+          renderLessons(currentProfile);
+        }
+      });
+    }
+  } else {
+    console.log("ℹ️ New lesson not for current student, ignoring.");
+  }
+});
+
+// Listen for lesson updates in real-time
+socket.on("lessonUpdated", (data) => {
+  console.log("Lesson update received:", data);
+
+  const {
+    studentName,
+    username,
+    lessonId,
+    lessonTitle,
+    lessonDescription,
+    unitName,
+    unitValue,
+    teacherName,
+    classPeriod,
+  } = data;
+
+  // Check if this update is for the current student
+  if (
+    currentProfile &&
+    (currentProfile.memberName === studentName ||
+      currentProfile.userName === username ||
+      currentProfile.username === username)
+  ) {
+    console.log(
+      `✅ Lesson "${lessonTitle}" updated in unit "${unitName}" by ${teacherName}`,
+    );
+
+    // Show notification to student
+    if (typeof showModernNotification === "function") {
+      showModernNotification(
+        `🔄 Lesson updated: "${lessonTitle}" in ${unitName}`,
+        "info",
+        5000,
+      );
+    } else if (typeof showNotification === "function") {
+      showNotification(
+        `Lesson updated: "${lessonTitle}" in ${unitName}`,
+        "info",
+        5000,
+      );
+    } else {
+      // Fallback notification
+      const notification = document.createElement("div");
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 10000;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        font-size: 14px;
+        max-width: 300px;
+        animation: slideInRight 0.3s ease-out;
+      `;
+      notification.innerHTML = `
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 18px;">🔄</span>
+          <div>
+            <strong>Lesson Updated!</strong><br>
+            <span style="opacity: 0.9;">"${lessonTitle}"</span><br>
+            <span style="opacity: 0.8; font-size: 12px;">${unitName}</span>
+          </div>
+        </div>
+      `;
+
+      document.body.appendChild(notification);
+
+      // Auto-remove after 5 seconds
+      setTimeout(() => {
+        if (notification.parentNode) {
+          notification.style.animation = "slideOutRight 0.3s ease-out";
+          setTimeout(() => {
+            if (notification.parentNode) {
+              notification.parentNode.removeChild(notification);
+            }
+          }, 300);
+        }
+      }, 5000);
+    }
+
+    // If student is currently viewing this lesson, refresh it
+    // This assumes there's a way to check which lesson is currently displayed
+    if (typeof refreshCurrentLesson === "function") {
+      refreshCurrentLesson(lessonId);
+    } else if (typeof renderLessons === "function") {
+      console.log("🔄 Refreshing lessons display to show updated lesson...");
+      // Fetch updated profile and re-render
+      getInfoProfiles().then(() => {
+        if (currentProfile) {
+          renderLessons(currentProfile);
+        }
+      });
+    }
+  } else {
+    console.log("ℹ️ Lesson update not for current student, ignoring.");
+  }
+});
+
 /***********************************************************Server Functions**********************************************/
 const testServerProfiles = "https://tcstudentserver-production.up.railway.app/profiles";
 
