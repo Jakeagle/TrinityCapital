@@ -1079,6 +1079,12 @@ socket.on("checkingAccountUpdate", (updatedChecking) => {
     displayBalance(currentAccount);
     displayTransactions(currentAccount);
     displayBillList(currentAccount);
+
+    // Update income/spending/budget calculations
+    if (window.incomeSpendingCalc) {
+      console.log("💰 [CheckingUpdate] Recalculating income and spending");
+      window.incomeSpendingCalc();
+    }
   } else {
     console.log(
       `⏭️  [CheckingUpdate] Skipping UI update - currently viewing ${currentAccount?.accountType || "unknown"} account`,
@@ -2418,6 +2424,11 @@ export const updateUI = function (acc) {
   displayBalance(acc);
   //Displays the users bill list
   displayBillList(acc);
+
+  // Update income/spending/budget calculations
+  if (window.incomeSpendingCalc) {
+    window.incomeSpendingCalc();
+  }
 
   // Record that user has checked their account for lesson tracking
   if (typeof recordLessonAction === "function") {
