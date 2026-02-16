@@ -6,6 +6,7 @@ import {
   renderUnitHeader,
   renderLessonButtons,
 } from "./ILGE/LRM/lessonRenderer.js";
+import { initializeLessonAssignmentSocket } from "./ILGE/LRM/lessonAssignmentSocket.js";
 
 // Import lesson engine functions globally
 
@@ -1326,7 +1327,11 @@ socket.on("classMessage", (dialogHtml) => {
 
 // Listen for unit assignments
 socket.on("unitAssignedToStudent", (data) => {
-  console.log("Unit assignment received:", data);
+  console.log("\n🎯 ============ UNIT ASSIGNMENT EVENT RECEIVED ============");
+  console.log("📦 Full event data:", data);
+  console.log("👤 Current profile:", currentProfile);
+  console.log("🔍 Current student name:", currentProfile?.memberName);
+  console.log("═══════════════════════════════════════════════════════\n");
 
   const {
     studentId,
@@ -1340,26 +1345,49 @@ socket.on("unitAssignedToStudent", (data) => {
   } = data;
 
   // Check if this assignment is for the current student
-  if (
+  console.log("🔍 Checking if assignment is for current student:");
+  console.log("  - studentId from event:", studentId);
+  console.log("  - studentName from event:", studentName);
+  console.log("  - currentProfile.memberName:", currentProfile?.memberName);
+  console.log("  - currentProfile.username:", currentProfile?.username);
+  console.log("  - currentProfile._id:", currentProfile?._id);
+
+  const isForMe =
     currentProfile &&
     (currentProfile.memberName === studentId ||
       currentProfile.memberName === studentName ||
       currentProfile.username === studentId ||
-      currentProfile._id === studentId)
-  ) {
+      currentProfile._id === studentId);
+
+  console.log("✅ Is this assignment for me?", isForMe);
+
+  if (isForMe) {
     console.log(
       `✅ New unit "${unitName}" (${unitValue}) assigned by ${assignedBy} to class period ${classPeriod}`,
     );
+    console.log("📦 unitAssignment object:", unitAssignment);
 
     // Update the student's profile with the new unit assignment
     if (!currentProfile.assignedUnitIds) {
       currentProfile.assignedUnitIds = [];
     }
 
+    console.log("📋 Current assignedUnitIds:", currentProfile.assignedUnitIds);
+
     // Check if unit is already assigned to prevent duplicates
-    const existingUnit = currentProfile.assignedUnitIds.find(
-      (unit) => unit.unitValue === unitValue || unit.unitId === unitId,
-    );
+    const existingUnit = currentProfile.assignedUnitIds.find((unit) => {
+      const matchByValue = unit.unitValue === unitValue;
+      const matchById = unit.unitId === unitId;
+      console.log(
+        `  Checking unit: ${unit.unitName} (value: ${unit.unitValue}, id: ${unit.unitId})`,
+      );
+      console.log(
+        `    Match by value: ${matchByValue}, Match by ID: ${matchById}`,
+      );
+      return matchByValue || matchById;
+    });
+
+    console.log("🔍 Existing unit found?", existingUnit);
 
     if (!existingUnit) {
       currentProfile.assignedUnitIds.push(unitAssignment);
@@ -1368,31 +1396,26 @@ socket.on("unitAssignedToStudent", (data) => {
         unitAssignment,
       );
 
-      // Re-render lessons to show the new unit - use dynamic import to access the lesson renderer
-      if (typeof renderLessons === "function") {
-        console.log("🔄 Refreshing lessons display...");
-        console.log(
-          "🔍 DEBUG: currentProfile when calling renderLessons:",
-          currentProfile,
-        );
-        renderLessons(currentProfile);
-      } else {
-        // If renderLessons is not available as a global function, try to import it
-        console.log("🔄 Attempting to refresh lessons via module import...");
-        import("./lessonRenderer.js")
-          .then((module) => {
-            if (module.renderLessons) {
-              module.renderLessons(currentProfile);
-            } else {
-              console.warn(
-                "renderLessons function not found in lesson renderer module",
-              );
-            }
-          })
-          .catch((error) => {
-            console.error("Failed to import lesson renderer:", error);
-          });
-      }
+      // Unit has been added to currentProfile.assignedUnitIds
+      // Fetch the updated assigned units from the server to ensure consistency
+      console.log("🔄 Fetching updated lesson assignments...");
+
+      fetch(`https://tcstudentserver-production.up.railway.app/student/${currentProfile._id}/assignedUnits`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.success) {
+            console.log(
+              "✅ Updated assignedUnitIds from server:",
+              data.assignedUnitIds,
+            );
+            // Update the profile with the fresh data from server
+            currentProfile.assignedUnitIds = data.assignedUnitIds;
+          }
+        })
+        .catch((err) => {
+          console.error("Failed to fetch updated lesson assignments:", err);
+          // Continue anyway - the unit was already added locally
+        });
 
       // Show notification to student
       if (typeof showModernNotification === "function") {
@@ -1409,68 +1432,18 @@ socket.on("unitAssignedToStudent", (data) => {
         );
       } else {
         // Fallback notification
-        const notification = document.createElement("div");
-        notification.style.cssText = `
-          position: fixed;
-          top: 20px;
-          right: 20px;
-          background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-          color: white;
-          padding: 15px 20px;
-          border-radius: 8px;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-          z-index: 10000;
-          font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-          font-size: 14px;
-          max-width: 300px;
-          animation: slideInRight 0.3s ease-out;
-        `;
-        notification.innerHTML = `
-          <div style="display: flex; align-items: center; gap: 10px;">
-            <span style="font-size: 18px;">📚</span>
-            <div>
-              <strong>New Unit Assigned!</strong><br>
-              <span style="opacity: 0.9;">"${unitName}" by ${assignedBy}</span>
-            </div>
-          </div>
-        `;
-
-        document.body.appendChild(notification);
-
-        // Auto-remove after 7 seconds
-        setTimeout(() => {
-          if (notification.parentNode) {
-            notification.style.animation = "slideOutRight 0.3s ease-out";
-            setTimeout(() => {
-              if (notification.parentNode) {
-                notification.parentNode.removeChild(notification);
-              }
-            }, 300);
-          }
-        }, 7000);
-
-        // Add CSS animations if not already present
-        if (!document.getElementById("notificationAnimations")) {
-          const style = document.createElement("style");
-          style.id = "notificationAnimations";
-          style.textContent = `
-            @keyframes slideInRight {
-              from { transform: translateX(100%); opacity: 0; }
-              to { transform: translateX(0); opacity: 1; }
-            }
-            @keyframes slideOutRight {
-              from { transform: translateX(0); opacity: 1; }
-              to { transform: translateX(100%); opacity: 0; }
-            }
-          `;
-          document.head.appendChild(style);
-        }
+        alert(`New unit assigned: ${unitName}`);
       }
     } else {
       console.log("ℹ️ Unit already assigned, skipping duplicate:", unitValue);
     }
   } else {
-    console.log("ℹ️ Unit assignment not for current student, ignoring.");
+    console.log("❌ Unit assignment NOT for current student, ignoring.");
+    console.log("   This event was for:", studentName || studentId);
+    console.log(
+      "   Current student is:",
+      currentProfile?.memberName || "NOT LOGGED IN",
+    );
   }
 });
 
@@ -1959,6 +1932,8 @@ const loginFunc = async function (PIN, user, screen) {
         if (pin === profiles[i].pin) {
           correctPin = true;
           currentProfile = profiles[i];
+          // Make profile globally accessible for socket handlers
+          window.currentProfile = currentProfile;
           break;
         }
       }
@@ -2055,6 +2030,39 @@ const loginFunc = async function (PIN, user, screen) {
       console.log(`📡 Emitting identify event for user: ${userId}`);
       socket.emit("identify", userId);
       console.log(`✅ Identify event emitted successfully`);
+
+      // Initialize lesson assignment socket for real-time lesson updates
+      console.log(
+        `🔄 [DEBUG] Starting lesson socket initialization for: ${userId}`,
+      );
+      console.log(
+        `🔄 [DEBUG] Checking if Socket.IO is available: ${typeof io !== "undefined"}`,
+      );
+
+      if (typeof io === "undefined") {
+        console.error(
+          `❌ [DEBUG] Socket.IO is not loaded! Cannot initialize lesson socket.`,
+        );
+        console.error(
+          `❌ [DEBUG] Make sure socket.io script is included in the HTML`,
+        );
+      } else {
+        console.log(
+          `✅ [DEBUG] Socket.IO is available, proceeding with initialization`,
+        );
+
+        try {
+          await initializeLessonAssignmentSocket(userId);
+          console.log(
+            `✅ [DEBUG] Lesson assignment socket initialized successfully for: ${userId}`,
+          );
+        } catch (error) {
+          console.error(
+            `❌ [DEBUG] Failed to initialize lesson socket for ${userId}:`,
+            error,
+          );
+        }
+      }
 
       // Initialize Quick Time Mode for sample accounts
       await quickTimeMode.initialize(userId);
