@@ -166,7 +166,7 @@ export function markLessonComplete(lesson) {
  */
 async function fetchConditionStates(studentId, lessonId) {
   try {
-    const lessonServerUrl = "http://localhost:4000";
+    const lessonServerUrl = "https://tclessonserver-production.up.railway.app";
     const response = await fetch(
       `${lessonServerUrl}/api/lesson-condition-state?studentId=${studentId}&lessonId=${lessonId}`
     );
@@ -202,7 +202,7 @@ async function fetchConditionStates(studentId, lessonId) {
  */
 async function saveConditionStates(studentId, lessonId, conditions) {
   try {
-    const lessonServerUrl = "http://localhost:4000";
+    const lessonServerUrl = "https://tclessonserver-production.up.railway.app";
     const response = await fetch(
       `${lessonServerUrl}/api/lesson-condition-state`,
       {

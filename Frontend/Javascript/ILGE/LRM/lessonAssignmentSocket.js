@@ -41,7 +41,7 @@ class LessonAssignmentSocket {
       console.log(
         `🔍 [LRM-Socket] INIT: Testing if localhost:4000 is reachable...`,
       );
-      fetch("http://localhost:4000", { mode: "no-cors" })
+      fetch("https://tclessonserver-production.up.railway.app", { mode: "no-cors" })
         .then(() =>
           console.log(`✅ [LRM-Socket] INIT: localhost:4000 is reachable`),
         )
@@ -53,7 +53,7 @@ class LessonAssignmentSocket {
         );
 
       // Connect to lesson server on localhost:4000
-      this.socket = io("http://localhost:4000", {
+      this.socket = io("https://tclessonserver-production.up.railway.app", {
         withCredentials: true,
         transports: ["websocket", "polling"],
       });

@@ -2,7 +2,7 @@
  * Responsible for sending student session data (active lessons, timers, student name)
  * to the backend SDSM endpoint.
  *
- * Endpoint used: http://localhost:4000/api/sdsm/session
+ * Endpoint used: https://tclessonserver-production.up.railway.app/api/sdsm/session
  */
 
 import { completedLessons } from "../lessonManager.js";
@@ -11,7 +11,7 @@ export async function sendStudentSessionData(payload) {
   try {
     console.log("SDSM: Sending session payload to server...", payload);
 
-    const response = await fetch("http://localhost:4000/api/sdsm/session", {
+    const response = await fetch("https://tclessonserver-production.up.railway.app/api/sdsm/session", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

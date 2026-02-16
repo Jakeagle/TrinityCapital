@@ -451,7 +451,7 @@ function handleMessagesModal() {
     timestamp: Date.now(),
   };
 
-  // Send to backend SDSM endpoint (http://localhost:4000) and log result
+  // Send to backend SDSM endpoint (https://tclessonserver-production.up.railway.app) and log result
   try {
     sendStudentSessionData(payload)
       .then((result) => {
@@ -503,7 +503,7 @@ export function buildSessionPayload(currentProfile) {
 function sendSessionWithBeacon(payload) {
   try {
     if (typeof navigator !== "undefined" && navigator.sendBeacon) {
-      const url = "http://localhost:4000/api/sdsm/session";
+      const url = "https://tclessonserver-production.up.railway.app/api/sdsm/session";
       const blob = new Blob([JSON.stringify(payload)], {
         type: "application/json",
       });
@@ -513,7 +513,7 @@ function sendSessionWithBeacon(payload) {
     } else {
       // Fallback: attempt a synchronous XHR (not ideal) — try best-effort
       const xhr = new XMLHttpRequest();
-      xhr.open("POST", "http://localhost:4000/api/sdsm/session", false); // synchronous
+      xhr.open("POST", "https://tclessonserver-production.up.railway.app/api/sdsm/session", false); // synchronous
       xhr.setRequestHeader("Content-Type", "application/json");
       try {
         xhr.send(JSON.stringify(payload));
